@@ -17,6 +17,7 @@ class DuplicateFinder:
         algorithm: str = "perceptual",
         verbose: bool = False,
         cache_path: Optional[Path] = None,
+        use_cache: bool = True,
     ):
         """
         Initialize duplicate finder.
@@ -26,12 +27,13 @@ class DuplicateFinder:
             algorithm: Hash algorithm - 'perceptual' or 'exact'
             verbose: Enable verbose output
             cache_path: Path to hash cache file
-                (default: ~/.cache/duperscooper/hashes.json)
+                (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
+            use_cache: Whether to use cache (default: True)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
-        self.hasher = AudioHasher(cache_path=cache_path)
+        self.hasher = AudioHasher(cache_path=cache_path, use_cache=use_cache)
         self.error_count = 0
 
     def find_audio_files(self, paths: List[Path]) -> List[Path]:
@@ -139,7 +141,7 @@ class DuplicateFinder:
                 f"\nFound {len(duplicates)} group(s) of duplicates "
                 f"({redundant} redundant file(s))"
             )
-            if self.algorithm == "perceptual":
+            if self.algorithm == "perceptual" and self.hasher.use_cache:
                 print(
                     f"Cache: {self.hasher.cache_hits} hits, "
                     f"{self.hasher.cache_misses} misses"

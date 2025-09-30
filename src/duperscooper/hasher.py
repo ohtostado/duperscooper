@@ -12,20 +12,24 @@ class AudioHasher:
 
     SUPPORTED_FORMATS = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"}
 
-    def __init__(self, cache_path: Optional[Path] = None):
+    def __init__(self, cache_path: Optional[Path] = None, use_cache: bool = True):
         """
         Initialize audio hasher with optional cache.
 
         Args:
-            cache_path: Path to cache file (default: ~/.cache/duperscooper/hashes.json)
+            cache_path: Path to cache file
+                (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
+            use_cache: Whether to use cache (default: True)
         """
         if cache_path is None:
-            cache_dir = Path.home() / ".cache" / "duperscooper"
+            xdg_config = Path.home() / ".config"
+            cache_dir = xdg_config / "duperscooper"
             cache_dir.mkdir(parents=True, exist_ok=True)
             cache_path = cache_dir / "hashes.json"
 
         self.cache_path = cache_path
-        self.cache: Dict[str, str] = self._load_cache()
+        self.use_cache = use_cache
+        self.cache: Dict[str, str] = self._load_cache() if use_cache else {}
         self.cache_hits = 0
         self.cache_misses = 0
 
@@ -44,11 +48,29 @@ class AudioHasher:
 
     def save_cache(self) -> None:
         """Save cache to disk."""
+        if not self.use_cache:
+            return
         try:
             with open(self.cache_path, "w") as f:
                 json.dump(self.cache, f)
         except OSError:
             pass  # Silent failure for cache writes
+
+    def clear_cache(self) -> bool:
+        """
+        Delete the cache file.
+
+        Returns:
+            True if cache was deleted, False if it didn't exist or couldn't be deleted
+        """
+        try:
+            if self.cache_path.exists():
+                self.cache_path.unlink()
+                self.cache.clear()
+                return True
+            return False
+        except OSError:
+            return False
 
     @staticmethod
     def is_audio_file(file_path: Path) -> bool:
@@ -136,12 +158,13 @@ class AudioHasher:
 
         # Check cache using file hash as key
         file_hash = AudioHasher.compute_file_hash(file_path)
-        if file_hash in self.cache:
+        if self.use_cache and file_hash in self.cache:
             self.cache_hits += 1
             return self.cache[file_hash]
 
         # Cache miss - compute perceptual hash
-        self.cache_misses += 1
+        if self.use_cache:
+            self.cache_misses += 1
 
         try:
             # Call fpcalc directly (Python 3.13 compatible)
@@ -157,7 +180,8 @@ class AudioHasher:
             perceptual_hash = hashlib.sha256(combined.encode()).hexdigest()
 
             # Store in cache
-            self.cache[file_hash] = perceptual_hash
+            if self.use_cache:
+                self.cache[file_hash] = perceptual_hash
 
             return perceptual_hash
 

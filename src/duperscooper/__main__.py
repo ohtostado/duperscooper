@@ -70,7 +70,7 @@ Examples:
 
     parser.add_argument(
         "paths",
-        nargs="+",
+        nargs="*",
         type=Path,
         help="Paths to search for duplicate audio files (files or directories)",
     )
@@ -113,6 +113,18 @@ Examples:
     )
 
     parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable cache (compute all hashes from scratch)",
+    )
+
+    parser.add_argument(
+        "--clear-cache",
+        action="store_true",
+        help="Clear the hash cache and exit",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -125,11 +137,29 @@ def main() -> int:
     """Main entry point for CLI."""
     args = parse_args()
 
+    # Handle --clear-cache option
+    if args.clear_cache:
+        from .hasher import AudioHasher
+
+        hasher = AudioHasher()
+        if hasher.clear_cache():
+            print(f"Cache cleared: {hasher.cache_path}")
+            return 0
+        else:
+            print(f"No cache to clear (or failed to delete): {hasher.cache_path}")
+            return 1
+
+    # Require paths unless --clear-cache
+    if not args.paths:
+        print("Error: the following arguments are required: paths", file=sys.stderr)
+        return 1
+
     # Create finder and search for duplicates
     finder = DuplicateFinder(
         min_size=args.min_size,
         algorithm=args.algorithm,
         verbose=not args.no_progress,
+        use_cache=not args.no_cache,
     )
 
     try:

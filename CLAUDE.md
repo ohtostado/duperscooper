@@ -49,7 +49,7 @@ src/duperscooper/
 - `compute_audio_hash()`: Chromaprint fingerprint for perceptual matching
 - `get_audio_metadata()`: Extract duration, channels, sample rate
 - **Caching**: Stores file hash → perceptual hash mappings in
-  `~/.cache/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
+  `~/.config/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
   files on subsequent runs
 
 #### DuplicateFinder (finder.py)
@@ -139,6 +139,12 @@ duperscooper ~/Music --delete-duplicates --no-progress
 
 # Multiple paths, CSV output
 duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
+
+# Disable cache (compute all hashes from scratch)
+duperscooper ~/Music --no-cache
+
+# Clear the hash cache
+duperscooper --clear-cache
 ```
 
 ### Debugging
@@ -178,13 +184,17 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 
 ### Optimization Tips
 
-- **Caching**: Perceptual hashes are cached in `~/.cache/duperscooper/hashes.json`
+- **Caching**: Perceptual hashes are cached in `~/.config/duperscooper/hashes.json`
   keyed by file hash (SHA256), so unchanged files skip fingerprinting on
   subsequent runs
+- **Cache Management**:
+  - Clear cache: `duperscooper --clear-cache`
+  - Disable cache: `duperscooper ~/Music --no-cache`
+  - Cache location: `$XDG_CONFIG_HOME/duperscooper/hashes.json`
+    (defaults to `~/.config/duperscooper/hashes.json`)
 - Use `--algorithm exact` for faster exact-match-only detection
 - Use `--min-size` to skip small files (reduce processing)
 - Process large libraries in batches if memory constrained
-- Delete cache file to force full re-fingerprinting if needed
 
 ## Future Enhancements
 
