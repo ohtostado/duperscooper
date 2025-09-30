@@ -1,2 +1,3 @@
-# dupescooper
+# duperscooper
+
 Duplicate audio finder

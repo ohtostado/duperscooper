@@ -1,0 +1,252 @@
+# Claude Instructions for duperscooper
+
+## Project Overview
+
+**duperscooper** is a Python CLI application that finds duplicate audio files
+recursively within specified paths. It uses perceptual hashing to detect
+similar audio content even across different formats and bitrates, or exact
+byte-matching for identical files.
+
+## Code Style & Standards
+
+### Python Conventions
+
+- **Formatting**: Black with 88-character line length
+- **Linting**: Ruff with comprehensive rules, auto-fixes enabled
+- **Type Hints**: Required for all function signatures (MyPy enforced)
+- **Imports**: Organized by Ruff (stdlib → third-party → local)
+- **Docstrings**: Use for public functions/classes; focus on complex logic
+
+### Quality Commands
+
+```bash
+black src/ tests/                    # Format code
+ruff check --fix src/ tests/         # Lint and auto-fix
+mypy src/                            # Type check
+pytest tests/ -v                     # Run tests
+pytest tests/ --cov=duperscooper     # Run with coverage
+```
+
+## Architecture
+
+### Module Structure
+
+```text
+src/duperscooper/
+├── __init__.py       # Package metadata, version
+├── __main__.py       # CLI interface (argparse), output formatting
+├── hasher.py         # AudioHasher: perceptual & exact hashing
+└── finder.py         # DuplicateFinder: search logic
+                      # DuplicateManager: file operations
+```
+
+### Key Components
+
+#### AudioHasher (hasher.py)
+
+- `is_audio_file()`: Check if file extension is supported
+- `compute_file_hash()`: SHA256 for exact matching
+- `compute_audio_hash()`: Perceptual hash using pydub + imagehash
+- `get_audio_metadata()`: Extract duration, channels, sample rate
+
+#### DuplicateFinder (finder.py)
+
+- `find_audio_files()`: Recursive file discovery
+- `find_duplicates()`: Hash all files, group by hash
+- Handles errors gracefully, tracks error count
+
+#### DuplicateManager (finder.py)
+
+- `interactive_delete()`: User-driven duplicate removal
+- `format_file_size()`: Human-readable size strings
+- `get_file_info()`: File metadata for display
+
+## Development Guidelines
+
+### Adding Features
+
+1. **New audio formats**: Add extension to `AudioHasher.SUPPORTED_FORMATS`
+2. **New hash algorithms**: Extend `compute_audio_hash()` with new case
+3. **New output formats**: Add function to `__main__.py`, update argparse choices
+4. **New CLI options**: Add to `parse_args()`, pass through to classes
+
+### Code Changes
+
+- **Never** add wildcard imports (`from x import *`)
+- **Always** add type hints to new functions
+- **Always** handle exceptions in file/audio operations
+- **Update tests** when changing public interfaces
+- **Format code** before committing
+
+### Testing
+
+- Use `pytest` with markers: `@pytest.mark.integration`, `@pytest.mark.slow`
+- Mock file I/O and audio processing for unit tests
+- Test edge cases: empty files, corrupted audio, permission errors
+- Run `pytest --cov` to verify coverage
+
+## Dependencies
+
+### Core Runtime
+
+- `pydub`: Audio file loading and processing
+- `imagehash`: Perceptual hashing via PIL/Pillow
+- `numpy`: Audio sample manipulation
+- `tqdm`: Progress bars
+
+### Development
+
+- `black`, `ruff`, `mypy`: Code quality
+- `pytest`, `pytest-cov`: Testing
+
+### Adding Dependencies
+
+1. Add to `pyproject.toml` `dependencies` list
+2. Pin version in `requirements.txt`
+3. Document purpose in this file
+4. Test compatibility with Python 3.8+
+
+## Common Tasks
+
+### Running the Application
+
+```bash
+# Development mode (from project root)
+python -m duperscooper /path/to/music --verbose
+
+# Installed mode
+pip install -e .
+duperscooper /path/to/music
+```
+
+### Example Usage
+
+```bash
+# Find duplicates with progress
+duperscooper ~/Music --verbose
+
+# Find only large files, output as JSON
+duperscooper ~/Music --min-size 1048576 --output json
+
+# Exact byte matching instead of perceptual
+duperscooper ~/Music --algorithm exact
+
+# Interactive deletion mode
+duperscooper ~/Music --delete-duplicates
+
+# Multiple paths, CSV output
+duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
+```
+
+### Debugging
+
+- Use `--verbose` flag for progress and error details
+- Check stderr for error messages (preserved separately)
+- Add `print()` statements in code (not in production)
+- Use `pytest -v -s` to see print output in tests
+
+## Error Handling
+
+### Expected Behaviors
+
+- **Missing paths**: Log error, continue with other paths
+- **Corrupted audio**: Log error, skip file, continue
+- **Permission denied**: Log error, skip file, continue
+- **Keyboard interrupt**: Exit gracefully with message
+- All errors increment `error_count`, reported at end
+
+### Exit Codes
+
+- `0`: Success (no duplicates found)
+- `1`: Error during execution
+- `2`: Success (duplicates found)
+- `130`: User cancelled (Ctrl+C)
+
+## Performance Considerations
+
+### Perceptual Hashing
+
+- Converts audio to mono @ 22050 Hz
+- Downsamples to 2048 samples for consistency
+- Uses average hash (16x16) for speed vs. accuracy balance
+- Slower than exact hashing but detects similar audio
+
+### Optimization Tips
+
+- Use `--algorithm exact` for faster exact-match-only detection
+- Use `--min-size` to skip small files (reduce processing)
+- Process large libraries in batches if memory constrained
+- Consider parallelization for multi-core systems (future enhancement)
+
+## Future Enhancements
+
+### Potential Features
+
+- Parallel hashing with multiprocessing
+- Similarity threshold tuning (currently binary match)
+- Preview audio before deletion
+- Dry-run mode for `--delete-duplicates`
+- Database caching for repeated scans
+- GUI interface
+- Automatic "best quality" file selection
+
+### Code Improvements
+
+- More comprehensive test coverage (integration tests)
+- Benchmark different hash algorithms
+- Support for more exotic audio formats (AIFF, APE, etc.)
+- Configurable audio normalization parameters
+
+## Git & GitHub
+
+### Commit Guidelines
+
+- Reference issues in commit messages: "Fixes #123", "Implements #456"
+- Use conventional commits: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`
+- Format code before committing
+- Run tests before pushing
+
+### Branch Strategy
+
+- `main`: Stable releases
+- Feature branches: `add-feature-name` or `fix-bug-description`
+- Keep commits atomic and well-described
+
+## Troubleshooting
+
+### Common Issues
+
+**Import errors**: Ensure virtual environment activated and dependencies
+installed
+
+```bash
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+
+**FFmpeg errors**: pydub requires FFmpeg for many formats
+
+```bash
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# macOS
+brew install ffmpeg
+
+# Windows
+# Download from https://ffmpeg.org/download.html
+```
+
+**Type checking failures**: Run `mypy src/` and fix reported issues
+
+**Test failures**: Ensure all dependencies installed, check test environment
+
+## Notes for Claude
+
+- **Always format code** with Black before presenting to user
+- **Always run linting** with Ruff when making changes
+- **Prefer editing** existing files over creating new ones
+- **Test changes** when modifying core logic
+- **Document breaking changes** in commit messages
+- **Ask before** installing system packages or major refactors
+- **Reference files** using markdown links: `[file.py](src/duperscooper/file.py)`

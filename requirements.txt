@@ -1,0 +1,13 @@
+pydub==0.25.1
+imagehash==4.3.1
+pillow==10.4.0
+tqdm==4.66.5
+numpy==2.1.0
+scipy==1.14.1
+
+# Development dependencies
+black==24.8.0
+ruff==0.6.3
+mypy==1.11.2
+pytest==8.3.2
+pytest-cov==5.0.0
