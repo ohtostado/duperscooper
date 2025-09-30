@@ -44,6 +44,7 @@ class DuplicateFinder:
             List of audio file paths
         """
         audio_files: List[Path] = []
+        count = 0
 
         for path in paths:
             if not path.exists():
@@ -55,6 +56,9 @@ class DuplicateFinder:
                     path
                 ):
                     audio_files.append(path)
+                    count += 1
+                    if self.verbose and count % 100 == 0:
+                        print(f"\rFound {count} files...", end="", flush=True)
             elif path.is_dir():
                 for file_path in path.rglob("*"):
                     if (
@@ -63,6 +67,13 @@ class DuplicateFinder:
                         and self._meets_size_requirement(file_path)
                     ):
                         audio_files.append(file_path)
+                        count += 1
+                        if self.verbose and count % 100 == 0:
+                            print(f"\rFound {count} files...", end="", flush=True)
+
+        # Print final accurate count
+        if self.verbose and count > 0:
+            print(f"\rFound {count} files...done", flush=True)
 
         return audio_files
 
@@ -82,7 +93,6 @@ class DuplicateFinder:
         audio_files = self.find_audio_files(paths)
 
         if self.verbose:
-            print(f"Found {len(audio_files)} audio file(s)")
             print(f"Computing {self.algorithm} hashes...")
 
         # Compute hashes for all files
