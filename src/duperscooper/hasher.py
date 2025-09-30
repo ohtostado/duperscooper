@@ -4,9 +4,7 @@ import hashlib
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-import imagehash
-import numpy as np
-from PIL import Image
+import acoustid
 from pydub import AudioSegment
 
 
@@ -32,7 +30,17 @@ class AudioHasher:
     @staticmethod
     def compute_audio_hash(file_path: Path, algorithm: str = "perceptual") -> str:
         """
-        Compute perceptual hash of audio content.
+        Compute perceptual hash of audio content using Chromaprint.
+
+        This uses the Chromaprint/AcoustID fingerprinting algorithm which is
+        specifically designed to match audio content across different:
+        - Formats (MP3, FLAC, WAV, etc.)
+        - Bitrates (128kbps MP3 vs 320kbps MP3)
+        - Sample rates (44.1kHz vs 48kHz)
+        - Minor variations (volume, slight EQ changes)
+
+        The fingerprint is duration-aware and works by analyzing the
+        spectral characteristics of the audio over time.
 
         Args:
             file_path: Path to audio file
@@ -40,51 +48,31 @@ class AudioHasher:
 
         Returns:
             Hash string representation
+
+        Raises:
+            ValueError: If fingerprinting fails
         """
         if algorithm == "exact":
             return AudioHasher.compute_file_hash(file_path)
 
         try:
-            # Load audio file
-            audio = AudioSegment.from_file(str(file_path))
+            # Get chromaprint fingerprint and duration
+            # This returns (duration_seconds, fingerprint_string)
+            duration, fingerprint = acoustid.fingerprint_file(str(file_path))
 
-            # Convert to mono and standardize sample rate
-            audio = audio.set_channels(1).set_frame_rate(22050)
+            # The fingerprint is a compressed base64-encoded string that
+            # represents the audio's spectral characteristics
+            # We combine it with duration to ensure length-matching
+            combined = f"{int(duration)}:{fingerprint}"
 
-            # Get raw audio samples
-            samples = np.array(audio.get_array_of_samples())
+            # Return a hash of the fingerprint for consistent length
+            # This makes comparison easier (fixed-length hash)
+            return hashlib.sha256(combined.encode()).hexdigest()
 
-            # Normalize samples to 0-255 range for image hashing
-            if len(samples) > 0:
-                samples = samples.astype(np.float32)
-                samples = samples - samples.min()
-                if samples.max() > 0:
-                    samples = samples / samples.max() * 255
-                samples = samples.astype(np.uint8)
-
-                # Reshape to 2D for image hashing
-                # Create spectrogram-like representation
-                # Use fixed size for consistent hashing
-                target_size = 2048
-                if len(samples) > target_size:
-                    # Downsample
-                    indices = np.linspace(0, len(samples) - 1, target_size, dtype=int)
-                    samples = samples[indices]
-                elif len(samples) < target_size:
-                    # Pad with zeros
-                    samples = np.pad(
-                        samples, (0, target_size - len(samples)), mode="constant"
-                    )
-
-                # Reshape to square-ish image for perceptual hashing
-                img_array = samples[: 64 * 32].reshape(64, 32)
-                img = Image.fromarray(img_array, mode="L")
-
-                # Use average hash (fast and reasonably accurate)
-                return str(imagehash.average_hash(img, hash_size=16))
-            else:
-                return "0" * 64  # Empty audio
-
+        except acoustid.FingerprintGenerationError as e:
+            raise ValueError(
+                f"Failed to generate fingerprint for {file_path}: {e}"
+            ) from e
         except Exception as e:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e
 

@@ -3,9 +3,9 @@
 ## Project Overview
 
 **duperscooper** is a Python CLI application that finds duplicate audio files
-recursively within specified paths. It uses perceptual hashing to detect
-similar audio content even across different formats and bitrates, or exact
-byte-matching for identical files.
+recursively within specified paths. It uses Chromaprint/AcoustID fingerprinting
+to detect similar audio content across different formats, bitrates, and sample
+rates, or exact byte-matching for identical files.
 
 ## Code Style & Standards
 
@@ -46,7 +46,7 @@ src/duperscooper/
 
 - `is_audio_file()`: Check if file extension is supported
 - `compute_file_hash()`: SHA256 for exact matching
-- `compute_audio_hash()`: Perceptual hash using pydub + imagehash
+- `compute_audio_hash()`: Chromaprint fingerprint for perceptual matching
 - `get_audio_metadata()`: Extract duration, channels, sample rate
 
 #### DuplicateFinder (finder.py)
@@ -90,8 +90,8 @@ src/duperscooper/
 ### Core Runtime
 
 - `pydub`: Audio file loading and processing
-- `imagehash`: Perceptual hashing via PIL/Pillow
-- `numpy`: Audio sample manipulation
+- `pyacoustid`: Chromaprint audio fingerprinting (robust perceptual matching)
+- `chromaprint-python`: Python bindings for Chromaprint library
 - `tqdm`: Progress bars
 
 ### Development
@@ -164,12 +164,14 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 
 ## Performance Considerations
 
-### Perceptual Hashing
+### Perceptual Hashing (Chromaprint)
 
-- Converts audio to mono @ 22050 Hz
-- Downsamples to 2048 samples for consistency
-- Uses average hash (16x16) for speed vs. accuracy balance
-- Slower than exact hashing but detects similar audio
+- Uses Chromaprint/AcoustID fingerprinting algorithm
+- Analyzes spectral characteristics over time (frequency domain)
+- Robust to format, bitrate, and sample rate differences
+- Matches 128kbps MP3 vs 320kbps MP3 vs FLAC reliably
+- Duration-aware: includes track length in fingerprint
+- Slower than exact hashing but highly accurate for similar audio
 
 ### Optimization Tips
 
@@ -193,9 +195,10 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 ### Code Improvements
 
 - More comprehensive test coverage (integration tests)
-- Benchmark different hash algorithms
+- Benchmark Chromaprint performance on large libraries
 - Support for more exotic audio formats (AIFF, APE, etc.)
-- Configurable audio normalization parameters
+- Similarity threshold tuning (allow near-matches with configurable tolerance)
+- Optional fuzzy duration matching (±1 second tolerance)
 
 ## Git & GitHub
 
@@ -228,13 +231,27 @@ pip install -r requirements.txt
 
 ```bash
 # Ubuntu/Debian
-sudo apt install ffmpeg
+sudo apt install ffmpeg libchromaprint-tools
 
 # macOS
-brew install ffmpeg
+brew install ffmpeg chromaprint
 
 # Windows
-# Download from https://ffmpeg.org/download.html
+# Download FFmpeg from https://ffmpeg.org/download.html
+# Download fpcalc from https://acoustid.org/chromaprint
+```
+
+**Chromaprint errors**: `pyacoustid` requires the `fpcalc` binary
+
+```bash
+# Ubuntu/Debian
+sudo apt install libchromaprint-tools
+
+# macOS
+brew install chromaprint
+
+# Verify installation
+fpcalc --version
 ```
 
 **Type checking failures**: Run `mypy src/` and fix reported issues

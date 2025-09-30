@@ -4,9 +4,10 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Mock pydub to avoid Python 3.13 audioop issues in tests
+# Mock pydub and acoustid to avoid Python 3.13 audioop issues in tests
 sys.modules["pydub"] = MagicMock()
 sys.modules["pydub.AudioSegment"] = MagicMock()
+sys.modules["acoustid"] = MagicMock()
 
 from duperscooper.finder import (  # noqa: E402
     DuplicateFinder,
