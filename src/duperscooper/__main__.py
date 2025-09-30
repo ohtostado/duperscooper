@@ -113,6 +113,14 @@ Examples:
     )
 
     parser.add_argument(
+        "--similarity-threshold",
+        type=float,
+        default=98.0,
+        metavar="PERCENT",
+        help="Minimum similarity percentage for perceptual matching (default: 98.0)",
+    )
+
+    parser.add_argument(
         "--no-cache",
         action="store_true",
         help="Disable cache (compute all hashes from scratch)",
@@ -167,6 +175,7 @@ def main() -> int:
         verbose=not args.no_progress,
         use_cache=not args.no_cache,
         update_cache=args.update_cache,
+        similarity_threshold=args.similarity_threshold,
     )
 
     try:

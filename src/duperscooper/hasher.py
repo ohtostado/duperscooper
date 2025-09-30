@@ -4,7 +4,7 @@ import hashlib
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class AudioHasher:
@@ -95,19 +95,28 @@ class AudioHasher:
         return sha256_hash.hexdigest()
 
     @staticmethod
-    def _call_fpcalc(file_path: Path) -> Tuple[int, str]:
+    def _call_fpcalc(file_path: Path, raw: bool = False) -> Tuple[int, str]:
         """
         Call fpcalc binary directly to generate Chromaprint fingerprint.
 
         Python 3.13 removed modules that audioread depends on, so we bypass
         it and call fpcalc directly.
 
+        Args:
+            file_path: Path to audio file
+            raw: If True, get raw (uncompressed) fingerprint for fuzzy matching
+
         Returns:
             Tuple of (duration_seconds, fingerprint_string)
         """
         try:
+            cmd = ["fpcalc"]
+            if raw:
+                cmd.append("-raw")
+            cmd.append(str(file_path))
+
             result = subprocess.run(
-                ["fpcalc", str(file_path)],
+                cmd,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -137,26 +146,88 @@ class AudioHasher:
                 "fpcalc not found. Install with: sudo apt install libchromaprint-tools"
             ) from e
 
-    def compute_audio_hash(self, file_path: Path, algorithm: str = "perceptual") -> str:
+    @staticmethod
+    def parse_raw_fingerprint(raw_fp_str: str) -> List[int]:
+        """Parse raw fingerprint string into list of integers."""
+        return [int(x) for x in raw_fp_str.split(",")]
+
+    @staticmethod
+    def hamming_distance(fp1: List[int], fp2: List[int]) -> Tuple[int, int]:
         """
-        Compute perceptual hash of audio content using Chromaprint.
+        Calculate Hamming distance between two raw fingerprints.
 
-        This uses the Chromaprint/AcoustID fingerprinting algorithm which is
-        specifically designed to match audio content across different:
-        - Formats (MP3, FLAC, WAV, etc.)
-        - Bitrates (128kbps MP3 vs 320kbps MP3)
-        - Sample rates (44.1kHz vs 48kHz)
-        - Minor variations (volume, slight EQ changes)
+        Returns:
+            Tuple of (different_bits, total_bits)
+        """
+        # Pad shorter fingerprint with zeros
+        max_len = max(len(fp1), len(fp2))
+        fp1_padded = fp1 + [0] * (max_len - len(fp1))
+        fp2_padded = fp2 + [0] * (max_len - len(fp2))
 
-        The fingerprint is duration-aware and works by analyzing the
-        spectral characteristics of the audio over time.
+        different_bits = 0
+        total_bits = max_len * 32  # Each integer is 32 bits
+
+        for a, b in zip(fp1_padded, fp2_padded):
+            xor = a ^ b
+            different_bits += bin(xor).count("1")
+
+        return different_bits, total_bits
+
+    @staticmethod
+    def similarity_percentage(fp1: List[int], fp2: List[int]) -> float:
+        """
+        Calculate similarity percentage between two raw fingerprints.
+
+        Returns:
+            Similarity as percentage (0-100)
+        """
+        diff_bits, total_bits = AudioHasher.hamming_distance(fp1, fp2)
+        if total_bits == 0:
+            return 0.0
+        return (1 - diff_bits / total_bits) * 100
+
+    def compute_raw_fingerprint(self, file_path: Path) -> List[int]:
+        """
+        Compute raw Chromaprint fingerprint for fuzzy matching.
+
+        Returns list of integers representing the raw fingerprint,
+        suitable for similarity comparison using Hamming distance.
+
+        Args:
+            file_path: Path to audio file
+
+        Returns:
+            List of integers representing raw fingerprint
+
+        Raises:
+            ValueError: If fingerprinting fails
+        """
+        try:
+            duration, raw_fp_str = AudioHasher._call_fpcalc(file_path, raw=True)
+            return AudioHasher.parse_raw_fingerprint(raw_fp_str)
+        except Exception as e:
+            raise ValueError(
+                f"Failed to fingerprint audio file {file_path}: {e}"
+            ) from e
+
+    def compute_audio_hash(
+        self, file_path: Path, algorithm: str = "perceptual"
+    ) -> Union[str, List[int]]:
+        """
+        Compute audio fingerprint using Chromaprint.
+
+        For 'perceptual' algorithm, returns raw fingerprint (list of integers)
+        for fuzzy similarity matching across different bitrates and formats.
+
+        For 'exact' algorithm, returns SHA256 hash for byte-identical matching.
 
         Args:
             file_path: Path to audio file
             algorithm: Hash algorithm - 'perceptual' (default) or 'exact'
 
         Returns:
-            Hash string representation
+            For perceptual: List[int] (raw fingerprint)
+            For exact: str (SHA256 hash)
 
         Raises:
             ValueError: If fingerprinting fails
@@ -172,31 +243,24 @@ class AudioHasher:
             self.cache_updates += 1
             # Fall through to recompute hash
         elif self.use_cache and file_hash in self.cache:
-            # Normal cache hit
+            # Normal cache hit - return cached raw fingerprint
             self.cache_hits += 1
-            return self.cache[file_hash]
+            cached_value = self.cache[file_hash]
+            # Cache stores comma-separated string, parse it
+            return AudioHasher.parse_raw_fingerprint(cached_value)
         elif self.use_cache:
             # Cache miss
             self.cache_misses += 1
 
         try:
-            # Call fpcalc directly (Python 3.13 compatible)
-            duration, fingerprint = AudioHasher._call_fpcalc(file_path)
+            # Get raw fingerprint for fuzzy matching
+            raw_fingerprint = self.compute_raw_fingerprint(file_path)
 
-            # The fingerprint is a compressed base64-encoded string that
-            # represents the audio's spectral characteristics
-            # We combine it with duration to ensure length-matching
-            combined = f"{duration}:{fingerprint}"
-
-            # Return a hash of the fingerprint for consistent length
-            # This makes comparison easier (fixed-length hash)
-            perceptual_hash = hashlib.sha256(combined.encode()).hexdigest()
-
-            # Store in cache
+            # Store in cache as comma-separated string
             if self.use_cache:
-                self.cache[file_hash] = perceptual_hash
+                self.cache[file_hash] = ",".join(str(x) for x in raw_fingerprint)
 
-            return perceptual_hash
+            return raw_fingerprint
 
         except Exception as e:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e

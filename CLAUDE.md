@@ -3,9 +3,10 @@
 ## Project Overview
 
 **duperscooper** is a Python CLI application that finds duplicate audio files
-recursively within specified paths. It uses Chromaprint/AcoustID fingerprinting
-to detect similar audio content across different formats, bitrates, and sample
-rates, or exact byte-matching for identical files.
+recursively within specified paths. It uses fuzzy matching with raw Chromaprint
+fingerprints and Hamming distance to detect duplicate audio content across
+different formats, bitrates, and encodings. Also supports exact byte-matching
+for identical files.
 
 ## Code Style & Standards
 
@@ -46,16 +47,20 @@ src/duperscooper/
 
 - `is_audio_file()`: Check if file extension is supported
 - `compute_file_hash()`: SHA256 for exact matching
-- `compute_audio_hash()`: Chromaprint fingerprint for perceptual matching
-- `get_audio_metadata()`: Extract duration, channels, sample rate
-- **Caching**: Stores file hash → perceptual hash mappings in
+- `compute_raw_fingerprint()`: Raw Chromaprint fingerprint (list of integers)
+- `compute_audio_hash()`: Returns raw fingerprint for perceptual, SHA256 for exact
+- `hamming_distance()`: Calculate bit-level differences between fingerprints
+- `similarity_percentage()`: Calculate similarity % between fingerprints
+- **Caching**: Stores file hash → raw fingerprint mappings in
   `~/.config/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
   files on subsequent runs
 
 #### DuplicateFinder (finder.py)
 
 - `find_audio_files()`: Recursive file discovery
-- `find_duplicates()`: Hash all files, group by hash
+- `find_duplicates()`: Fingerprint files, group by similarity
+- `_group_exact_duplicates()`: Group by exact hash match
+- `_group_fuzzy_duplicates()`: Group by fuzzy similarity using Union-Find
 - Handles errors gracefully, tracks error count
 
 #### DuplicateManager (finder.py)
@@ -146,6 +151,9 @@ duperscooper ~/Music --no-cache
 # Update cache (regenerate hashes for files already in cache)
 duperscooper ~/Music --update-cache
 
+# Adjust similarity threshold (default 98%)
+duperscooper ~/Music --similarity-threshold 95.0
+
 # Clear the hash cache
 duperscooper --clear-cache
 ```
@@ -176,29 +184,40 @@ duperscooper --clear-cache
 
 ## Performance Considerations
 
-### Perceptual Hashing (Chromaprint)
+### Fuzzy Perceptual Matching (Default)
 
-- Uses Chromaprint/AcoustID fingerprinting algorithm
-- Analyzes spectral characteristics over time (frequency domain)
-- Robust to format, bitrate, and sample rate differences
-- Matches 128kbps MP3 vs 320kbps MP3 vs FLAC reliably
-- Duration-aware: includes track length in fingerprint
-- Slower than exact hashing but highly accurate for similar audio
+- Uses raw Chromaprint fingerprints (list of 32-bit integers)
+- Calculates Hamming distance (bit-level differences) between fingerprints
+- Groups files with similarity ≥ threshold (default 98%)
+- Detects duplicates across all bitrates and formats:
+  - 64kbps MP3 ↔ FLAC: ~98.9% similar
+  - 128kbps MP3 ↔ FLAC: ~99.5% similar
+  - 320kbps MP3 ↔ FLAC: ~99.9% similar
+  - All encodings (VBR, CBR) of same source audio match
+- Uses Union-Find algorithm for efficient grouping
+- O(n²) pairwise comparisons (suitable for libraries up to ~10k files)
 
 ### Optimization Tips
 
 - **Caching**: Perceptual hashes are cached in `~/.config/duperscooper/hashes.json`
   keyed by file hash (SHA256), so unchanged files skip fingerprinting on
   subsequent runs
+- **Similarity Threshold**: Adjust `--similarity-threshold` (default 98.0%)
+  - Lower threshold (95%) finds more matches but may include false positives
+  - Higher threshold (99.5%) only matches very similar encodings
+  - Default 98% works well for all common bitrates (64kbps-FLAC)
 - **Cache Management**:
   - Clear cache: `duperscooper --clear-cache`
   - Disable cache: `duperscooper ~/Music --no-cache`
   - Update cache: `duperscooper ~/Music --update-cache` (regenerate cached hashes)
+  - Cache stores raw fingerprints as comma-separated integers
   - Cache location: `$XDG_CONFIG_HOME/duperscooper/hashes.json`
     (defaults to `~/.config/duperscooper/hashes.json`)
-- Use `--algorithm exact` for faster exact-match-only detection
-- Use `--min-size` to skip small files (reduce processing)
-- Process large libraries in batches if memory constrained
+- **Performance**:
+  - Use `--algorithm exact` for faster exact-match-only detection (O(n))
+  - Perceptual algorithm is O(n²) - suitable for ~10k files max
+  - Use `--min-size` to skip small files (reduce processing)
+  - For very large libraries (>10k files), consider using `exact` first
 
 ## Future Enhancements
 

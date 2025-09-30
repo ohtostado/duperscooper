@@ -19,6 +19,7 @@ class DuplicateFinder:
         cache_path: Optional[Path] = None,
         use_cache: bool = True,
         update_cache: bool = False,
+        similarity_threshold: float = 98.0,
     ):
         """
         Initialize duplicate finder.
@@ -31,10 +32,13 @@ class DuplicateFinder:
                 (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
             use_cache: Whether to use cache (default: True)
             update_cache: Force regeneration of cached hashes (default: False)
+            similarity_threshold: Minimum similarity % for perceptual matching
+                (default: 98.0)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
+        self.similarity_threshold = similarity_threshold
         self.hasher = AudioHasher(
             cache_path=cache_path, use_cache=use_cache, update_cache=update_cache
         )
@@ -88,11 +92,14 @@ class DuplicateFinder:
         """
         Find duplicate audio files in given paths.
 
+        For perceptual algorithm, uses fuzzy matching with similarity threshold.
+        For exact algorithm, uses byte-identical hash matching.
+
         Args:
             paths: List of file or directory paths to search
 
         Returns:
-            Dictionary mapping hash to list of duplicate file paths
+            Dictionary mapping group ID to list of duplicate file paths
         """
         if self.verbose:
             print(f"Searching for audio files in {len(paths)} path(s)...")
@@ -100,44 +107,49 @@ class DuplicateFinder:
         audio_files = self.find_audio_files(paths)
 
         if self.verbose:
-            print(f"Computing {self.algorithm} hashes...")
+            mode = (
+                f"perceptual (≥{self.similarity_threshold}% similar)"
+                if self.algorithm == "perceptual"
+                else "exact"
+            )
+            print(f"Computing {mode} fingerprints...")
 
-        # Compute hashes for all files
-        hash_to_files: Dict[str, List[Path]] = defaultdict(list)
+        # Compute fingerprints for all files
+        file_fingerprints: List[tuple] = []  # (file_path, fingerprint)
         total_files = len(audio_files)
 
         for idx, file_path in enumerate(audio_files, 1):
             try:
-                file_hash = self.hasher.compute_audio_hash(file_path, self.algorithm)
-                hash_to_files[file_hash].append(file_path)
+                fingerprint = self.hasher.compute_audio_hash(file_path, self.algorithm)
+                file_fingerprints.append((file_path, fingerprint))
 
                 # Show progress every 10 files or on last file
                 if self.verbose and (idx % 10 == 0 or idx == total_files):
                     percent = (idx / total_files) * 100
                     print(
-                        f"\rHashed {idx}/{total_files} files ({percent:.1f}%)...",
+                        f"\rFingerprinted {idx}/{total_files} files "
+                        f"({percent:.1f}%)...",
                         end="",
                         flush=True,
                     )
             except Exception as e:
-                self._log_error(f"Error hashing {file_path}: {e}")
+                self._log_error(f"Error fingerprinting {file_path}: {e}")
 
         # Print completion
         if self.verbose and total_files > 0:
             print(
-                f"\rHashed {total_files}/{total_files} files (100.0%)...done",
+                f"\rFingerprinted {total_files}/{total_files} files (100.0%)...done",
                 flush=True,
             )
 
         # Save cache to disk
         self.hasher.save_cache()
 
-        # Filter to only duplicates (more than one file with same hash)
-        duplicates = {
-            hash_val: file_list
-            for hash_val, file_list in hash_to_files.items()
-            if len(file_list) > 1
-        }
+        # Group duplicates based on algorithm
+        if self.algorithm == "exact":
+            duplicates = self._group_exact_duplicates(file_fingerprints)
+        else:  # perceptual
+            duplicates = self._group_fuzzy_duplicates(file_fingerprints)
 
         if self.verbose:
             redundant = sum(len(files) - 1 for files in duplicates.values())
@@ -159,6 +171,98 @@ class DuplicateFinder:
                     )
             if self.error_count > 0:
                 print(f"Encountered {self.error_count} error(s) during processing")
+
+        return duplicates
+
+    def _group_exact_duplicates(
+        self, file_fingerprints: List[tuple]
+    ) -> Dict[str, List[Path]]:
+        """Group files by exact hash match."""
+        hash_to_files: Dict[str, List[Path]] = defaultdict(list)
+        for file_path, file_hash in file_fingerprints:
+            hash_to_files[file_hash].append(file_path)
+
+        # Filter to only duplicates
+        return {
+            hash_val: file_list
+            for hash_val, file_list in hash_to_files.items()
+            if len(file_list) > 1
+        }
+
+    def _group_fuzzy_duplicates(
+        self, file_fingerprints: List[tuple]
+    ) -> Dict[str, List[Path]]:
+        """
+        Group files by fuzzy similarity using Union-Find algorithm.
+
+        Files with similarity >= threshold are grouped together.
+        """
+        from typing import List as ListType
+
+        if self.verbose:
+            print(
+                f"Comparing fingerprints (threshold: {self.similarity_threshold}%)..."
+            )
+
+        n = len(file_fingerprints)
+        if n == 0:
+            return {}
+
+        # Union-Find data structure
+        parent = list(range(n))
+
+        def find(x: int) -> int:
+            if parent[x] != x:
+                parent[x] = find(parent[x])
+            return parent[x]
+
+        def union(x: int, y: int) -> None:
+            px, py = find(x), find(y)
+            if px != py:
+                parent[px] = py
+
+        # Compare all pairs
+        comparisons = 0
+        total_comparisons = (n * (n - 1)) // 2
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                _, fp1 = file_fingerprints[i]
+                _, fp2 = file_fingerprints[j]
+
+                similarity = AudioHasher.similarity_percentage(fp1, fp2)
+                if similarity >= self.similarity_threshold:
+                    union(i, j)
+
+                comparisons += 1
+                if self.verbose and comparisons % 100 == 0:
+                    pct = (comparisons / total_comparisons) * 100
+                    print(
+                        f"\rCompared {comparisons}/{total_comparisons} pairs "
+                        f"({pct:.1f}%)...",
+                        end="",
+                        flush=True,
+                    )
+
+        if self.verbose and total_comparisons > 0:
+            print(
+                f"\rCompared {total_comparisons}/{total_comparisons} pairs "
+                f"(100.0%)...done",
+                flush=True,
+            )
+
+        # Group files by their root parent
+        groups: Dict[int, ListType[Path]] = defaultdict(list)
+        for i, (file_path, _) in enumerate(file_fingerprints):
+            root = find(i)
+            groups[root].append(file_path)
+
+        # Filter to only groups with multiple files, convert to string keys
+        duplicates = {
+            f"group_{root}": file_list
+            for root, file_list in groups.items()
+            if len(file_list) > 1
+        }
 
         return duplicates
 
