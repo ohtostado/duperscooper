@@ -63,8 +63,8 @@ def parse_args() -> argparse.Namespace:
 Examples:
   %(prog)s /path/to/music
   %(prog)s /music /downloads --algorithm exact
-  %(prog)s ~/Music --min-size 1048576 --output json
-  %(prog)s /music --delete-duplicates
+  %(prog)s ~/Music --min-size 0 --output json
+  %(prog)s /music --delete-duplicates --no-progress
         """,
     )
 
@@ -86,9 +86,9 @@ Examples:
     parser.add_argument(
         "--min-size",
         type=int,
-        default=0,
+        default=1048576,
         metavar="BYTES",
-        help="Minimum file size in bytes to consider (default: 0)",
+        help="Minimum file size in bytes to consider (default: 1048576 = 1MB)",
     )
 
     parser.add_argument(
@@ -101,10 +101,9 @@ Examples:
     )
 
     parser.add_argument(
-        "-v",
-        "--verbose",
+        "--no-progress",
         action="store_true",
-        help="Enable verbose output with progress information",
+        help="Disable progress output (progress shown by default)",
     )
 
     parser.add_argument(
@@ -130,7 +129,7 @@ def main() -> int:
     finder = DuplicateFinder(
         min_size=args.min_size,
         algorithm=args.algorithm,
-        verbose=args.verbose,
+        verbose=not args.no_progress,
     )
 
     try:

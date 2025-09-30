@@ -39,9 +39,9 @@ class TestDuplicateFinder:
     def test_init_defaults(self) -> None:
         """Test DuplicateFinder initialization with defaults."""
         finder = DuplicateFinder()
-        assert finder.min_size == 0
+        assert finder.min_size == 0  # Default in class, not CLI
         assert finder.algorithm == "perceptual"
-        assert finder.verbose is False
+        assert finder.verbose is False  # Default in class, not CLI
 
     def test_init_custom_values(self) -> None:
         """Test DuplicateFinder initialization with custom values."""

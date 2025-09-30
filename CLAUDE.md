@@ -122,17 +122,17 @@ duperscooper /path/to/music
 ### Example Usage
 
 ```bash
-# Find duplicates with progress
-duperscooper ~/Music --verbose
+# Find duplicates with progress (default, min 1MB files)
+duperscooper ~/Music
 
-# Find only large files, output as JSON
-duperscooper ~/Music --min-size 1048576 --output json
+# Find all files including small ones, output as JSON
+duperscooper ~/Music --min-size 0 --output json
 
 # Exact byte matching instead of perceptual
 duperscooper ~/Music --algorithm exact
 
-# Interactive deletion mode
-duperscooper ~/Music --delete-duplicates
+# Interactive deletion mode without progress output
+duperscooper ~/Music --delete-duplicates --no-progress
 
 # Multiple paths, CSV output
 duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
@@ -140,7 +140,7 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 
 ### Debugging
 
-- Use `--verbose` flag for progress and error details
+- Progress output shown by default; use `--no-progress` to disable
 - Check stderr for error messages (preserved separately)
 - Add `print()` statements in code (not in production)
 - Use `pytest -v -s` to see print output in tests
