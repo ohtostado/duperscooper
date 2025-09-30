@@ -119,6 +119,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--update-cache",
+        action="store_true",
+        help="Force regeneration of cached hashes for found files",
+    )
+
+    parser.add_argument(
         "--clear-cache",
         action="store_true",
         help="Clear the hash cache and exit",
@@ -160,6 +166,7 @@ def main() -> int:
         algorithm=args.algorithm,
         verbose=not args.no_progress,
         use_cache=not args.no_cache,
+        update_cache=args.update_cache,
     )
 
     try:

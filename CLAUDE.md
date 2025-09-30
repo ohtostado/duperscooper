@@ -143,6 +143,9 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 # Disable cache (compute all hashes from scratch)
 duperscooper ~/Music --no-cache
 
+# Update cache (regenerate hashes for files already in cache)
+duperscooper ~/Music --update-cache
+
 # Clear the hash cache
 duperscooper --clear-cache
 ```
@@ -190,6 +193,7 @@ duperscooper --clear-cache
 - **Cache Management**:
   - Clear cache: `duperscooper --clear-cache`
   - Disable cache: `duperscooper ~/Music --no-cache`
+  - Update cache: `duperscooper ~/Music --update-cache` (regenerate cached hashes)
   - Cache location: `$XDG_CONFIG_HOME/duperscooper/hashes.json`
     (defaults to `~/.config/duperscooper/hashes.json`)
 - Use `--algorithm exact` for faster exact-match-only detection

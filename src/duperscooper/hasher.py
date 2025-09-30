@@ -12,7 +12,12 @@ class AudioHasher:
 
     SUPPORTED_FORMATS = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"}
 
-    def __init__(self, cache_path: Optional[Path] = None, use_cache: bool = True):
+    def __init__(
+        self,
+        cache_path: Optional[Path] = None,
+        use_cache: bool = True,
+        update_cache: bool = False,
+    ):
         """
         Initialize audio hasher with optional cache.
 
@@ -20,6 +25,7 @@ class AudioHasher:
             cache_path: Path to cache file
                 (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
             use_cache: Whether to use cache (default: True)
+            update_cache: Force regeneration of cached hashes (default: False)
         """
         if cache_path is None:
             xdg_config = Path.home() / ".config"
@@ -29,9 +35,11 @@ class AudioHasher:
 
         self.cache_path = cache_path
         self.use_cache = use_cache
+        self.update_cache = update_cache
         self.cache: Dict[str, str] = self._load_cache() if use_cache else {}
         self.cache_hits = 0
         self.cache_misses = 0
+        self.cache_updates = 0
 
     def _load_cache(self) -> Dict[str, str]:
         """Load cache from disk."""
@@ -158,12 +166,17 @@ class AudioHasher:
 
         # Check cache using file hash as key
         file_hash = AudioHasher.compute_file_hash(file_path)
-        if self.use_cache and file_hash in self.cache:
+
+        # If update_cache mode and file exists in cache, regenerate
+        if self.use_cache and self.update_cache and file_hash in self.cache:
+            self.cache_updates += 1
+            # Fall through to recompute hash
+        elif self.use_cache and file_hash in self.cache:
+            # Normal cache hit
             self.cache_hits += 1
             return self.cache[file_hash]
-
-        # Cache miss - compute perceptual hash
-        if self.use_cache:
+        elif self.use_cache:
+            # Cache miss
             self.cache_misses += 1
 
         try:

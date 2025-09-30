@@ -18,6 +18,7 @@ class DuplicateFinder:
         verbose: bool = False,
         cache_path: Optional[Path] = None,
         use_cache: bool = True,
+        update_cache: bool = False,
     ):
         """
         Initialize duplicate finder.
@@ -29,11 +30,14 @@ class DuplicateFinder:
             cache_path: Path to hash cache file
                 (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
             use_cache: Whether to use cache (default: True)
+            update_cache: Force regeneration of cached hashes (default: False)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
-        self.hasher = AudioHasher(cache_path=cache_path, use_cache=use_cache)
+        self.hasher = AudioHasher(
+            cache_path=cache_path, use_cache=use_cache, update_cache=update_cache
+        )
         self.error_count = 0
 
     def find_audio_files(self, paths: List[Path]) -> List[Path]:
@@ -142,10 +146,17 @@ class DuplicateFinder:
                 f"({redundant} redundant file(s))"
             )
             if self.algorithm == "perceptual" and self.hasher.use_cache:
-                print(
-                    f"Cache: {self.hasher.cache_hits} hits, "
-                    f"{self.hasher.cache_misses} misses"
-                )
+                if self.hasher.update_cache:
+                    print(
+                        f"Cache: {self.hasher.cache_hits} hits, "
+                        f"{self.hasher.cache_misses} misses, "
+                        f"{self.hasher.cache_updates} updated"
+                    )
+                else:
+                    print(
+                        f"Cache: {self.hasher.cache_hits} hits, "
+                        f"{self.hasher.cache_misses} misses"
+                    )
             if self.error_count > 0:
                 print(f"Encountered {self.error_count} error(s) during processing")
 
