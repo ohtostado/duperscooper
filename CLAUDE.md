@@ -89,10 +89,12 @@ src/duperscooper/
 
 ### Core Runtime
 
-- `pydub`: Audio file loading and processing
-- `pyacoustid`: Chromaprint audio fingerprinting (robust perceptual matching)
-- `chromaprint-python`: Python bindings for Chromaprint library
+- `pyacoustid`: Chromaprint audio fingerprinting (includes Python bindings)
 - `tqdm`: Progress bars
+- `audioread`: Audio file decoding backend (dependency of pyacoustid)
+- `requests`: HTTP library (dependency of pyacoustid)
+
+Note: pydub was removed due to Python 3.13 incompatibility with audioop module.
 
 ### Development
 
@@ -227,21 +229,7 @@ source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
-**FFmpeg errors**: pydub requires FFmpeg for many formats
-
-```bash
-# Ubuntu/Debian
-sudo apt install ffmpeg libchromaprint-tools
-
-# macOS
-brew install ffmpeg chromaprint
-
-# Windows
-# Download FFmpeg from https://ffmpeg.org/download.html
-# Download fpcalc from https://acoustid.org/chromaprint
-```
-
-**Chromaprint errors**: `pyacoustid` requires the `fpcalc` binary
+**Chromaprint errors**: `pyacoustid` requires the `fpcalc` binary and FFmpeg
 
 ```bash
 # Ubuntu/Debian

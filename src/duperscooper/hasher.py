@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 import acoustid
-from pydub import AudioSegment
 
 
 class AudioHasher:
@@ -78,19 +77,16 @@ class AudioHasher:
 
     @staticmethod
     def get_audio_metadata(file_path: Path) -> Dict[str, Optional[Union[float, int]]]:
-        """Extract basic audio metadata for pre-filtering."""
-        try:
-            audio = AudioSegment.from_file(str(file_path))
-            return {
-                "duration": len(audio) / 1000.0,  # Duration in seconds
-                "channels": audio.channels,
-                "sample_rate": audio.frame_rate,
-                "bitrate": getattr(audio, "bitrate", None),
-            }
-        except Exception:
-            return {
-                "duration": None,
-                "channels": None,
-                "sample_rate": None,
-                "bitrate": None,
-            }
+        """
+        Extract basic audio metadata.
+
+        Note: This function is currently not implemented to avoid
+        Python 3.13 compatibility issues with pydub/audioop.
+        Metadata extraction may be added in future versions.
+        """
+        return {
+            "duration": None,
+            "channels": None,
+            "sample_rate": None,
+            "bitrate": None,
+        }

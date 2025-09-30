@@ -10,9 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
 dependencies = [
-    "pydub>=0.25.1",
     "pyacoustid>=1.3.0",
-    "chromaprint-python>=0.4",
     "tqdm>=4.66.0",
 ]
 
