@@ -89,12 +89,10 @@ src/duperscooper/
 
 ### Core Runtime
 
-- `pyacoustid`: Chromaprint audio fingerprinting (includes Python bindings)
 - `tqdm`: Progress bars
-- `audioread`: Audio file decoding backend (dependency of pyacoustid)
-- `requests`: HTTP library (dependency of pyacoustid)
 
-Note: pydub was removed due to Python 3.13 incompatibility with audioop module.
+Note: Audio fingerprinting is done by calling the `fpcalc` binary directly
+instead of using Python libraries, for Python 3.13 compatibility.
 
 ### Development
 

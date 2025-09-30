@@ -1,10 +1,9 @@
 """Audio hashing utilities for duplicate detection."""
 
 import hashlib
+import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Union
-
-import acoustid
+from typing import Dict, Optional, Tuple, Union
 
 
 class AudioHasher:
@@ -25,6 +24,49 @@ class AudioHasher:
             for chunk in iter(lambda: f.read(8192), b""):
                 sha256_hash.update(chunk)
         return sha256_hash.hexdigest()
+
+    @staticmethod
+    def _call_fpcalc(file_path: Path) -> Tuple[int, str]:
+        """
+        Call fpcalc binary directly to generate Chromaprint fingerprint.
+
+        Python 3.13 removed modules that audioread depends on, so we bypass
+        it and call fpcalc directly.
+
+        Returns:
+            Tuple of (duration_seconds, fingerprint_string)
+        """
+        try:
+            result = subprocess.run(
+                ["fpcalc", str(file_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=30,
+            )
+
+            # Parse fpcalc output
+            duration = 0
+            fingerprint = ""
+            for line in result.stdout.strip().split("\n"):
+                if line.startswith("DURATION="):
+                    duration = int(line.split("=")[1])
+                elif line.startswith("FINGERPRINT="):
+                    fingerprint = line.split("=")[1]
+
+            if not fingerprint:
+                raise ValueError("fpcalc did not return a fingerprint")
+
+            return (duration, fingerprint)
+
+        except subprocess.TimeoutExpired as e:
+            raise ValueError(f"fpcalc timed out processing {file_path}") from e
+        except subprocess.CalledProcessError as e:
+            raise ValueError(f"fpcalc failed for {file_path}: {e.stderr}") from e
+        except FileNotFoundError as e:
+            raise ValueError(
+                "fpcalc not found. Install with: sudo apt install libchromaprint-tools"
+            ) from e
 
     @staticmethod
     def compute_audio_hash(file_path: Path, algorithm: str = "perceptual") -> str:
@@ -55,23 +97,18 @@ class AudioHasher:
             return AudioHasher.compute_file_hash(file_path)
 
         try:
-            # Get chromaprint fingerprint and duration
-            # This returns (duration_seconds, fingerprint_string)
-            duration, fingerprint = acoustid.fingerprint_file(str(file_path))
+            # Call fpcalc directly (Python 3.13 compatible)
+            duration, fingerprint = AudioHasher._call_fpcalc(file_path)
 
             # The fingerprint is a compressed base64-encoded string that
             # represents the audio's spectral characteristics
             # We combine it with duration to ensure length-matching
-            combined = f"{int(duration)}:{fingerprint}"
+            combined = f"{duration}:{fingerprint}"
 
             # Return a hash of the fingerprint for consistent length
             # This makes comparison easier (fixed-length hash)
             return hashlib.sha256(combined.encode()).hexdigest()
 
-        except acoustid.FingerprintGenerationError as e:
-            raise ValueError(
-                f"Failed to generate fingerprint for {file_path}: {e}"
-            ) from e
         except Exception as e:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e
 
