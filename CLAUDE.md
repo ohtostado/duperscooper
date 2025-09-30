@@ -48,6 +48,9 @@ src/duperscooper/
 - `compute_file_hash()`: SHA256 for exact matching
 - `compute_audio_hash()`: Chromaprint fingerprint for perceptual matching
 - `get_audio_metadata()`: Extract duration, channels, sample rate
+- **Caching**: Stores file hash → perceptual hash mappings in
+  `~/.cache/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
+  files on subsequent runs
 
 #### DuplicateFinder (finder.py)
 
@@ -175,10 +178,13 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 
 ### Optimization Tips
 
+- **Caching**: Perceptual hashes are cached in `~/.cache/duperscooper/hashes.json`
+  keyed by file hash (SHA256), so unchanged files skip fingerprinting on
+  subsequent runs
 - Use `--algorithm exact` for faster exact-match-only detection
 - Use `--min-size` to skip small files (reduce processing)
 - Process large libraries in batches if memory constrained
-- Consider parallelization for multi-core systems (future enhancement)
+- Delete cache file to force full re-fingerprinting if needed
 
 ## Future Enhancements
 
@@ -188,9 +194,9 @@ duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 - Similarity threshold tuning (currently binary match)
 - Preview audio before deletion
 - Dry-run mode for `--delete-duplicates`
-- Database caching for repeated scans
 - GUI interface
 - Automatic "best quality" file selection
+- Cache management commands (clear, show stats, etc.)
 
 ### Code Improvements
 

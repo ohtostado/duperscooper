@@ -3,9 +3,7 @@
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Union
-
-from tqdm import tqdm
+from typing import Dict, List, Optional, Union
 
 from .hasher import AudioHasher
 
@@ -18,6 +16,7 @@ class DuplicateFinder:
         min_size: int = 0,
         algorithm: str = "perceptual",
         verbose: bool = False,
+        cache_path: Optional[Path] = None,
     ):
         """
         Initialize duplicate finder.
@@ -26,11 +25,13 @@ class DuplicateFinder:
             min_size: Minimum file size in bytes to consider
             algorithm: Hash algorithm - 'perceptual' or 'exact'
             verbose: Enable verbose output
+            cache_path: Path to hash cache file
+                (default: ~/.cache/duperscooper/hashes.json)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
-        self.hasher = AudioHasher()
+        self.hasher = AudioHasher(cache_path=cache_path)
         self.error_count = 0
 
     def find_audio_files(self, paths: List[Path]) -> List[Path]:
@@ -97,18 +98,33 @@ class DuplicateFinder:
 
         # Compute hashes for all files
         hash_to_files: Dict[str, List[Path]] = defaultdict(list)
+        total_files = len(audio_files)
 
-        for file_path in tqdm(
-            audio_files,
-            desc="Hashing files",
-            disable=not self.verbose,
-            unit="file",
-        ):
+        for idx, file_path in enumerate(audio_files, 1):
             try:
                 file_hash = self.hasher.compute_audio_hash(file_path, self.algorithm)
                 hash_to_files[file_hash].append(file_path)
+
+                # Show progress every 10 files or on last file
+                if self.verbose and (idx % 10 == 0 or idx == total_files):
+                    percent = (idx / total_files) * 100
+                    print(
+                        f"\rHashed {idx}/{total_files} files ({percent:.1f}%)...",
+                        end="",
+                        flush=True,
+                    )
             except Exception as e:
                 self._log_error(f"Error hashing {file_path}: {e}")
+
+        # Print completion
+        if self.verbose and total_files > 0:
+            print(
+                f"\rHashed {total_files}/{total_files} files (100.0%)...done",
+                flush=True,
+            )
+
+        # Save cache to disk
+        self.hasher.save_cache()
 
         # Filter to only duplicates (more than one file with same hash)
         duplicates = {
@@ -123,6 +139,11 @@ class DuplicateFinder:
                 f"\nFound {len(duplicates)} group(s) of duplicates "
                 f"({redundant} redundant file(s))"
             )
+            if self.algorithm == "perceptual":
+                print(
+                    f"Cache: {self.hasher.cache_hits} hits, "
+                    f"{self.hasher.cache_misses} misses"
+                )
             if self.error_count > 0:
                 print(f"Encountered {self.error_count} error(s) during processing")
 

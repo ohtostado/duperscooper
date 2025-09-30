@@ -1,6 +1,7 @@
 """Audio hashing utilities for duplicate detection."""
 
 import hashlib
+import json
 import subprocess
 from pathlib import Path
 from typing import Dict, Optional, Tuple, Union
@@ -10,6 +11,44 @@ class AudioHasher:
     """Handles audio file hashing for duplicate detection."""
 
     SUPPORTED_FORMATS = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"}
+
+    def __init__(self, cache_path: Optional[Path] = None):
+        """
+        Initialize audio hasher with optional cache.
+
+        Args:
+            cache_path: Path to cache file (default: ~/.cache/duperscooper/hashes.json)
+        """
+        if cache_path is None:
+            cache_dir = Path.home() / ".cache" / "duperscooper"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            cache_path = cache_dir / "hashes.json"
+
+        self.cache_path = cache_path
+        self.cache: Dict[str, str] = self._load_cache()
+        self.cache_hits = 0
+        self.cache_misses = 0
+
+    def _load_cache(self) -> Dict[str, str]:
+        """Load cache from disk."""
+        if self.cache_path.exists():
+            try:
+                with open(self.cache_path) as f:
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data
+                    return {}
+            except (json.JSONDecodeError, OSError):
+                return {}
+        return {}
+
+    def save_cache(self) -> None:
+        """Save cache to disk."""
+        try:
+            with open(self.cache_path, "w") as f:
+                json.dump(self.cache, f)
+        except OSError:
+            pass  # Silent failure for cache writes
 
     @staticmethod
     def is_audio_file(file_path: Path) -> bool:
@@ -68,8 +107,7 @@ class AudioHasher:
                 "fpcalc not found. Install with: sudo apt install libchromaprint-tools"
             ) from e
 
-    @staticmethod
-    def compute_audio_hash(file_path: Path, algorithm: str = "perceptual") -> str:
+    def compute_audio_hash(self, file_path: Path, algorithm: str = "perceptual") -> str:
         """
         Compute perceptual hash of audio content using Chromaprint.
 
@@ -96,6 +134,15 @@ class AudioHasher:
         if algorithm == "exact":
             return AudioHasher.compute_file_hash(file_path)
 
+        # Check cache using file hash as key
+        file_hash = AudioHasher.compute_file_hash(file_path)
+        if file_hash in self.cache:
+            self.cache_hits += 1
+            return self.cache[file_hash]
+
+        # Cache miss - compute perceptual hash
+        self.cache_misses += 1
+
         try:
             # Call fpcalc directly (Python 3.13 compatible)
             duration, fingerprint = AudioHasher._call_fpcalc(file_path)
@@ -107,7 +154,12 @@ class AudioHasher:
 
             # Return a hash of the fingerprint for consistent length
             # This makes comparison easier (fixed-length hash)
-            return hashlib.sha256(combined.encode()).hexdigest()
+            perceptual_hash = hashlib.sha256(combined.encode()).hexdigest()
+
+            # Store in cache
+            self.cache[file_hash] = perceptual_hash
+
+            return perceptual_hash
 
         except Exception as e:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e
