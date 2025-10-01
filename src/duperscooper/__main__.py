@@ -268,6 +268,23 @@ Examples:
     )
 
     parser.add_argument(
+        "--cache-backend",
+        choices=["sqlite", "json"],
+        default="sqlite",
+        help="Cache backend type (default: sqlite)",
+    )
+
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=8,
+        metavar="N",
+        help="Number of worker threads for parallel fingerprinting "
+        "(default: 8, use 1 for sequential)",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -305,6 +322,8 @@ def main() -> int:
         use_cache=not args.no_cache,
         update_cache=args.update_cache,
         similarity_threshold=args.similarity_threshold,
+        cache_backend=args.cache_backend,
+        max_workers=args.workers,
     )
 
     try:

@@ -1,7 +1,10 @@
 """Core duplicate audio file finding logic."""
 
 import sys
+import threading
+import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -23,6 +26,7 @@ class DuplicateFinder:
         update_cache: bool = False,
         similarity_threshold: float = 98.0,
         cache_backend: str = "sqlite",
+        max_workers: int = 8,
     ):
         """
         Initialize duplicate finder.
@@ -38,11 +42,14 @@ class DuplicateFinder:
             similarity_threshold: Minimum similarity % for perceptual matching
                 (default: 98.0)
             cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
+            max_workers: Maximum number of worker threads for parallel fingerprinting
+                (default: 8)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
         self.similarity_threshold = similarity_threshold
+        self.max_workers = max_workers
         self.hasher = AudioHasher(
             cache_path=cache_path,
             use_cache=use_cache,
@@ -130,28 +137,23 @@ class DuplicateFinder:
                 if self.algorithm == "perceptual"
                 else "exact"
             )
-            print(f"Computing {mode} fingerprints...")
+            workers_info = (
+                f" (using {self.max_workers} worker threads)"
+                if self.max_workers > 1
+                else ""
+            )
+            print(f"Computing {mode} fingerprints{workers_info}...")
 
-        # Compute fingerprints for all files
+        # Compute fingerprints for all files (parallel or sequential)
         file_fingerprints: List[tuple] = []  # (file_path, fingerprint)
         total_files = len(audio_files)
 
-        for idx, file_path in enumerate(audio_files, 1):
-            try:
-                fingerprint = self.hasher.compute_audio_hash(file_path, self.algorithm)
-                file_fingerprints.append((file_path, fingerprint))
-
-                # Show progress every 10 files or on last file
-                if self.verbose and (idx % 10 == 0 or idx == total_files):
-                    percent = (idx / total_files) * 100
-                    print(
-                        f"\r{Fore.CYAN}Fingerprinted {idx}/{total_files} files "
-                        f"({percent:.1f}%)...{Style.RESET_ALL}",
-                        end="",
-                        flush=True,
-                    )
-            except Exception as e:
-                self._log_error(f"Error fingerprinting {file_path}: {e}")
+        if self.max_workers > 1:
+            # Parallel fingerprinting with ThreadPoolExecutor
+            file_fingerprints = self._fingerprint_parallel(audio_files)
+        else:
+            # Sequential fingerprinting (original behavior)
+            file_fingerprints = self._fingerprint_sequential(audio_files)
 
         # Print completion
         if self.verbose and total_files > 0:
@@ -189,6 +191,143 @@ class DuplicateFinder:
                 print(f"Encountered {self.error_count} error(s) during processing")
 
         return duplicates
+
+    def _fingerprint_sequential(self, audio_files: List[Path]) -> List[tuple]:
+        """
+        Compute fingerprints sequentially (single-threaded).
+
+        Args:
+            audio_files: List of audio file paths
+
+        Returns:
+            List of (file_path, fingerprint) tuples
+        """
+        file_fingerprints: List[tuple] = []
+        total_files = len(audio_files)
+
+        for idx, file_path in enumerate(audio_files, 1):
+            try:
+                fingerprint = self.hasher.compute_audio_hash(file_path, self.algorithm)
+                file_fingerprints.append((file_path, fingerprint))
+
+                # Show progress every 10 files or on last file
+                if self.verbose and (idx % 10 == 0 or idx == total_files):
+                    percent = (idx / total_files) * 100
+                    print(
+                        f"\r{Fore.CYAN}Fingerprinted {idx}/{total_files} files "
+                        f"({percent:.1f}%)...{Style.RESET_ALL}",
+                        end="",
+                        flush=True,
+                    )
+            except Exception as e:
+                self._log_error(f"Error fingerprinting {file_path}: {e}")
+
+        return file_fingerprints
+
+    def _fingerprint_parallel(self, audio_files: List[Path]) -> List[tuple]:
+        """
+        Compute fingerprints in parallel using ThreadPoolExecutor.
+
+        Args:
+            audio_files: List of audio file paths
+
+        Returns:
+            List of (file_path, fingerprint) tuples
+        """
+        file_fingerprints: List[tuple] = []
+        total_files = len(audio_files)
+        completed = 0
+        lock = threading.Lock()
+
+        # Time tracking for ETA
+        start_time = time.time()
+        last_update_time = start_time
+
+        def fingerprint_file(file_path: Path) -> Optional[tuple]:
+            """Fingerprint a single file."""
+            try:
+                fingerprint = self.hasher.compute_audio_hash(file_path, self.algorithm)
+                return (file_path, fingerprint)
+            except Exception as e:
+                self._log_error(f"Error fingerprinting {file_path}: {e}")
+                return None
+
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all tasks
+            future_to_file = {
+                executor.submit(fingerprint_file, file_path): file_path
+                for file_path in audio_files
+            }
+
+            # Process results as they complete
+            for future in as_completed(future_to_file):
+                result = future.result()
+                if result is not None:
+                    with lock:
+                        file_fingerprints.append(result)
+                        completed += 1
+
+                        # Update progress and show ETA
+                        current_time = time.time()
+                        if self.verbose and (
+                            completed % 10 == 0
+                            or completed == total_files
+                            or current_time - last_update_time >= 1.0
+                        ):
+                            percent = (completed / total_files) * 100
+                            elapsed = current_time - start_time
+
+                            # Calculate ETA
+                            if completed > 0 and completed < total_files:
+                                avg_time_per_file = elapsed / completed
+                                remaining_files = total_files - completed
+                                eta_seconds = avg_time_per_file * remaining_files
+                                eta_str = self._format_time(eta_seconds)
+                                elapsed_str = self._format_time(elapsed)
+                                print(
+                                    f"\r{Fore.CYAN}Fingerprinted "
+                                    f"{completed}/{total_files} files "
+                                    f"({percent:.1f}%) - Elapsed: {elapsed_str} "
+                                    f"- ETA: {eta_str}{Style.RESET_ALL}",
+                                    end="",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"\r{Fore.CYAN}Fingerprinted "
+                                    f"{completed}/{total_files} files "
+                                    f"({percent:.1f}%)...{Style.RESET_ALL}",
+                                    end="",
+                                    flush=True,
+                                )
+
+                            last_update_time = current_time
+                else:
+                    with lock:
+                        completed += 1
+
+        return file_fingerprints
+
+    def _format_time(self, seconds: float) -> str:
+        """
+        Format time duration as human-readable string.
+
+        Args:
+            seconds: Duration in seconds
+
+        Returns:
+            Formatted string (e.g., "2m 30s", "45s", "1h 5m")
+        """
+        if seconds < 60:
+            return f"{int(seconds)}s"
+        elif seconds < 3600:
+            minutes = int(seconds // 60)
+            secs = int(seconds % 60)
+            return f"{minutes}m {secs}s"
+        else:
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            return f"{hours}h {minutes}m"
 
     def _group_exact_duplicates(
         self, file_fingerprints: List[tuple]
