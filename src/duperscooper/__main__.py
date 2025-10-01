@@ -10,46 +10,116 @@ from . import __version__
 from .finder import DuplicateFinder, DuplicateManager
 
 
-def format_output_text(duplicates: Dict[str, List[Path]]) -> None:
-    """Format and print duplicates in text format."""
+def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
+    """Format and print duplicates in text format with quality info."""
     if not duplicates:
         print("No duplicates found.")
         return
 
+    from .hasher import AudioHasher
+
     print(f"Found {len(duplicates)} group(s) of duplicate files:\n")
+
+    hasher = AudioHasher()
 
     for idx, (hash_val, file_list) in enumerate(duplicates.items(), 1):
         print(f"Group {idx} (Hash: {hash_val[:16]}...):")
-        for file_path in file_list:
+
+        # Identify highest quality file and get enriched file info
+        best_file, best_fp, enriched_files = DuplicateManager.identify_highest_quality(
+            file_list, hasher
+        )
+
+        # Print files with quality info
+        for (
+            file_path,
+            _fingerprint,
+            metadata,
+            _quality_score,
+            similarity,
+        ) in enriched_files:
             info = DuplicateManager.get_file_info(file_path)
-            print(f"  - {info['path']} ({info['size']})")
+            audio_info = AudioHasher.format_audio_info(metadata)
+
+            if file_path == best_file:
+                print(f"  [Best] {info['path']} ({info['size']}) - {audio_info}")
+            else:
+                print(
+                    f"    ├─ {info['path']} ({info['size']}) - "
+                    f"{audio_info} [{similarity:.1f}% match]"
+                )
         print()
 
 
-def format_output_json(duplicates: Dict[str, List[Path]]) -> None:
-    """Format and print duplicates in JSON format."""
+def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
+    """Format and print duplicates in JSON format with quality info."""
+    from .hasher import AudioHasher
+
+    hasher = AudioHasher()
     output = []
+
     for hash_val, file_list in duplicates.items():
+        # Identify highest quality file and get enriched file info
+        best_file, best_fp, enriched_files = DuplicateManager.identify_highest_quality(
+            file_list, hasher
+        )
+
+        files_data = []
+        for (
+            file_path,
+            _fingerprint,
+            metadata,
+            quality_score,
+            similarity,
+        ) in enriched_files:
+            file_info = DuplicateManager.get_file_info(file_path)
+            file_info["audio_info"] = AudioHasher.format_audio_info(metadata)
+            file_info["quality_score"] = quality_score
+            file_info["similarity_to_best"] = similarity
+            file_info["is_best"] = file_path == best_file
+            files_data.append(file_info)
+
         group = {
             "hash": hash_val,
-            "files": [
-                DuplicateManager.get_file_info(file_path) for file_path in file_list
-            ],
+            "files": files_data,
         }
         output.append(group)
 
     print(json.dumps(output, indent=2))
 
 
-def format_output_csv(duplicates: Dict[str, List[Path]]) -> None:
-    """Format and print duplicates in CSV format."""
-    print("group_id,hash,file_path,file_size,file_size_bytes")
+def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
+    """Format and print duplicates in CSV format with quality info."""
+    from .hasher import AudioHasher
+
+    hasher = AudioHasher()
+
+    print(
+        "group_id,hash,file_path,file_size,file_size_bytes,"
+        "audio_info,quality_score,similarity_to_best,is_best"
+    )
 
     for idx, (hash_val, file_list) in enumerate(duplicates.items(), 1):
-        for file_path in file_list:
+        # Identify highest quality file and get enriched file info
+        best_file, best_fp, enriched_files = DuplicateManager.identify_highest_quality(
+            file_list, hasher
+        )
+
+        for (
+            file_path,
+            _fingerprint,
+            metadata,
+            quality_score,
+            similarity,
+        ) in enriched_files:
             info = DuplicateManager.get_file_info(file_path)
+            audio_info = AudioHasher.format_audio_info(metadata)
+            is_best = "true" if file_path == best_file else "false"
+
             print(
-                f"{idx},{hash_val},{info['path']},{info['size']},{info['size_bytes']}"
+                f"{idx},{hash_val},{info['path']},{info['size']},"
+                f"{info['size_bytes']},{audio_info},{quality_score:.1f},"
+                f"{similarity:.1f},{is_best}"
             )
 
 
@@ -191,7 +261,7 @@ def main() -> int:
     if args.delete_duplicates:
         if duplicates:
             try:
-                deleted = DuplicateManager.interactive_delete(duplicates)
+                deleted = DuplicateManager.interactive_delete(duplicates, finder.hasher)
                 print(f"\nDeleted {deleted} file(s).")
             except KeyboardInterrupt:
                 print("\nDeletion cancelled by user.", file=sys.stderr)

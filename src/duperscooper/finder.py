@@ -88,7 +88,7 @@ class DuplicateFinder:
 
         return audio_files
 
-    def find_duplicates(self, paths: List[Path]) -> Dict[str, List[Path]]:
+    def find_duplicates(self, paths: List[Path]) -> Dict[str, List[tuple]]:
         """
         Find duplicate audio files in given paths.
 
@@ -176,11 +176,16 @@ class DuplicateFinder:
 
     def _group_exact_duplicates(
         self, file_fingerprints: List[tuple]
-    ) -> Dict[str, List[Path]]:
-        """Group files by exact hash match."""
-        hash_to_files: Dict[str, List[Path]] = defaultdict(list)
+    ) -> Dict[str, List[tuple]]:
+        """
+        Group files by exact hash match.
+
+        Returns:
+            Dict mapping hash to list of (file_path, hash) tuples
+        """
+        hash_to_files: Dict[str, List[tuple]] = defaultdict(list)
         for file_path, file_hash in file_fingerprints:
-            hash_to_files[file_hash].append(file_path)
+            hash_to_files[file_hash].append((file_path, file_hash))
 
         # Filter to only duplicates
         return {
@@ -191,11 +196,14 @@ class DuplicateFinder:
 
     def _group_fuzzy_duplicates(
         self, file_fingerprints: List[tuple]
-    ) -> Dict[str, List[Path]]:
+    ) -> Dict[str, List[tuple]]:
         """
         Group files by fuzzy similarity using Union-Find algorithm.
 
         Files with similarity >= threshold are grouped together.
+
+        Returns:
+            Dict mapping group_id to list of (file_path, fingerprint) tuples
         """
         from typing import List as ListType
 
@@ -251,11 +259,11 @@ class DuplicateFinder:
                 flush=True,
             )
 
-        # Group files by their root parent
-        groups: Dict[int, ListType[Path]] = defaultdict(list)
-        for i, (file_path, _) in enumerate(file_fingerprints):
+        # Group files by their root parent, preserving fingerprints
+        groups: Dict[int, ListType[tuple]] = defaultdict(list)
+        for i, (file_path, fingerprint) in enumerate(file_fingerprints):
             root = find(i)
-            groups[root].append(file_path)
+            groups[root].append((file_path, fingerprint))
 
         # Filter to only groups with multiple files, convert to string keys
         duplicates = {
@@ -281,6 +289,51 @@ class DuplicateFinder:
 
 class DuplicateManager:
     """Manages duplicate file operations like deletion."""
+
+    @staticmethod
+    def identify_highest_quality(
+        file_list: List[tuple], hasher: "AudioHasher"
+    ) -> tuple:
+        """
+        Identify the highest quality file in a duplicate group.
+
+        Args:
+            file_list: List of (file_path, fingerprint) tuples
+            hasher: AudioHasher instance for metadata extraction
+
+        Returns:
+            Tuple of (best_file_path, best_fingerprint, all_files_with_metadata)
+            where all_files_with_metadata is a list of:
+            (file_path, fingerprint, metadata, quality_score, similarity_to_best)
+        """
+        # Get metadata and quality scores for all files
+        files_with_scores = []
+        for file_path, fingerprint in file_list:
+            metadata = hasher.get_audio_metadata(file_path)
+            quality_score = hasher.calculate_quality_score(metadata)
+            files_with_scores.append((file_path, fingerprint, metadata, quality_score))
+
+        # Sort by quality score (highest first)
+        files_with_scores.sort(key=lambda x: x[3], reverse=True)
+
+        # Best file is the first one
+        best_file, best_fp, best_meta, best_score = files_with_scores[0]
+
+        # Calculate similarity to best file for all others
+        enriched_files = []
+        for file_path, fingerprint, metadata, quality_score in files_with_scores:
+            if file_path == best_file:
+                # Best file has 100% similarity to itself
+                similarity = 100.0
+            else:
+                # Calculate similarity to best file's fingerprint
+                similarity = hasher.similarity_percentage(fingerprint, best_fp)
+
+            enriched_files.append(
+                (file_path, fingerprint, metadata, quality_score, similarity)
+            )
+
+        return (best_file, best_fp, enriched_files)
 
     @staticmethod
     def format_file_size(size_bytes: Union[int, float]) -> str:
@@ -310,12 +363,15 @@ class DuplicateManager:
             }
 
     @staticmethod
-    def interactive_delete(duplicates: Dict[str, List[Path]]) -> int:
+    def interactive_delete(
+        duplicates: Dict[str, List[tuple]], hasher: "AudioHasher"
+    ) -> int:
         """
-        Interactively delete duplicate files.
+        Interactively delete duplicate files with quality information.
 
         Args:
-            duplicates: Dictionary mapping hash to duplicate file paths
+            duplicates: Dictionary mapping hash to duplicate file tuples
+            hasher: AudioHasher instance for metadata extraction
 
         Returns:
             Number of files deleted
@@ -326,10 +382,33 @@ class DuplicateManager:
             print(f"\n--- Duplicate Group {idx}/{len(duplicates)} ---")
             print(f"Hash: {hash_val[:16]}...")
 
-            # Display all files in group
-            for i, file_path in enumerate(file_list):
+            # Identify highest quality file and get enriched file info
+            best_file, best_fp, enriched_files = (
+                DuplicateManager.identify_highest_quality(file_list, hasher)
+            )
+
+            # Display all files in group with quality info
+            files_for_deletion = []
+            for i, (
+                file_path,
+                _fingerprint,
+                metadata,
+                _quality_score,
+                similarity,
+            ) in enumerate(enriched_files):
                 info = DuplicateManager.get_file_info(file_path)
-                print(f"  [{i}] {info['path']} ({info['size']})")
+                audio_info = hasher.format_audio_info(metadata)
+
+                if file_path == best_file:
+                    print(
+                        f"  [{i}] [Best] {info['path']} ({info['size']}) - {audio_info}"
+                    )
+                else:
+                    print(
+                        f"  [{i}] {info['path']} ({info['size']}) - "
+                        f"{audio_info} [{similarity:.1f}% match]"
+                    )
+                files_for_deletion.append(file_path)
 
             # Ask user what to do
             print("\nOptions:")
@@ -348,8 +427,8 @@ class DuplicateManager:
                 try:
                     indices = [int(x) for x in choice.split()]
                     for index in indices:
-                        if 0 <= index < len(file_list):
-                            file_to_delete = file_list[index]
+                        if 0 <= index < len(files_for_deletion):
+                            file_to_delete = files_for_deletion[index]
                             try:
                                 file_to_delete.unlink()
                                 print(f"  ✓ Deleted: {file_to_delete}")

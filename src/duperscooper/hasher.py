@@ -266,17 +266,169 @@ class AudioHasher:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e
 
     @staticmethod
-    def get_audio_metadata(file_path: Path) -> Dict[str, Optional[Union[float, int]]]:
+    def get_audio_metadata(
+        file_path: Path,
+    ) -> Dict[str, Optional[Union[str, int, float]]]:
         """
-        Extract basic audio metadata.
+        Extract audio metadata using ffprobe.
 
-        Note: This function is currently not implemented to avoid
-        Python 3.13 compatibility issues with pydub/audioop.
-        Metadata extraction may be added in future versions.
+        Returns:
+            Dictionary with codec, sample_rate, bit_depth, bitrate, channels
         """
-        return {
-            "duration": None,
-            "channels": None,
-            "sample_rate": None,
-            "bitrate": None,
-        }
+        try:
+            result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "quiet",
+                    "-print_format",
+                    "json",
+                    "-show_format",
+                    "-show_streams",
+                    str(file_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+
+            import json as json_module
+
+            data = json_module.loads(result.stdout)
+
+            # Get audio stream (first audio stream found)
+            audio_stream = None
+            for stream in data.get("streams", []):
+                if stream.get("codec_type") == "audio":
+                    audio_stream = stream
+                    break
+
+            if not audio_stream:
+                return {
+                    "codec": None,
+                    "sample_rate": None,
+                    "bit_depth": None,
+                    "bitrate": None,
+                    "channels": None,
+                }
+
+            # Extract metadata
+            codec = audio_stream.get("codec_name", "").upper()
+            sample_rate = audio_stream.get("sample_rate")
+            if sample_rate:
+                sample_rate = int(sample_rate)
+
+            # Bit depth (for lossless formats)
+            bit_depth = audio_stream.get("bits_per_raw_sample")
+            if bit_depth:
+                bit_depth = int(bit_depth)
+
+            # Bitrate (prefer stream bitrate, fall back to format bitrate)
+            bitrate = audio_stream.get("bit_rate")
+            if not bitrate:
+                bitrate = data.get("format", {}).get("bit_rate")
+            if bitrate:
+                bitrate = int(bitrate)
+
+            channels = audio_stream.get("channels")
+            if channels:
+                channels = int(channels)
+
+            return {
+                "codec": codec,
+                "sample_rate": sample_rate,
+                "bit_depth": bit_depth,
+                "bitrate": bitrate,
+                "channels": channels,
+            }
+
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, Exception):
+            return {
+                "codec": None,
+                "sample_rate": None,
+                "bit_depth": None,
+                "bitrate": None,
+                "channels": None,
+            }
+
+    @staticmethod
+    def calculate_quality_score(
+        metadata: Dict[str, Optional[Union[str, int, float]]]
+    ) -> float:
+        """
+        Calculate quality score for audio file.
+
+        Lossless formats (FLAC, WAV, etc.) always score higher than lossy.
+        Within each category, higher sample rates and bit depths score better.
+
+        Returns:
+            Quality score (higher = better quality)
+        """
+        codec_val = metadata.get("codec")
+        codec = codec_val.upper() if isinstance(codec_val, str) else ""
+        sample_rate_val = metadata.get("sample_rate", 0)
+        sample_rate = int(sample_rate_val) if isinstance(sample_rate_val, (int, float)) and sample_rate_val else 0
+        bit_depth_val = metadata.get("bit_depth", 0)
+        bit_depth = int(bit_depth_val) if isinstance(bit_depth_val, (int, float)) and bit_depth_val else 0
+        bitrate_val = metadata.get("bitrate", 0)
+        bitrate = int(bitrate_val) if isinstance(bitrate_val, (int, float)) and bitrate_val else 0
+
+        # Lossless formats get base score of 10000
+        lossless_codecs = {"FLAC", "WAV", "ALAC", "APE", "WV", "TTA"}
+
+        if codec in lossless_codecs:
+            # Score = 10000 + (bit_depth * 100) + (sample_rate / 1000)
+            # Example: 24bit 96kHz = 10000 + 2400 + 96 = 12496
+            score = 10000.0
+            if bit_depth:
+                score += bit_depth * 100
+            if sample_rate:
+                score += sample_rate / 1000
+            return score
+        else:
+            # Lossy formats: score = bitrate in kbps
+            # Convert from bps to kbps
+            if bitrate:
+                return bitrate / 1000.0
+            return 0.0
+
+    @staticmethod
+    def format_audio_info(metadata: Dict[str, Optional[Union[str, int, float]]]) -> str:
+        """
+        Format audio metadata into human-readable string.
+
+        Returns strings like:
+        - "FLAC 44.1kHz 16bit"
+        - "MP3 CBR 320kbps"
+        - "MP3 VBR 245kbps"
+        """
+        codec_val = metadata.get("codec", "Unknown")
+        codec = str(codec_val) if codec_val else "Unknown"
+        sample_rate_val = metadata.get("sample_rate")
+        bit_depth_val = metadata.get("bit_depth")
+        bitrate_val = metadata.get("bitrate")
+
+        lossless_codecs = {"FLAC", "WAV", "ALAC", "APE", "WV", "TTA"}
+
+        if codec.upper() in lossless_codecs:
+            # Lossless format
+            parts = [codec]
+            if isinstance(sample_rate_val, (int, float)) and sample_rate_val:
+                parts.append(f"{sample_rate_val / 1000:.1f}kHz")
+            if isinstance(bit_depth_val, (int, float)) and bit_depth_val:
+                parts.append(f"{int(bit_depth_val)}bit")
+            return " ".join(parts)
+        else:
+            # Lossy format
+            parts = [codec]
+            # Determine CBR vs VBR (heuristic: if bitrate ends in 000, likely CBR)
+            if isinstance(bitrate_val, (int, float)) and bitrate_val:
+                kbps = int(bitrate_val / 1000)
+                # Common CBR bitrates: 64, 96, 128, 160, 192, 256, 320
+                common_cbr = {64, 96, 128, 160, 192, 256, 320}
+                if kbps in common_cbr:
+                    parts.append(f"CBR {kbps}kbps")
+                else:
+                    parts.append(f"VBR {kbps}kbps")
+            return " ".join(parts)

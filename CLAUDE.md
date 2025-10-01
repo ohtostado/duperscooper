@@ -51,6 +51,9 @@ src/duperscooper/
 - `compute_audio_hash()`: Returns raw fingerprint for perceptual, SHA256 for exact
 - `hamming_distance()`: Calculate bit-level differences between fingerprints
 - `similarity_percentage()`: Calculate similarity % between fingerprints
+- `get_audio_metadata()`: Extract codec, sample rate, bit depth, bitrate, channels using ffprobe
+- `calculate_quality_score()`: Calculate quality score (lossless > lossy, higher bitrate/depth > lower)
+- `format_audio_info()`: Format metadata as human-readable string (e.g., "FLAC 44.1kHz 16bit", "MP3 CBR 320kbps")
 - **Caching**: Stores file hash → raw fingerprint mappings in
   `~/.config/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
   files on subsequent runs
@@ -59,13 +62,14 @@ src/duperscooper/
 
 - `find_audio_files()`: Recursive file discovery
 - `find_duplicates()`: Fingerprint files, group by similarity
-- `_group_exact_duplicates()`: Group by exact hash match
-- `_group_fuzzy_duplicates()`: Group by fuzzy similarity using Union-Find
+- `_group_exact_duplicates()`: Group by exact hash match (preserves fingerprints)
+- `_group_fuzzy_duplicates()`: Group by fuzzy similarity using Union-Find (preserves fingerprints)
 - Handles errors gracefully, tracks error count
 
 #### DuplicateManager (finder.py)
 
-- `interactive_delete()`: User-driven duplicate removal
+- `identify_highest_quality()`: Identify best quality file in duplicate group, calculate similarity scores
+- `interactive_delete()`: User-driven duplicate removal with quality information
 - `format_file_size()`: Human-readable size strings
 - `get_file_info()`: File metadata for display
 
@@ -219,24 +223,57 @@ duperscooper --clear-cache
   - Use `--min-size` to skip small files (reduce processing)
   - For very large libraries (>10k files), consider using `exact` first
 
+## Output Formats
+
+### Quality Detection
+
+All output formats now include quality information for duplicate groups:
+
+- **Text Output** (default): Shows best quality file first with `[Best]` marker, followed by duplicates with similarity percentage
+  ```
+  [Best] /path/to/file.flac (30.9 MB) - FLAC 44.1kHz 16bit
+    ├─ /path/to/file-320.mp3 (13.4 MB) - MP3 CBR 320kbps [99.9% match]
+    ├─ /path/to/file-192.mp3 (8.0 MB) - MP3 CBR 192kbps [99.8% match]
+  ```
+
+- **JSON Output**: Includes `audio_info`, `quality_score`, `similarity_to_best`, and `is_best` fields
+  ```json
+  {
+    "path": "/path/to/file.flac",
+    "audio_info": "FLAC 44.1kHz 16bit",
+    "quality_score": 11644.1,
+    "similarity_to_best": 100.0,
+    "is_best": true
+  }
+  ```
+
+- **CSV Output**: Adds columns for `audio_info`, `quality_score`, `similarity_to_best`, and `is_best`
+
+- **Interactive Delete**: Shows quality info for each file to help decide which duplicates to keep/delete
+
+### Quality Scoring System
+
+- **Lossless formats** (FLAC, WAV, ALAC, etc.): `10000 + (bit_depth × 100) + (sample_rate / 1000)`
+  - Example: 24-bit 96kHz FLAC = 10000 + 2400 + 96 = 12496
+- **Lossy formats** (MP3, AAC, OGG, etc.): `bitrate / 1000` (in kbps)
+  - Example: 320kbps MP3 = 320
+
+This ensures lossless files always rank higher than lossy, with finer granularity within each category.
+
 ## Future Enhancements
 
 ### Potential Features
 
 - Parallel hashing with multiprocessing
-- Similarity threshold tuning (currently binary match)
 - Preview audio before deletion
 - Dry-run mode for `--delete-duplicates`
 - GUI interface
-- Automatic "best quality" file selection
-- Cache management commands (clear, show stats, etc.)
 
 ### Code Improvements
 
 - More comprehensive test coverage (integration tests)
 - Benchmark Chromaprint performance on large libraries
 - Support for more exotic audio formats (AIFF, APE, etc.)
-- Similarity threshold tuning (allow near-matches with configurable tolerance)
 - Optional fuzzy duration matching (±1 second tolerance)
 
 ## Git & GitHub
