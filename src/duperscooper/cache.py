@@ -62,9 +62,7 @@ class SQLiteCacheBackend:
     def _get_connection(self) -> sqlite3.Connection:
         """Get thread-local database connection."""
         if not hasattr(self._local, "conn"):
-            conn: sqlite3.Connection = sqlite3.connect(
-                str(self.db_path), timeout=30.0
-            )
+            conn: sqlite3.Connection = sqlite3.connect(str(self.db_path), timeout=30.0)
             # Enable WAL mode for concurrent access
             conn.execute("PRAGMA journal_mode=WAL")
             # Enable foreign keys
