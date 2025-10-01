@@ -1,4 +1,5 @@
 tqdm==4.66.5
+colorama==0.4.6
 
 # Development dependencies
 black==24.8.0

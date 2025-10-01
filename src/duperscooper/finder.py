@@ -5,6 +5,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
+from colorama import Fore, Style
+
 from .hasher import AudioHasher
 
 
@@ -69,7 +71,11 @@ class DuplicateFinder:
                     audio_files.append(path)
                     count += 1
                     if self.verbose and count % 100 == 0:
-                        print(f"\rFound {count} files...", end="", flush=True)
+                        print(
+                            f"\r{Fore.CYAN}Found {count} files...{Style.RESET_ALL}",
+                            end="",
+                            flush=True,
+                        )
             elif path.is_dir():
                 for file_path in path.rglob("*"):
                     if (
@@ -80,11 +86,18 @@ class DuplicateFinder:
                         audio_files.append(file_path)
                         count += 1
                         if self.verbose and count % 100 == 0:
-                            print(f"\rFound {count} files...", end="", flush=True)
+                            print(
+                                f"\r{Fore.CYAN}Found {count} files...{Style.RESET_ALL}",
+                                end="",
+                                flush=True,
+                            )
 
         # Print final accurate count
         if self.verbose and count > 0:
-            print(f"\rFound {count} files...done", flush=True)
+            print(
+                f"\r{Fore.CYAN}Found {count} files...{Fore.GREEN}done{Style.RESET_ALL}",
+                flush=True,
+            )
 
         return audio_files
 
@@ -127,8 +140,8 @@ class DuplicateFinder:
                 if self.verbose and (idx % 10 == 0 or idx == total_files):
                     percent = (idx / total_files) * 100
                     print(
-                        f"\rFingerprinted {idx}/{total_files} files "
-                        f"({percent:.1f}%)...",
+                        f"\r{Fore.CYAN}Fingerprinted {idx}/{total_files} files "
+                        f"({percent:.1f}%)...{Style.RESET_ALL}",
                         end="",
                         flush=True,
                     )
@@ -138,7 +151,8 @@ class DuplicateFinder:
         # Print completion
         if self.verbose and total_files > 0:
             print(
-                f"\rFingerprinted {total_files}/{total_files} files (100.0%)...done",
+                f"\r{Fore.CYAN}Fingerprinted {total_files}/{total_files} files "
+                f"(100.0%)...{Fore.GREEN}done{Style.RESET_ALL}",
                 flush=True,
             )
 
@@ -246,16 +260,16 @@ class DuplicateFinder:
                 if self.verbose and comparisons % 100 == 0:
                     pct = (comparisons / total_comparisons) * 100
                     print(
-                        f"\rCompared {comparisons}/{total_comparisons} pairs "
-                        f"({pct:.1f}%)...",
+                        f"\r{Fore.CYAN}Compared {comparisons}/{total_comparisons} "
+                        f"pairs ({pct:.1f}%)...{Style.RESET_ALL}",
                         end="",
                         flush=True,
                     )
 
         if self.verbose and total_comparisons > 0:
             print(
-                f"\rCompared {total_comparisons}/{total_comparisons} pairs "
-                f"(100.0%)...done",
+                f"\r{Fore.CYAN}Compared {total_comparisons}/{total_comparisons} pairs "
+                f"(100.0%)...{Fore.GREEN}done{Style.RESET_ALL}",
                 flush=True,
             )
 
@@ -379,8 +393,11 @@ class DuplicateManager:
         deleted_count = 0
 
         for idx, (hash_val, file_list) in enumerate(duplicates.items(), 1):
-            print(f"\n--- Duplicate Group {idx}/{len(duplicates)} ---")
-            print(f"Hash: {hash_val[:16]}...")
+            print(
+                f"\n{Fore.CYAN}{Style.BRIGHT}--- Duplicate Group "
+                f"{idx}/{len(duplicates)} ---{Style.RESET_ALL}"
+            )
+            print(f"{Style.DIM}Hash: {hash_val[:16]}...{Style.RESET_ALL}")
 
             # Identify highest quality file and get enriched file info
             best_file, best_fp, enriched_files = (
@@ -401,17 +418,27 @@ class DuplicateManager:
 
                 if file_path == best_file:
                     print(
-                        f"  [{i}] [Best] {info['path']} ({info['size']}) - {audio_info}"
+                        f"  [{i}] {Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]"
+                        f"{Style.RESET_ALL} {info['path']} "
+                        f"{Style.DIM}({info['size']}){Style.RESET_ALL} - "
+                        f"{Fore.LIGHTGREEN_EX}{audio_info}{Style.RESET_ALL}"
                     )
                 else:
+                    # Use similarity color coding
+                    sim_color = (
+                        Fore.GREEN
+                        if similarity >= 99.0
+                        else Fore.YELLOW if similarity >= 95.0 else Fore.LIGHTRED_EX
+                    )
                     print(
-                        f"  [{i}] {info['path']} ({info['size']}) - "
-                        f"{audio_info} [{similarity:.1f}% match]"
+                        f"  [{i}] {info['path']} {Style.DIM}({info['size']})"
+                        f"{Style.RESET_ALL} - {audio_info} {sim_color}"
+                        f"[{similarity:.1f}% match]{Style.RESET_ALL}"
                     )
                 files_for_deletion.append(file_path)
 
             # Ask user what to do
-            print("\nOptions:")
+            print(f"\n{Style.BRIGHT}Options:{Style.RESET_ALL}")
             print("  - Enter file number(s) to delete (space-separated)")
             print("  - Press Enter to skip this group")
             print("  - Type 'q' to quit")
@@ -431,15 +458,24 @@ class DuplicateManager:
                             file_to_delete = files_for_deletion[index]
                             try:
                                 file_to_delete.unlink()
-                                print(f"  ✓ Deleted: {file_to_delete}")
+                                print(
+                                    f"  {Fore.GREEN}✓ Deleted:{Style.RESET_ALL} "
+                                    f"{file_to_delete}"
+                                )
                                 deleted_count += 1
                             except OSError as e:
-                                print(f"  ✗ Failed to delete {file_to_delete}: {e}")
+                                print(
+                                    f"  {Fore.RED}✗ Failed to delete {file_to_delete}: "
+                                    f"{e}{Style.RESET_ALL}"
+                                )
                         else:
-                            print(f"  ✗ Invalid index: {index}")
+                            print(
+                                f"  {Fore.RED}✗ Invalid index: {index}{Style.RESET_ALL}"
+                            )
                 except ValueError:
                     print(
-                        "  ✗ Invalid input. Please enter numbers separated by spaces."
+                        f"  {Fore.RED}✗ Invalid input. Please enter numbers "
+                        f"separated by spaces.{Style.RESET_ALL}"
                     )
 
         return deleted_count

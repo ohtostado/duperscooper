@@ -6,8 +6,34 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
+from colorama import Fore, Style, init
+
 from . import __version__
 from .finder import DuplicateFinder, DuplicateManager
+
+# Initialize colorama for cross-platform color support
+init(autoreset=True)
+
+
+def get_similarity_color(similarity: float) -> str:
+    """
+    Get color for similarity percentage based on value.
+
+    Args:
+        similarity: Similarity percentage (0-100)
+
+    Returns:
+        Colorama color code
+    """
+    if similarity >= 99.0:
+        color: str = Fore.GREEN
+        return color
+    elif similarity >= 95.0:
+        color = Fore.YELLOW
+        return color
+    else:
+        color = Fore.LIGHTRED_EX  # Orange-ish on most terminals
+        return color
 
 
 def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
@@ -18,12 +44,18 @@ def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
 
     from .hasher import AudioHasher
 
-    print(f"Found {len(duplicates)} group(s) of duplicate files:\n")
+    print(
+        f"{Fore.CYAN}{Style.BRIGHT}Found {len(duplicates)} group(s) "
+        f"of duplicate files:{Style.RESET_ALL}\n"
+    )
 
     hasher = AudioHasher()
 
     for idx, (hash_val, file_list) in enumerate(duplicates.items(), 1):
-        print(f"Group {idx} (Hash: {hash_val[:16]}...):")
+        print(
+            f"{Fore.CYAN}{Style.BRIGHT}Group {idx}{Style.RESET_ALL} "
+            f"{Style.DIM}(Hash: {hash_val[:16]}...){Style.RESET_ALL}"
+        )
 
         # Identify highest quality file and get enriched file info
         best_file, best_fp, enriched_files = DuplicateManager.identify_highest_quality(
@@ -42,11 +74,17 @@ def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
             audio_info = AudioHasher.format_audio_info(metadata)
 
             if file_path == best_file:
-                print(f"  [Best] {info['path']} ({info['size']}) - {audio_info}")
-            else:
                 print(
-                    f"    ├─ {info['path']} ({info['size']}) - "
-                    f"{audio_info} [{similarity:.1f}% match]"
+                    f"  {Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]{Style.RESET_ALL} "
+                    f"{info['path']} {Style.DIM}({info['size']}){Style.RESET_ALL} - "
+                    f"{Fore.LIGHTGREEN_EX}{audio_info}{Style.RESET_ALL}"
+                )
+            else:
+                sim_color = get_similarity_color(similarity)
+                print(
+                    f"    ├─ {info['path']} {Style.DIM}({info['size']})"
+                    f"{Style.RESET_ALL} - {audio_info} {sim_color}"
+                    f"[{similarity:.1f}% match]{Style.RESET_ALL}"
                 )
         print()
 

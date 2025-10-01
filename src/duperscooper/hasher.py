@@ -368,11 +368,23 @@ class AudioHasher:
         codec_val = metadata.get("codec")
         codec = codec_val.upper() if isinstance(codec_val, str) else ""
         sample_rate_val = metadata.get("sample_rate", 0)
-        sample_rate = int(sample_rate_val) if isinstance(sample_rate_val, (int, float)) and sample_rate_val else 0
+        sample_rate = (
+            int(sample_rate_val)
+            if isinstance(sample_rate_val, (int, float)) and sample_rate_val
+            else 0
+        )
         bit_depth_val = metadata.get("bit_depth", 0)
-        bit_depth = int(bit_depth_val) if isinstance(bit_depth_val, (int, float)) and bit_depth_val else 0
+        bit_depth = (
+            int(bit_depth_val)
+            if isinstance(bit_depth_val, (int, float)) and bit_depth_val
+            else 0
+        )
         bitrate_val = metadata.get("bitrate", 0)
-        bitrate = int(bitrate_val) if isinstance(bitrate_val, (int, float)) and bitrate_val else 0
+        bitrate = (
+            int(bitrate_val)
+            if isinstance(bitrate_val, (int, float)) and bitrate_val
+            else 0
+        )
 
         # Lossless formats get base score of 10000
         lossless_codecs = {"FLAC", "WAV", "ALAC", "APE", "WV", "TTA"}
