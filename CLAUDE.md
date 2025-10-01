@@ -38,8 +38,11 @@ src/duperscooper/
 ├── __main__.py       # CLI interface (argparse), output formatting
 ├── cache.py          # CacheBackend interface, SQLite/JSON implementations
 ├── hasher.py         # AudioHasher: perceptual & exact hashing
-└── finder.py         # DuplicateFinder: search logic, parallelization
-                      # DuplicateManager: file operations
+├── finder.py         # DuplicateFinder: search logic, parallelization
+│                     # DuplicateManager: file operations
+└── album.py          # Album: dataclass for album metadata
+                      # AlbumScanner: album discovery and metadata extraction
+                      # AlbumDuplicateFinder: album duplicate detection
 ```
 
 ### Key Components
@@ -94,6 +97,41 @@ src/duperscooper/
   information
 - `format_file_size()`: Human-readable size strings
 - `get_file_info()`: File metadata for display
+
+#### Album (album.py)
+
+- `Album` (dataclass): Represents an album with metadata and fingerprints
+  - Fields: path, tracks, track_count, musicbrainz_albumid, album_name,
+    artist_name, total_size, avg_quality_score, fingerprints,
+    has_mixed_mb_ids, quality_info
+
+#### AlbumScanner (album.py)
+
+- `scan_albums()`: Discover all albums in given paths
+- `extract_album_metadata()`: Extract metadata from all tracks in album
+  directory
+- `get_musicbrainz_albumid()`: Extract MusicBrainz album ID via ffprobe
+- `get_album_tags()`: Extract album name and artist from metadata
+- Leverages existing AudioHasher for fingerprint caching
+- Non-recursive directory scan (one album = one directory)
+
+#### AlbumDuplicateFinder (album.py)
+
+- `find_duplicates()`: Find duplicate albums using specified strategy
+- `_match_by_musicbrainz()`: Group albums by MusicBrainz ID and track count
+- `_match_by_fingerprints()`: Group albums by perceptual fingerprint
+  similarity using Union-Find
+- `album_similarity()`: Calculate similarity percentage between two albums
+  (average track-by-track similarity)
+- `get_matched_album_info()`: Determine matched album name and artist for a
+  duplicate group (uses most common names)
+- `calculate_confidence()`: Calculate confidence that an album belongs to the
+  matched group
+  - MusicBrainz ID match: 100%
+  - Album/artist name match + fingerprints: 90-95%
+  - Fingerprint similarity only: 80-90%
+- Three matching strategies: `auto` (MB + fingerprint fallback),
+  `musicbrainz`, `fingerprint`
 
 ## Development Guidelines
 
@@ -191,6 +229,21 @@ duperscooper ~/Music --workers 1
 
 # Use legacy JSON cache backend instead of SQLite
 duperscooper ~/Music --cache-backend json
+
+# Album mode: Find duplicate albums
+duperscooper ~/Music --album-mode
+
+# Album mode with MusicBrainz-only matching
+duperscooper ~/Music --album-mode --album-match-strategy musicbrainz
+
+# Album mode with fingerprint-only matching
+duperscooper ~/Music --album-mode --album-match-strategy fingerprint
+
+# Album mode with JSON output (includes matched album/artist and confidence)
+duperscooper ~/Music --album-mode --output json
+
+# Album mode with CSV output (good for GUI integration)
+duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
 ```
 
 ### Debugging
@@ -324,6 +377,60 @@ All output formats now include quality information for duplicate groups:
   - Example: 320kbps MP3 = 320
 
 This ensures lossless files always rank higher than lossy, with finer granularity within each category.
+
+### Album Mode Output Formats
+
+Album mode adds matched album/artist identification and confidence scoring:
+
+- **Text Output** (default): Shows matched album/artist at group level, best quality album with `[Best]` marker, confidence percentage with color coding
+  ```
+  Group 1: Dirty Deeds by AC/DC
+  [Best] /music/ac-dc/dirty-deeds-flac (15 tracks, 450.2 MB)
+    Quality: FLAC 44.1kHz 16bit (avg)
+    Confidence: 100.0%
+    MusicBrainz ID: abc123...
+    Metadata: AC/DC - Dirty Deeds Done Dirt Cheap
+
+    /music/ac-dc/dirty-deeds-mp3 (15 tracks, 98.5 MB)
+    Quality: MP3 CBR 320kbps (avg)
+    Confidence: 95.0%
+    Match: 99.8%
+  ```
+
+- **JSON Output**: Includes `matched_album`, `matched_artist` at group level, `confidence` for each album
+  ```json
+  {
+    "matched_album": "Dirty Deeds Done Dirt Cheap",
+    "matched_artist": "AC/DC",
+    "albums": [
+      {
+        "path": "/music/ac-dc/dirty-deeds-flac",
+        "confidence": 100.0,
+        "is_best": true,
+        "quality_score": 11644.1,
+        ...
+      }
+    ]
+  }
+  ```
+
+- **CSV Output**: Adds columns for `matched_album`, `matched_artist`, `confidence`
+  - Format: `group_id,matched_album,matched_artist,album_path,track_count,total_size_bytes,total_size,quality_info,quality_score,confidence,is_best,musicbrainz_albumid,album_name,artist_name,has_mixed_mb_ids`
+  - Good for GUI integration and spreadsheet analysis
+
+### Album Confidence Scoring
+
+Confidence that an album belongs to a matched duplicate group:
+
+- **100%**: All albums have matching MusicBrainz album ID
+- **90-95%**: Album/artist metadata matches + high fingerprint similarity
+- **80-90%**: Fingerprint similarity only (no metadata match)
+
+Confidence calculation factors:
+- Base confidence: 80%
+- +5% if album name matches the group's matched album
+- +5% if artist name matches the group's matched artist
+- +0-10% based on average fingerprint similarity to other albums in group (98-100% similarity range)
 
 ## Future Enhancements
 

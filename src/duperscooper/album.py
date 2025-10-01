@@ -476,6 +476,88 @@ class AlbumDuplicateFinder:
         # Return average similarity across all tracks
         return sum(similarities) / len(similarities) if similarities else 0.0
 
+    def get_matched_album_info(self, group: List[Album]) -> Tuple[str, str]:
+        """
+        Determine the matched album name and artist for a duplicate group.
+
+        Uses the most common album/artist names across the group.
+
+        Args:
+            group: List of duplicate albums
+
+        Returns:
+            Tuple of (album_name, artist_name), or ("Unknown", "Unknown")
+        """
+        from collections import Counter
+
+        # Collect all non-None album and artist names
+        album_names = [a.album_name for a in group if a.album_name]
+        artist_names = [a.artist_name for a in group if a.artist_name]
+
+        # Use most common name, or "Unknown" if none found
+        if album_names:
+            album_name = Counter(album_names).most_common(1)[0][0]
+        else:
+            album_name = "Unknown"
+
+        if artist_names:
+            artist_name = Counter(artist_names).most_common(1)[0][0]
+        else:
+            artist_name = "Unknown"
+
+        return (album_name, artist_name)
+
+    def calculate_confidence(self, album: Album, group: List[Album]) -> float:
+        """
+        Calculate confidence that an album belongs to the matched group.
+
+        Confidence based on:
+        - MusicBrainz ID match: 100%
+        - Album/artist name match + track count: 90-95%
+        - Fingerprint similarity only: 80-90%
+
+        Args:
+            album: Album to calculate confidence for
+            group: Full duplicate group
+
+        Returns:
+            Confidence percentage (0-100)
+        """
+        # If all albums in group have same MB ID, confidence is 100%
+        mb_ids = [a.musicbrainz_albumid for a in group if a.musicbrainz_albumid]
+        if mb_ids and album.musicbrainz_albumid:
+            if all(mb == album.musicbrainz_albumid for mb in mb_ids):
+                return 100.0
+
+        # Get matched album/artist for the group
+        matched_album, matched_artist = self.get_matched_album_info(group)
+
+        # Start with base confidence from metadata match
+        confidence = 80.0
+
+        # Boost if album name matches
+        if album.album_name and album.album_name == matched_album:
+            confidence += 5.0
+
+        # Boost if artist name matches
+        if album.artist_name and album.artist_name == matched_artist:
+            confidence += 5.0
+
+        # Boost based on average fingerprint similarity to other albums
+        if len(group) > 1:
+            similarities = []
+            for other in group:
+                if other != album:
+                    sim = self.album_similarity(album, other)
+                    similarities.append(sim)
+            if similarities:
+                avg_similarity = sum(similarities) / len(similarities)
+                # Map 98-100% similarity to +5-10% confidence boost
+                boost = (avg_similarity - 98.0) / 2.0 * 10.0
+                confidence += min(10.0, max(0.0, boost))
+
+        return min(100.0, confidence)
+
     def _get_ungrouped_albums(
         self, all_albums: List[Album], groups: List[List[Album]]
     ) -> List[Album]:

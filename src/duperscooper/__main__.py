@@ -149,10 +149,15 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
 
 def format_album_output_text(duplicate_groups: List[List]) -> None:
     """Format and print duplicate albums in text format."""
+    from .album import AlbumDuplicateFinder
+    from .hasher import AudioHasher
 
     if not duplicate_groups:
         print("No duplicate albums found.")
         return
+
+    hasher = AudioHasher()
+    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     print(
         f"{Fore.CYAN}{Style.BRIGHT}Found {len(duplicate_groups)} group(s) "
@@ -160,7 +165,13 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
     )
 
     for idx, group in enumerate(duplicate_groups, 1):
-        print(f"{Fore.CYAN}{Style.BRIGHT}Group {idx}{Style.RESET_ALL}")
+        # Get matched album info for the group
+        matched_album, matched_artist = finder.get_matched_album_info(group)
+
+        print(
+            f"{Fore.CYAN}{Style.BRIGHT}Group {idx}: "
+            f"{matched_album} by {matched_artist}{Style.RESET_ALL}"
+        )
 
         # Sort by quality descending (best first)
         sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
@@ -173,6 +184,9 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 if is_best
                 else "  "
             )
+
+            # Calculate confidence
+            confidence = finder.calculate_confidence(album, group)
 
             # Format size
             size_mb = album.total_size / (1024 * 1024)
@@ -187,18 +201,25 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 f"({album.track_count} tracks, {size_str}){Style.RESET_ALL}"
             )
             print(f"    Quality: {album.quality_info}")
+
+            # Confidence with color coding
+            if confidence >= 95.0:
+                conf_color = Fore.GREEN
+            elif confidence >= 85.0:
+                conf_color = Fore.YELLOW
+            else:
+                conf_color = Fore.LIGHTRED_EX
+            print(f"    Confidence: {conf_color}{confidence:.1f}%{Style.RESET_ALL}")
+
             if album.musicbrainz_albumid:
                 print(f"    MusicBrainz ID: {album.musicbrainz_albumid}")
             if album.album_name or album.artist_name:
                 artist = album.artist_name or "Unknown"
                 album_name = album.album_name or "Unknown"
-                print(f"    {artist} - {album_name}")
+                print(f"    Metadata: {artist} - {album_name}")
 
             # Show similarity to best (if not best)
             if not is_best:
-                from .hasher import AudioHasher
-
-                hasher = AudioHasher()
                 similarity = (
                     hasher.similarity_percentage(
                         best_album.fingerprints[0], album.fingerprints[0]
@@ -214,21 +235,33 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
 
 def format_album_output_json(duplicate_groups: List[List]) -> None:
     """Format and print duplicate albums in JSON format."""
+    from .album import AlbumDuplicateFinder
+    from .hasher import AudioHasher
+
+    hasher = AudioHasher()
+    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     output = []
     for group in duplicate_groups:
+        # Get matched album info
+        matched_album, matched_artist = finder.get_matched_album_info(group)
+
         albums_data = []
         # Sort by quality descending
         sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
         best_album = sorted_albums[0]
 
         for album in sorted_albums:
+            # Calculate confidence
+            confidence = finder.calculate_confidence(album, group)
+
             album_data = {
                 "path": str(album.path),
                 "track_count": album.track_count,
                 "total_size": album.total_size,
                 "quality_info": album.quality_info,
                 "quality_score": album.avg_quality_score,
+                "confidence": confidence,
                 "is_best": album == best_album,
                 "musicbrainz_albumid": album.musicbrainz_albumid,
                 "album_name": album.album_name,
@@ -237,26 +270,43 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
             }
             albums_data.append(album_data)
 
-        output.append({"albums": albums_data})
+        output.append(
+            {
+                "matched_album": matched_album,
+                "matched_artist": matched_artist,
+                "albums": albums_data,
+            }
+        )
 
     print(json.dumps(output, indent=2))
 
 
 def format_album_output_csv(duplicate_groups: List[List]) -> None:
     """Format and print duplicate albums in CSV format."""
+    from .album import AlbumDuplicateFinder
+    from .hasher import AudioHasher
+
+    hasher = AudioHasher()
+    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     print(
-        "group_id,album_path,track_count,total_size_bytes,total_size,"
-        "quality_info,quality_score,is_best,musicbrainz_albumid,"
-        "album_name,artist_name,has_mixed_mb_ids"
+        "group_id,matched_album,matched_artist,album_path,track_count,"
+        "total_size_bytes,total_size,quality_info,quality_score,confidence,"
+        "is_best,musicbrainz_albumid,album_name,artist_name,has_mixed_mb_ids"
     )
 
     for idx, group in enumerate(duplicate_groups, 1):
+        # Get matched album info
+        matched_album, matched_artist = finder.get_matched_album_info(group)
+
         # Sort by quality descending
         sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
         best_album = sorted_albums[0]
 
         for album in sorted_albums:
+            # Calculate confidence
+            confidence = finder.calculate_confidence(album, group)
+
             size_mb = album.total_size / (1024 * 1024)
             if size_mb >= 1024:
                 size_str = f"{size_mb / 1024:.1f}GB"
@@ -267,9 +317,10 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
             has_mixed = "true" if album.has_mixed_mb_ids else "false"
 
             print(
-                f"{idx},{album.path},{album.track_count},{album.total_size},"
-                f"{size_str},{album.quality_info},{album.avg_quality_score:.1f},"
-                f"{is_best},{album.musicbrainz_albumid or ''},"
+                f"{idx},{matched_album},{matched_artist},{album.path},"
+                f"{album.track_count},{album.total_size},{size_str},"
+                f"{album.quality_info},{album.avg_quality_score:.1f},"
+                f"{confidence:.1f},{is_best},{album.musicbrainz_albumid or ''},"
                 f"{album.album_name or ''},{album.artist_name or ''},{has_mixed}"
             )
 
