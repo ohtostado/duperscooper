@@ -405,6 +405,25 @@ class DuplicateManager:
             )
 
             # Display all files in group with quality info
+            # Separate best file from duplicates for sorting
+            best_entry = None
+            duplicate_entries = []
+            for entry in enriched_files:
+                file_path_entry = entry[0]
+                if file_path_entry == best_file:
+                    best_entry = entry
+                else:
+                    duplicate_entries.append(entry)
+
+            # Sort duplicates by similarity descending (best matches first)
+            duplicate_entries.sort(key=lambda x: x[4], reverse=True)
+
+            # Combine back together for display with proper indices
+            display_entries = []
+            if best_entry:
+                display_entries.append(best_entry)
+            display_entries.extend(duplicate_entries)
+
             files_for_deletion = []
             for i, (
                 file_path,
@@ -412,7 +431,7 @@ class DuplicateManager:
                 metadata,
                 _quality_score,
                 similarity,
-            ) in enumerate(enriched_files):
+            ) in enumerate(display_entries):
                 info = DuplicateManager.get_file_info(file_path)
                 audio_info = hasher.format_audio_info(metadata)
 

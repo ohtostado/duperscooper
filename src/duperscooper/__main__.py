@@ -63,29 +63,50 @@ def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
         )
 
         # Print files with quality info
-        for (
+        # Separate best file from duplicates for sorting
+        best_entry = None
+        duplicate_entries = []
+        for entry in enriched_files:
+            file_path = entry[0]
+            if file_path == best_file:
+                best_entry = entry
+            else:
+                duplicate_entries.append(entry)
+
+        # Sort duplicates by similarity descending (best matches first)
+        duplicate_entries.sort(key=lambda x: x[4], reverse=True)  # x[4] is similarity
+
+        # Print best file first
+        if best_entry:
+            file_path, _fingerprint, metadata, _quality_score, similarity = best_entry
+            info = DuplicateManager.get_file_info(file_path)
+            audio_info = AudioHasher.format_audio_info(metadata)
+            print(
+                f"  {Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]{Style.RESET_ALL} "
+                f"{info['path']} {Style.DIM}({info['size']}){Style.RESET_ALL} - "
+                f"{Fore.LIGHTGREEN_EX}{audio_info}{Style.RESET_ALL}"
+            )
+
+        # Print duplicates with proper tree characters
+        for idx, (
             file_path,
             _fingerprint,
             metadata,
             _quality_score,
             similarity,
-        ) in enriched_files:
+        ) in enumerate(duplicate_entries):
             info = DuplicateManager.get_file_info(file_path)
             audio_info = AudioHasher.format_audio_info(metadata)
+            sim_color = get_similarity_color(similarity)
 
-            if file_path == best_file:
-                print(
-                    f"  {Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]{Style.RESET_ALL} "
-                    f"{info['path']} {Style.DIM}({info['size']}){Style.RESET_ALL} - "
-                    f"{Fore.LIGHTGREEN_EX}{audio_info}{Style.RESET_ALL}"
-                )
-            else:
-                sim_color = get_similarity_color(similarity)
-                print(
-                    f"    ├─ {info['path']} {Style.DIM}({info['size']})"
-                    f"{Style.RESET_ALL} - {audio_info} {sim_color}"
-                    f"[{similarity:.1f}% match]{Style.RESET_ALL}"
-                )
+            # Use └─ for last item, ├─ for others
+            tree_char = "└─" if idx == len(duplicate_entries) - 1 else "├─"
+
+            print(
+                f"    {tree_char} {info['path']} {Style.DIM}({info['size']})"
+                f"{Style.RESET_ALL} - {audio_info} {sim_color}"
+                f"[{similarity:.1f}% match]{Style.RESET_ALL}"
+            )
         print()
 
 
