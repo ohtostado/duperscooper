@@ -448,6 +448,15 @@ Confidence calculation factors:
 - Support for more exotic audio formats (AIFF, APE, etc.)
 - Optional fuzzy duration matching (±1 second tolerance)
 
+### Album Mode Future Phases
+
+- **Fuzzy Tag Matching**: Match albums/tracks with possible misspellings in ID3 tags
+  - Use Levenshtein distance or similar algorithms to match album/artist names
+  - Example: "The Beatles" vs "Beatles" or "Led Zeppelin" vs "Led Zepplin"
+  - Match against canonical albums (those with MusicBrainz IDs) within close edit distance
+  - Configurable threshold for fuzzy matching sensitivity
+  - Useful for poorly tagged or user-edited metadata
+
 ## Git & GitHub
 
 ### Commit Guidelines
@@ -494,6 +503,7 @@ fpcalc --version
 
 ## Notes for Claude
 
+- **Read `.claude-state.md` FIRST** before taking any actions - it contains complete session context, recent work, and current development state
 - **Always format code** with Black before presenting to user
 - **Always run linting** with Ruff when making changes
 - **Prefer editing** existing files over creating new ones

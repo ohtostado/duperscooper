@@ -41,6 +41,8 @@ class AlbumScanner:
         """
         self.hasher = hasher
         self.verbose = verbose
+        self.album_cache_hits = 0
+        self.album_cache_misses = 0
 
     def scan_albums(self, paths: List[Path], max_workers: int = 8) -> List[Album]:
         """
@@ -118,6 +120,12 @@ class AlbumScanner:
         Returns:
             Album object with metadata and fingerprints
         """
+        # Try to get album from cache
+        cache_backend = getattr(self.hasher, "_cache", None)
+        cached_album = None
+        if cache_backend:
+            cached_album = cache_backend.get_album(str(album_path))
+
         # Find all audio files in directory (non-recursive)
         tracks = sorted(
             [
@@ -129,6 +137,39 @@ class AlbumScanner:
 
         if not tracks:
             raise ValueError(f"No audio files found in {album_path}")
+
+        # Check if cache is valid by comparing track list
+        if cached_album:
+            cached_track_paths = [t[0] for t in cached_album["tracks"]]
+            current_track_paths = [str(t) for t in tracks]
+
+            if cached_track_paths == current_track_paths:
+                # Cache is valid, use cached data
+                self.album_cache_hits += 1
+
+                # Get fingerprints from track-level cache
+                cached_fingerprints: List[List[int]] = []
+                for track in tracks:
+                    fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
+                    assert isinstance(fingerprint, list)
+                    cached_fingerprints.append(fingerprint)
+
+                return Album(
+                    path=album_path,
+                    tracks=tracks,
+                    track_count=cached_album["track_count"],
+                    musicbrainz_albumid=cached_album["musicbrainz_albumid"],
+                    album_name=cached_album["album_name"],
+                    artist_name=cached_album["artist_name"],
+                    total_size=cached_album["total_size"],
+                    avg_quality_score=cached_album["avg_quality_score"],
+                    fingerprints=cached_fingerprints,
+                    has_mixed_mb_ids=cached_album["has_mixed_mb_ids"],
+                    quality_info=cached_album["quality_info"],
+                )
+
+        # Cache miss or invalid, extract metadata
+        self.album_cache_misses += 1
 
         # Extract MusicBrainz album IDs from all tracks
         mb_ids = []
@@ -155,6 +196,7 @@ class AlbumScanner:
         fingerprints: List[List[int]] = []
         total_size = 0
         quality_scores = []
+        track_hashes = []
 
         for track in tracks:
             # Get fingerprint from cache or compute
@@ -165,6 +207,10 @@ class AlbumScanner:
 
             # Get file size
             total_size += track.stat().st_size
+
+            # Get file hash for cache storage
+            file_hash = self.hasher.compute_file_hash(track)
+            track_hashes.append((str(track), file_hash))
 
             # Get quality metadata
             try:
@@ -185,6 +231,21 @@ class AlbumScanner:
             quality_info = self.hasher.format_audio_info(first_metadata) + " (avg)"
         except Exception:
             quality_info = "Unknown"
+
+        # Store in cache
+        if cache_backend:
+            album_data = {
+                "track_count": len(tracks),
+                "musicbrainz_albumid": musicbrainz_albumid,
+                "album_name": album_name,
+                "artist_name": artist_name,
+                "total_size": total_size,
+                "avg_quality_score": avg_quality_score,
+                "quality_info": quality_info,
+                "has_mixed_mb_ids": has_mixed_mb_ids,
+                "directory_mtime": int(album_path.stat().st_mtime),
+            }
+            cache_backend.set_album(str(album_path), album_data, track_hashes)
 
         return Album(
             path=album_path,

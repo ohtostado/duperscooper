@@ -617,6 +617,21 @@ def run_album_mode(args: argparse.Namespace) -> int:
         print("Album deletion not yet implemented (Phase 4)", file=sys.stderr)
         return 1
 
+    # Print cache statistics (text mode only)
+    if args.output == "text" and not args.no_progress:
+        # Track-level cache stats
+        cache_stats = hasher.get_cache_stats()
+        print(
+            f"\nTrack fingerprint cache: {cache_stats['hits']} hits, "
+            f"{cache_stats['misses']} misses, {cache_stats['size']} entries"
+        )
+
+        # Album-level cache stats
+        print(
+            f"Album metadata cache: {scanner.album_cache_hits} hits, "
+            f"{scanner.album_cache_misses} misses"
+        )
+
     # Format and output results
     if args.output == "json":
         format_album_output_json(duplicate_groups)

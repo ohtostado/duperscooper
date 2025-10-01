@@ -224,7 +224,7 @@ class SQLiteCacheBackend:
 
     def clear(self) -> bool:
         """
-        Clear all cache entries.
+        Clear all cache entries (fingerprints and albums).
 
         Returns:
             True if successful
@@ -232,6 +232,8 @@ class SQLiteCacheBackend:
         try:
             conn = self._get_connection()
             conn.execute("DELETE FROM fingerprint_cache")
+            conn.execute("DELETE FROM album_tracks")
+            conn.execute("DELETE FROM album_cache")
             conn.commit()
             with self._lock:
                 self._hits = 0
