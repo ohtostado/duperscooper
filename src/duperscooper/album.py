@@ -320,16 +320,84 @@ class AlbumDuplicateFinder:
         elif strategy == "fingerprint":
             return self._match_by_fingerprints(albums)
         elif strategy == "auto":
-            # Auto: Use MusicBrainz if available, fallback to fingerprints
-            mb_groups = self._match_by_musicbrainz(albums)
-            remaining = self._get_ungrouped_albums(albums, mb_groups)
-            fingerprint_groups = self._match_by_fingerprints(remaining)
-            return mb_groups + fingerprint_groups
+            # Auto: Use fingerprint matching for all albums, then merge groups
+            # that share MusicBrainz IDs
+            fingerprint_groups = self._match_by_fingerprints(albums)
+            merged_groups = self._merge_groups_by_musicbrainz(fingerprint_groups)
+            return merged_groups
         else:
             raise ValueError(
                 f"Unknown strategy: {strategy}. "
                 "Use 'musicbrainz', 'fingerprint', or 'auto'"
             )
+
+    def _merge_groups_by_musicbrainz(
+        self, groups: List[List[Album]]
+    ) -> List[List[Album]]:
+        """
+        Merge fingerprint-based groups that share MusicBrainz IDs.
+
+        If albums in different groups have the same MusicBrainz ID and track count,
+        merge those groups together.
+
+        Args:
+            groups: List of fingerprint-matched groups
+
+        Returns:
+            List of merged groups
+        """
+        if not groups:
+            return []
+
+        # Create mapping of (mb_id, track_count) -> group indices
+        mb_to_groups: Dict[Tuple[str, int], List[int]] = defaultdict(list)
+
+        for idx, group in enumerate(groups):
+            # Get all unique MB IDs in this group
+            mb_ids = set()
+            track_counts = set()
+            for album in group:
+                if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
+                    mb_ids.add(album.musicbrainz_albumid)
+                track_counts.add(album.track_count)
+
+            # If group has consistent MB ID and track count, track it
+            if len(mb_ids) == 1 and len(track_counts) == 1:
+                mb_id = list(mb_ids)[0]
+                track_count = list(track_counts)[0]
+                mb_to_groups[(mb_id, track_count)].append(idx)
+
+        # Determine which groups to merge
+        groups_to_merge: Dict[int, int] = {}  # group_idx -> canonical_group_idx
+        for (_mb_id, _track_count), group_indices in mb_to_groups.items():
+            if len(group_indices) > 1:
+                # Merge all these groups into the first one
+                canonical = group_indices[0]
+                for idx in group_indices[1:]:
+                    groups_to_merge[idx] = canonical
+
+        # Perform merging
+        merged_groups_dict: Dict[int, List[Album]] = {}
+        for idx, group in enumerate(groups):
+            if idx in groups_to_merge:
+                # This group should be merged into another
+                canonical = groups_to_merge[idx]
+                if canonical not in merged_groups_dict:
+                    merged_groups_dict[canonical] = list(groups[canonical])
+                merged_groups_dict[canonical].extend(group)
+            elif idx not in merged_groups_dict:
+                # This group is standalone or is the canonical for merged groups
+                merged_groups_dict[idx] = list(group)
+
+        merged_groups = list(merged_groups_dict.values())
+
+        if self.verbose and groups_to_merge:
+            print(
+                f"Merged {len(groups_to_merge)} groups using MusicBrainz IDs "
+                f"({len(groups)} -> {len(merged_groups)} groups)"
+            )
+
+        return merged_groups
 
     def _match_by_musicbrainz(self, albums: List[Album]) -> List[List[Album]]:
         """
