@@ -22,6 +22,7 @@ class DuplicateFinder:
         use_cache: bool = True,
         update_cache: bool = False,
         similarity_threshold: float = 98.0,
+        cache_backend: str = "sqlite",
     ):
         """
         Initialize duplicate finder.
@@ -30,19 +31,23 @@ class DuplicateFinder:
             min_size: Minimum file size in bytes to consider
             algorithm: Hash algorithm - 'perceptual' or 'exact'
             verbose: Enable verbose output
-            cache_path: Path to hash cache file
-                (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
+            cache_path: Path to hash cache file/database
+                (default: $XDG_CONFIG_HOME/duperscooper/hashes.{db,json})
             use_cache: Whether to use cache (default: True)
             update_cache: Force regeneration of cached hashes (default: False)
             similarity_threshold: Minimum similarity % for perceptual matching
                 (default: 98.0)
+            cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
         self.similarity_threshold = similarity_threshold
         self.hasher = AudioHasher(
-            cache_path=cache_path, use_cache=use_cache, update_cache=update_cache
+            cache_path=cache_path,
+            use_cache=use_cache,
+            update_cache=update_cache,
+            cache_backend=cache_backend,
         )
         self.error_count = 0
 
@@ -156,8 +161,7 @@ class DuplicateFinder:
                 flush=True,
             )
 
-        # Save cache to disk
-        self.hasher.save_cache()
+        # Cache is auto-saved by backend (no manual save needed)
 
         # Group duplicates based on algorithm
         if self.algorithm == "exact":
@@ -172,17 +176,15 @@ class DuplicateFinder:
                 f"({redundant} redundant file(s))"
             )
             if self.algorithm == "perceptual" and self.hasher.use_cache:
+                stats = self.hasher.get_cache_stats()
                 if self.hasher.update_cache:
                     print(
-                        f"Cache: {self.hasher.cache_hits} hits, "
-                        f"{self.hasher.cache_misses} misses, "
+                        f"Cache: {stats['hits']} hits, "
+                        f"{stats['misses']} misses, "
                         f"{self.hasher.cache_updates} updated"
                     )
                 else:
-                    print(
-                        f"Cache: {self.hasher.cache_hits} hits, "
-                        f"{self.hasher.cache_misses} misses"
-                    )
+                    print(f"Cache: {stats['hits']} hits, {stats['misses']} misses")
             if self.error_count > 0:
                 print(f"Encountered {self.error_count} error(s) during processing")
 

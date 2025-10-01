@@ -1,10 +1,16 @@
 """Audio hashing utilities for duplicate detection."""
 
 import hashlib
-import json
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
+
+from .cache import (
+    CacheBackend,
+    JSONCacheBackend,
+    SQLiteCacheBackend,
+    migrate_json_to_sqlite,
+)
 
 
 class AudioHasher:
@@ -17,68 +23,93 @@ class AudioHasher:
         cache_path: Optional[Path] = None,
         use_cache: bool = True,
         update_cache: bool = False,
+        cache_backend: str = "sqlite",
     ):
         """
         Initialize audio hasher with optional cache.
 
         Args:
-            cache_path: Path to cache file
-                (default: $XDG_CONFIG_HOME/duperscooper/hashes.json)
+            cache_path: Path to cache file/database
+                (default: $XDG_CONFIG_HOME/duperscooper/hashes.{db,json})
             use_cache: Whether to use cache (default: True)
             update_cache: Force regeneration of cached hashes (default: False)
+            cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
         """
         if cache_path is None:
             xdg_config = Path.home() / ".config"
             cache_dir = xdg_config / "duperscooper"
             cache_dir.mkdir(parents=True, exist_ok=True)
-            cache_path = cache_dir / "hashes.json"
+
+            # Determine cache file based on backend
+            if cache_backend == "sqlite":
+                cache_path = cache_dir / "hashes.db"
+            else:
+                cache_path = cache_dir / "hashes.json"
 
         self.cache_path = cache_path
         self.use_cache = use_cache
         self.update_cache = update_cache
-        self.cache: Dict[str, str] = self._load_cache() if use_cache else {}
-        self.cache_hits = 0
-        self.cache_misses = 0
+        self.cache_backend_type = cache_backend
         self.cache_updates = 0
 
-    def _load_cache(self) -> Dict[str, str]:
-        """Load cache from disk."""
-        if self.cache_path.exists():
-            try:
-                with open(self.cache_path) as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        return data
-                    return {}
-            except (json.JSONDecodeError, OSError):
-                return {}
-        return {}
+        # Initialize cache backend
+        if use_cache:
+            self._cache: Optional[CacheBackend] = self._init_cache_backend(
+                cache_path, cache_backend
+            )
+        else:
+            self._cache = None
 
-    def save_cache(self) -> None:
-        """Save cache to disk."""
-        if not self.use_cache:
-            return
-        try:
-            with open(self.cache_path, "w") as f:
-                json.dump(self.cache, f)
-        except OSError:
-            pass  # Silent failure for cache writes
+    def _init_cache_backend(self, cache_path: Path, backend_type: str) -> CacheBackend:
+        """
+        Initialize cache backend with optional migration.
+
+        Args:
+            cache_path: Path to cache file/database
+            backend_type: 'sqlite' or 'json'
+
+        Returns:
+            Initialized cache backend
+        """
+        if backend_type == "sqlite":
+            # Check for existing JSON cache to migrate
+            json_path = cache_path.parent / "hashes.json"
+            if json_path.exists() and not cache_path.exists():
+                migrated = migrate_json_to_sqlite(json_path, cache_path)
+                if migrated > 0:
+                    # Rename JSON file as backup
+                    json_path.rename(json_path.with_suffix(".json.bak"))
+
+            return SQLiteCacheBackend(cache_path)
+        else:
+            return JSONCacheBackend(cache_path)
+
+    def get_cache_stats(self) -> Dict[str, int]:
+        """
+        Get cache statistics.
+
+        Returns:
+            Dictionary with hits, misses, and size
+        """
+        if self._cache:
+            return self._cache.get_stats()
+        return {"hits": 0, "misses": 0, "size": 0}
+
+    def close_cache(self) -> None:
+        """Close cache backend (saves for JSON, closes connections for SQLite)."""
+        if self._cache:
+            self._cache.close()
 
     def clear_cache(self) -> bool:
         """
-        Delete the cache file.
+        Clear all cache entries.
 
         Returns:
-            True if cache was deleted, False if it didn't exist or couldn't be deleted
+            True if cache was cleared successfully
         """
-        try:
-            if self.cache_path.exists():
-                self.cache_path.unlink()
-                self.cache.clear()
-                return True
-            return False
-        except OSError:
-            return False
+        if self._cache:
+            return self._cache.clear()
+        return False
 
     @staticmethod
     def is_audio_file(file_path: Path) -> bool:
@@ -238,27 +269,25 @@ class AudioHasher:
         # Check cache using file hash as key
         file_hash = AudioHasher.compute_file_hash(file_path)
 
-        # If update_cache mode and file exists in cache, regenerate
-        if self.use_cache and self.update_cache and file_hash in self.cache:
+        # Check cache (unless in update_cache mode)
+        if self._cache and not self.update_cache:
+            cached_value = self._cache.get(file_hash)
+            if cached_value:
+                # Cache stores comma-separated string, parse it
+                return AudioHasher.parse_raw_fingerprint(cached_value)
+
+        # Cache miss or update_cache mode - compute fingerprint
+        if self.update_cache:
             self.cache_updates += 1
-            # Fall through to recompute hash
-        elif self.use_cache and file_hash in self.cache:
-            # Normal cache hit - return cached raw fingerprint
-            self.cache_hits += 1
-            cached_value = self.cache[file_hash]
-            # Cache stores comma-separated string, parse it
-            return AudioHasher.parse_raw_fingerprint(cached_value)
-        elif self.use_cache:
-            # Cache miss
-            self.cache_misses += 1
 
         try:
             # Get raw fingerprint for fuzzy matching
             raw_fingerprint = self.compute_raw_fingerprint(file_path)
 
             # Store in cache as comma-separated string
-            if self.use_cache:
-                self.cache[file_hash] = ",".join(str(x) for x in raw_fingerprint)
+            if self._cache:
+                fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
+                self._cache.set(file_hash, fingerprint_str)
 
             return raw_fingerprint
 
