@@ -320,16 +320,94 @@ class AlbumDuplicateFinder:
         elif strategy == "fingerprint":
             return self._match_by_fingerprints(albums)
         elif strategy == "auto":
-            # Auto: Use fingerprint matching for all albums, then merge groups
-            # that share MusicBrainz IDs
-            fingerprint_groups = self._match_by_fingerprints(albums)
-            merged_groups = self._merge_groups_by_musicbrainz(fingerprint_groups)
-            return merged_groups
+            # Auto: Establish canonical albums from MB IDs/metadata,
+            # then match untagged albums against them via fingerprints
+            return self._match_canonical(albums)
         else:
             raise ValueError(
                 f"Unknown strategy: {strategy}. "
                 "Use 'musicbrainz', 'fingerprint', or 'auto'"
             )
+
+    def _match_canonical(self, albums: List[Album]) -> List[List[Album]]:
+        """
+        Match albums using canonical approach.
+
+        1. Establish canonical albums from MusicBrainz IDs or metadata tags
+        2. Match untagged albums against canonical versions via fingerprints
+        3. Merge groups that share the same canonical album
+
+        Args:
+            albums: List of Album objects
+
+        Returns:
+            List of duplicate groups with canonical album identification
+        """
+        # Separate canonical and untagged albums
+        canonical_albums = []
+        untagged_albums = []
+
+        for album in albums:
+            # Canonical if has MB ID OR both album and artist names
+            if album.musicbrainz_albumid or (album.album_name and album.artist_name):
+                canonical_albums.append(album)
+            else:
+                untagged_albums.append(album)
+
+        if self.verbose:
+            print(
+                f"Found {len(canonical_albums)} canonical albums, "
+                f"{len(untagged_albums)} untagged"
+            )
+
+        # Do fingerprint matching on canonical albums to catch same album
+        # with different/missing MB IDs
+        canonical_fp_groups = self._match_by_fingerprints(canonical_albums)
+
+        # Merge canonical groups that share MB IDs
+        merged_canonical = self._merge_groups_by_musicbrainz(canonical_fp_groups)
+
+        # Now match each untagged album against canonical groups
+        groups_dict: Dict[int, List[Album]] = {}
+        for idx, group in enumerate(merged_canonical):
+            groups_dict[idx] = list(group)
+
+        # Match untagged albums against canonical groups
+        for untagged in untagged_albums:
+            best_match_idx = None
+            best_similarity = 0.0
+
+            # Compare against each canonical group
+            for idx, canonical_group in groups_dict.items():
+                # Compare against first album in canonical group (representative)
+                canonical_rep = canonical_group[0]
+
+                # Must have same track count
+                if untagged.track_count != canonical_rep.track_count:
+                    continue
+
+                # Calculate similarity
+                similarity = self.album_similarity(untagged, canonical_rep)
+
+                if similarity >= 98.0 and similarity > best_similarity:
+                    best_similarity = similarity
+                    best_match_idx = idx
+
+            # Add to best matching canonical group
+            if best_match_idx is not None:
+                groups_dict[best_match_idx].append(untagged)
+            # If no match, create new group with just this untagged album
+            # (won't show as duplicate since groups need 2+ albums)
+
+        # Filter to only groups with 2+ albums
+        duplicate_groups = [group for group in groups_dict.values() if len(group) >= 2]
+
+        if self.verbose and duplicate_groups:
+            print(
+                f"Found {len(duplicate_groups)} duplicate groups (canonical matching)"
+            )
+
+        return duplicate_groups
 
     def _merge_groups_by_musicbrainz(
         self, groups: List[List[Album]]
@@ -548,7 +626,8 @@ class AlbumDuplicateFinder:
         """
         Determine the matched album name and artist for a duplicate group.
 
-        Uses the most common album/artist names across the group.
+        Uses canonical album (with MusicBrainz ID or complete metadata) if
+        available, otherwise uses most common names.
 
         Args:
             group: List of duplicate albums
@@ -556,22 +635,41 @@ class AlbumDuplicateFinder:
         Returns:
             Tuple of (album_name, artist_name), or ("Unknown", "Unknown")
         """
+        # Prioritize canonical albums (MB ID first, then complete metadata)
+        canonical = None
+
+        # First try: Album with MusicBrainz ID
+        for album in group:
+            if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
+                canonical = album
+                break
+
+        # Second try: Album with both album and artist names
+        if not canonical:
+            for album in group:
+                if album.album_name and album.artist_name:
+                    canonical = album
+                    break
+
+        # If we found a canonical album, use its metadata
+        if canonical:
+            return (
+                canonical.album_name or "Unknown",
+                canonical.artist_name or "Unknown",
+            )
+
+        # Fallback: Use most common names
         from collections import Counter
 
-        # Collect all non-None album and artist names
         album_names = [a.album_name for a in group if a.album_name]
         artist_names = [a.artist_name for a in group if a.artist_name]
 
-        # Use most common name, or "Unknown" if none found
-        if album_names:
-            album_name = Counter(album_names).most_common(1)[0][0]
-        else:
-            album_name = "Unknown"
-
-        if artist_names:
-            artist_name = Counter(artist_names).most_common(1)[0][0]
-        else:
-            artist_name = "Unknown"
+        album_name = (
+            Counter(album_names).most_common(1)[0][0] if album_names else "Unknown"
+        )
+        artist_name = (
+            Counter(artist_names).most_common(1)[0][0] if artist_names else "Unknown"
+        )
 
         return (album_name, artist_name)
 
