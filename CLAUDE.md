@@ -36,40 +36,62 @@ pytest tests/ --cov=duperscooper     # Run with coverage
 src/duperscooper/
 ├── __init__.py       # Package metadata, version
 ├── __main__.py       # CLI interface (argparse), output formatting
+├── cache.py          # CacheBackend interface, SQLite/JSON implementations
 ├── hasher.py         # AudioHasher: perceptual & exact hashing
-└── finder.py         # DuplicateFinder: search logic
+└── finder.py         # DuplicateFinder: search logic, parallelization
                       # DuplicateManager: file operations
 ```
 
 ### Key Components
+
+#### CacheBackend (cache.py)
+
+- `CacheBackend` (Protocol): Interface for cache implementations
+- `SQLiteCacheBackend`: Thread-safe SQLite cache with WAL mode
+  - Thread-local database connections for concurrent access
+  - `get()`, `set()`: Retrieve and store fingerprints
+  - `get_stats()`: Return cache hits/misses/size statistics
+  - `clear()`: Remove all cache entries
+  - `cleanup_old()`: Remove entries older than specified age
+- `JSONCacheBackend`: Legacy JSON file cache (sequential only)
+- `migrate_json_to_sqlite()`: Auto-migrate legacy JSON cache to SQLite
 
 #### AudioHasher (hasher.py)
 
 - `is_audio_file()`: Check if file extension is supported
 - `compute_file_hash()`: SHA256 for exact matching
 - `compute_raw_fingerprint()`: Raw Chromaprint fingerprint (list of integers)
-- `compute_audio_hash()`: Returns raw fingerprint for perceptual, SHA256 for exact
+- `compute_audio_hash()`: Returns raw fingerprint for perceptual, SHA256 for
+  exact
 - `hamming_distance()`: Calculate bit-level differences between fingerprints
 - `similarity_percentage()`: Calculate similarity % between fingerprints
-- `get_audio_metadata()`: Extract codec, sample rate, bit depth, bitrate, channels using ffprobe
-- `calculate_quality_score()`: Calculate quality score (lossless > lossy, higher bitrate/depth > lower)
-- `format_audio_info()`: Format metadata as human-readable string (e.g., "FLAC 44.1kHz 16bit", "MP3 CBR 320kbps")
-- **Caching**: Stores file hash → raw fingerprint mappings in
-  `~/.config/duperscooper/hashes.json` to avoid re-fingerprinting unchanged
-  files on subsequent runs
+- `get_audio_metadata()`: Extract codec, sample rate, bit depth, bitrate,
+  channels using ffprobe
+- `calculate_quality_score()`: Calculate quality score (lossless > lossy,
+  higher bitrate/depth > lower)
+- `format_audio_info()`: Format metadata as human-readable string (e.g.,
+  "FLAC 44.1kHz 16bit", "MP3 CBR 320kbps")
+- **Caching**: Uses CacheBackend interface for thread-safe fingerprint storage
 
 #### DuplicateFinder (finder.py)
 
 - `find_audio_files()`: Recursive file discovery
 - `find_duplicates()`: Fingerprint files, group by similarity
-- `_group_exact_duplicates()`: Group by exact hash match (preserves fingerprints)
-- `_group_fuzzy_duplicates()`: Group by fuzzy similarity using Union-Find (preserves fingerprints)
+- `_fingerprint_parallel()`: Parallel fingerprinting with ThreadPoolExecutor
+- `_fingerprint_sequential()`: Single-threaded fingerprinting
+- `_format_time()`: Format elapsed/ETA times as human-readable strings
+- `_group_exact_duplicates()`: Group by exact hash match (preserves
+  fingerprints)
+- `_group_fuzzy_duplicates()`: Group by fuzzy similarity using Union-Find
+  (preserves fingerprints)
 - Handles errors gracefully, tracks error count
 
 #### DuplicateManager (finder.py)
 
-- `identify_highest_quality()`: Identify best quality file in duplicate group, calculate similarity scores
-- `interactive_delete()`: User-driven duplicate removal with quality information
+- `identify_highest_quality()`: Identify best quality file in duplicate group,
+  calculate similarity scores
+- `interactive_delete()`: User-driven duplicate removal with quality
+  information
 - `format_file_size()`: Human-readable size strings
 - `get_file_info()`: File metadata for display
 
@@ -160,6 +182,15 @@ duperscooper ~/Music --similarity-threshold 95.0
 
 # Clear the hash cache
 duperscooper --clear-cache
+
+# Use 16 worker threads for parallel fingerprinting
+duperscooper ~/Music --workers 16
+
+# Sequential fingerprinting (single-threaded)
+duperscooper ~/Music --workers 1
+
+# Use legacy JSON cache backend instead of SQLite
+duperscooper ~/Music --cache-backend json
 ```
 
 ### Debugging
@@ -201,11 +232,45 @@ duperscooper --clear-cache
 - Uses Union-Find algorithm for efficient grouping
 - O(n²) pairwise comparisons (suitable for libraries up to ~10k files)
 
+### Multithreading & Parallelization
+
+**Thread-Safe Architecture:**
+
+- **SQLite Cache Backend** (default since v0.4.0):
+  - Thread-local database connections (one per worker thread)
+  - WAL (Write-Ahead Logging) mode for concurrent reads/writes
+  - ACID transactions prevent cache corruption
+  - Auto-migration from legacy JSON cache
+
+- **Parallel Fingerprinting** (default since v0.4.0):
+  - Uses `ThreadPoolExecutor` for concurrent audio processing
+  - Default: 8 worker threads (configurable with `--workers`)
+  - I/O-bound workload (subprocess calls to `fpcalc` binary)
+  - Thread-safe progress tracking with locks
+  - Real-time ETA estimation based on average processing time
+
+**Worker Thread Tuning:**
+
+- **Default (8 threads)**: Optimal for most modern systems (4-8+ cores)
+- **High-end systems**: Increase for faster processing
+  (`--workers 16` or higher)
+- **Low-end systems**: Reduce to avoid overhead (`--workers 4`)
+- **Sequential mode**: Use `--workers 1` for single-threaded processing
+  (useful for debugging)
+
+**Cache Backend Selection:**
+
+- **SQLite** (default, recommended): Thread-safe, efficient, supports
+  concurrent access
+  - Location: `~/.config/duperscooper/hashes.db`
+- **JSON** (legacy): Sequential only, use `--cache-backend json` for
+  compatibility
+  - Location: `~/.config/duperscooper/hashes.json`
+
 ### Optimization Tips
 
-- **Caching**: Perceptual hashes are cached in `~/.config/duperscooper/hashes.json`
-  keyed by file hash (SHA256), so unchanged files skip fingerprinting on
-  subsequent runs
+- **Caching**: Perceptual hashes are cached by file hash (SHA256), so
+  unchanged files skip fingerprinting on subsequent runs
 - **Similarity Threshold**: Adjust `--similarity-threshold` (default 98.0%)
   - Lower threshold (95%) finds more matches but may include false positives
   - Higher threshold (99.5%) only matches very similar encodings
@@ -213,14 +278,14 @@ duperscooper --clear-cache
 - **Cache Management**:
   - Clear cache: `duperscooper --clear-cache`
   - Disable cache: `duperscooper ~/Music --no-cache`
-  - Update cache: `duperscooper ~/Music --update-cache` (regenerate cached hashes)
+  - Update cache: `duperscooper ~/Music --update-cache` (regenerate cached
+    hashes)
   - Cache stores raw fingerprints as comma-separated integers
-  - Cache location: `$XDG_CONFIG_HOME/duperscooper/hashes.json`
-    (defaults to `~/.config/duperscooper/hashes.json`)
 - **Performance**:
   - Use `--algorithm exact` for faster exact-match-only detection (O(n))
   - Perceptual algorithm is O(n²) - suitable for ~10k files max
   - Use `--min-size` to skip small files (reduce processing)
+  - Increase `--workers` for faster fingerprinting on multi-core systems
   - For very large libraries (>10k files), consider using `exact` first
 
 ## Output Formats
