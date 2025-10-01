@@ -2,9 +2,10 @@
 
 import json
 import subprocess
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from .hasher import AudioHasher
 
@@ -285,3 +286,212 @@ class AlbumScanner:
             return (album_name, artist_name)
         except Exception:
             return (None, None)
+
+
+class AlbumDuplicateFinder:
+    """Find duplicate albums using various matching strategies."""
+
+    def __init__(self, hasher: AudioHasher, verbose: bool = False):
+        """
+        Initialize album duplicate finder.
+
+        Args:
+            hasher: AudioHasher instance for fingerprint comparison
+            verbose: Enable verbose output
+        """
+        self.hasher = hasher
+        self.verbose = verbose
+
+    def find_duplicates(
+        self, albums: List[Album], strategy: str = "auto"
+    ) -> List[List[Album]]:
+        """
+        Find duplicate albums using specified matching strategy.
+
+        Args:
+            albums: List of Album objects to check for duplicates
+            strategy: Matching strategy - "musicbrainz", "fingerprint", or "auto"
+
+        Returns:
+            List of duplicate groups (each group is a list of Album objects)
+        """
+        if strategy == "musicbrainz":
+            return self._match_by_musicbrainz(albums)
+        elif strategy == "fingerprint":
+            return self._match_by_fingerprints(albums)
+        elif strategy == "auto":
+            # Auto: Use MusicBrainz if available, fallback to fingerprints
+            mb_groups = self._match_by_musicbrainz(albums)
+            remaining = self._get_ungrouped_albums(albums, mb_groups)
+            fingerprint_groups = self._match_by_fingerprints(remaining)
+            return mb_groups + fingerprint_groups
+        else:
+            raise ValueError(
+                f"Unknown strategy: {strategy}. "
+                "Use 'musicbrainz', 'fingerprint', or 'auto'"
+            )
+
+    def _match_by_musicbrainz(self, albums: List[Album]) -> List[List[Album]]:
+        """
+        Group albums by MusicBrainz album ID.
+
+        Args:
+            albums: List of Album objects
+
+        Returns:
+            List of duplicate groups with same MB ID and track count
+        """
+        # Group by MusicBrainz ID
+        mb_groups: Dict[str, List[Album]] = defaultdict(list)
+
+        for album in albums:
+            if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
+                mb_groups[album.musicbrainz_albumid].append(album)
+
+        # Filter to only groups with duplicates (2+ albums with same track count)
+        duplicate_groups = []
+        for _mb_id, group in mb_groups.items():
+            if len(group) < 2:
+                continue
+
+            # Group by track count within MB ID group
+            by_track_count: Dict[int, List[Album]] = defaultdict(list)
+            for album in group:
+                by_track_count[album.track_count].append(album)
+
+            # Only include groups with matching track counts
+            for _track_count, albums_with_count in by_track_count.items():
+                if len(albums_with_count) >= 2:
+                    duplicate_groups.append(albums_with_count)
+
+        if self.verbose and duplicate_groups:
+            print(f"Found {len(duplicate_groups)} duplicate groups via MusicBrainz IDs")
+
+        return duplicate_groups
+
+    def _match_by_fingerprints(self, albums: List[Album]) -> List[List[Album]]:
+        """
+        Group albums by perceptual fingerprint similarity.
+
+        Uses track-by-track comparison with Union-Find algorithm.
+
+        Args:
+            albums: List of Album objects
+
+        Returns:
+            List of duplicate groups with similar fingerprints
+        """
+        if not albums:
+            return []
+
+        # Group by track count first (only compare albums with same number of tracks)
+        by_track_count: Dict[int, List[Album]] = defaultdict(list)
+        for album in albums:
+            by_track_count[album.track_count].append(album)
+
+        duplicate_groups = []
+
+        for _track_count, albums_with_count in by_track_count.items():
+            if len(albums_with_count) < 2:
+                continue
+
+            # Union-Find for grouping similar albums
+            uf_groups = self._union_find_similar_albums(albums_with_count)
+
+            # Only include groups with 2+ albums
+            for group in uf_groups:
+                if len(group) >= 2:
+                    duplicate_groups.append(group)
+
+        if self.verbose and duplicate_groups:
+            count = len(duplicate_groups)
+            print(f"Found {count} duplicate groups via fingerprint matching")
+
+        return duplicate_groups
+
+    def _union_find_similar_albums(self, albums: List[Album]) -> List[List[Album]]:
+        """
+        Group similar albums using Union-Find algorithm.
+
+        Args:
+            albums: List of albums with same track count
+
+        Returns:
+            List of album groups
+        """
+        uf_parent = {i: i for i in range(len(albums))}
+
+        def find(x: int) -> int:
+            if uf_parent[x] != x:
+                uf_parent[x] = find(uf_parent[x])
+            return uf_parent[x]
+
+        def union(x: int, y: int) -> None:
+            root_x = find(x)
+            root_y = find(y)
+            if root_x != root_y:
+                uf_parent[root_y] = root_x
+
+        # Compare all pairs
+        for i in range(len(albums)):
+            for j in range(i + 1, len(albums)):
+                similarity = self.album_similarity(albums[i], albums[j])
+                # Use 98% threshold for album similarity
+                if similarity >= 98.0:
+                    union(i, j)
+
+        # Extract groups
+        groups: Dict[int, List[Album]] = defaultdict(list)
+        for i, album in enumerate(albums):
+            root = find(i)
+            groups[root].append(album)
+
+        return list(groups.values())
+
+    def album_similarity(self, album1: Album, album2: Album) -> float:
+        """
+        Calculate similarity percentage between two albums.
+
+        Compares all tracks pairwise and returns average similarity.
+
+        Args:
+            album1: First album
+            album2: Second album
+
+        Returns:
+            Similarity percentage (0-100)
+        """
+        if album1.track_count != album2.track_count:
+            return 0.0
+
+        if not album1.fingerprints or not album2.fingerprints:
+            return 0.0
+
+        # Compare each track pair
+        similarities = []
+        for fp1, fp2 in zip(album1.fingerprints, album2.fingerprints):
+            track_similarity = self.hasher.similarity_percentage(fp1, fp2)
+            similarities.append(track_similarity)
+
+        # Return average similarity across all tracks
+        return sum(similarities) / len(similarities) if similarities else 0.0
+
+    def _get_ungrouped_albums(
+        self, all_albums: List[Album], groups: List[List[Album]]
+    ) -> List[Album]:
+        """
+        Get albums that are not in any duplicate group.
+
+        Args:
+            all_albums: All albums
+            groups: List of duplicate groups
+
+        Returns:
+            List of albums not in any group
+        """
+        grouped: Set[Path] = set()
+        for group in groups:
+            for album in group:
+                grouped.add(album.path)
+
+        return [album for album in all_albums if album.path not in grouped]
