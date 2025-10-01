@@ -25,6 +25,7 @@ class Album:
     fingerprints: List[List[int]]  # Perceptual fingerprints for each track
     has_mixed_mb_ids: bool  # Flag if tracks have inconsistent MB IDs
     quality_info: str  # e.g., "FLAC 44.1kHz 16bit (avg)"
+    match_method: Optional[str] = None  # How this album was matched to its group
 
 
 class AlbumScanner:
@@ -349,7 +350,11 @@ class AlbumDuplicateFinder:
 
         for album in albums:
             # Canonical if has MB ID OR both album and artist names
-            if album.musicbrainz_albumid or (album.album_name and album.artist_name):
+            if album.musicbrainz_albumid:
+                album.match_method = "MusicBrainz Album ID"
+                canonical_albums.append(album)
+            elif album.album_name and album.artist_name:
+                album.match_method = "ID3 Album/Artist Tags"
                 canonical_albums.append(album)
             else:
                 untagged_albums.append(album)
@@ -364,7 +369,7 @@ class AlbumDuplicateFinder:
         # with different/missing MB IDs
         canonical_fp_groups = self._match_by_fingerprints(canonical_albums)
 
-        # Merge canonical groups that share MB IDs
+        # Merge canonical groups that share MB IDs (preserves match_method)
         merged_canonical = self._merge_groups_by_musicbrainz(canonical_fp_groups)
 
         # Now match each untagged album against canonical groups
@@ -395,6 +400,7 @@ class AlbumDuplicateFinder:
 
             # Add to best matching canonical group
             if best_match_idx is not None:
+                untagged.match_method = "Acoustic Fingerprint"
                 groups_dict[best_match_idx].append(untagged)
             # If no match, create new group with just this untagged album
             # (won't show as duplicate since groups need 2+ albums)

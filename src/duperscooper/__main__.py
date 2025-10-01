@@ -211,6 +211,10 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 conf_color = Fore.LIGHTRED_EX
             print(f"    Confidence: {conf_color}{confidence:.1f}%{Style.RESET_ALL}")
 
+            # Match method
+            if album.match_method:
+                print(f"    Matched by: {album.match_method}")
+
             if album.musicbrainz_albumid:
                 print(f"    MusicBrainz ID: {album.musicbrainz_albumid}")
             if album.album_name or album.artist_name:
@@ -262,6 +266,7 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
                 "quality_info": album.quality_info,
                 "quality_score": album.avg_quality_score,
                 "confidence": confidence,
+                "match_method": album.match_method,
                 "is_best": album == best_album,
                 "musicbrainz_albumid": album.musicbrainz_albumid,
                 "album_name": album.album_name,
@@ -292,7 +297,8 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
     print(
         "group_id,matched_album,matched_artist,album_path,track_count,"
         "total_size_bytes,total_size,quality_info,quality_score,confidence,"
-        "is_best,musicbrainz_albumid,album_name,artist_name,has_mixed_mb_ids"
+        "match_method,is_best,musicbrainz_albumid,album_name,artist_name,"
+        "has_mixed_mb_ids"
     )
 
     for idx, group in enumerate(duplicate_groups, 1):
@@ -320,7 +326,8 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
                 f"{idx},{matched_album},{matched_artist},{album.path},"
                 f"{album.track_count},{album.total_size},{size_str},"
                 f"{album.quality_info},{album.avg_quality_score:.1f},"
-                f"{confidence:.1f},{is_best},{album.musicbrainz_albumid or ''},"
+                f"{confidence:.1f},{album.match_method or ''},"
+                f"{is_best},{album.musicbrainz_albumid or ''},"
                 f"{album.album_name or ''},{album.artist_name or ''},{has_mixed}"
             )
 
