@@ -147,6 +147,133 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
     print(json.dumps(output, indent=2))
 
 
+def format_album_output_text(duplicate_groups: List[List]) -> None:
+    """Format and print duplicate albums in text format."""
+
+    if not duplicate_groups:
+        print("No duplicate albums found.")
+        return
+
+    print(
+        f"{Fore.CYAN}{Style.BRIGHT}Found {len(duplicate_groups)} group(s) "
+        f"of duplicate albums:{Style.RESET_ALL}\n"
+    )
+
+    for idx, group in enumerate(duplicate_groups, 1):
+        print(f"{Fore.CYAN}{Style.BRIGHT}Group {idx}{Style.RESET_ALL}")
+
+        # Sort by quality descending (best first)
+        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
+        best_album = sorted_albums[0]
+
+        for album in sorted_albums:
+            is_best = album == best_album
+            marker = (
+                f"{Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]{Style.RESET_ALL} "
+                if is_best
+                else "  "
+            )
+
+            # Format size
+            size_mb = album.total_size / (1024 * 1024)
+            if size_mb >= 1024:
+                size_str = f"{size_mb / 1024:.1f} GB"
+            else:
+                size_str = f"{size_mb:.1f} MB"
+
+            # Print album info
+            print(
+                f"{marker}{album.path} {Style.DIM}"
+                f"({album.track_count} tracks, {size_str}){Style.RESET_ALL}"
+            )
+            print(f"    Quality: {album.quality_info}")
+            if album.musicbrainz_albumid:
+                print(f"    MusicBrainz ID: {album.musicbrainz_albumid}")
+            if album.album_name or album.artist_name:
+                artist = album.artist_name or "Unknown"
+                album_name = album.album_name or "Unknown"
+                print(f"    {artist} - {album_name}")
+
+            # Show similarity to best (if not best)
+            if not is_best:
+                from .hasher import AudioHasher
+
+                hasher = AudioHasher()
+                similarity = (
+                    hasher.similarity_percentage(
+                        best_album.fingerprints[0], album.fingerprints[0]
+                    )
+                    if best_album.fingerprints and album.fingerprints
+                    else 0.0
+                )
+                sim_color = get_similarity_color(similarity)
+                print(f"    Match: {sim_color}{similarity:.1f}%{Style.RESET_ALL}")
+
+            print()
+
+
+def format_album_output_json(duplicate_groups: List[List]) -> None:
+    """Format and print duplicate albums in JSON format."""
+
+    output = []
+    for group in duplicate_groups:
+        albums_data = []
+        # Sort by quality descending
+        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
+        best_album = sorted_albums[0]
+
+        for album in sorted_albums:
+            album_data = {
+                "path": str(album.path),
+                "track_count": album.track_count,
+                "total_size": album.total_size,
+                "quality_info": album.quality_info,
+                "quality_score": album.avg_quality_score,
+                "is_best": album == best_album,
+                "musicbrainz_albumid": album.musicbrainz_albumid,
+                "album_name": album.album_name,
+                "artist_name": album.artist_name,
+                "has_mixed_mb_ids": album.has_mixed_mb_ids,
+            }
+            albums_data.append(album_data)
+
+        output.append({"albums": albums_data})
+
+    print(json.dumps(output, indent=2))
+
+
+def format_album_output_csv(duplicate_groups: List[List]) -> None:
+    """Format and print duplicate albums in CSV format."""
+
+    print(
+        "group_id,album_path,track_count,total_size_bytes,total_size,"
+        "quality_info,quality_score,is_best,musicbrainz_albumid,"
+        "album_name,artist_name,has_mixed_mb_ids"
+    )
+
+    for idx, group in enumerate(duplicate_groups, 1):
+        # Sort by quality descending
+        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
+        best_album = sorted_albums[0]
+
+        for album in sorted_albums:
+            size_mb = album.total_size / (1024 * 1024)
+            if size_mb >= 1024:
+                size_str = f"{size_mb / 1024:.1f}GB"
+            else:
+                size_str = f"{size_mb:.1f}MB"
+
+            is_best = "true" if album == best_album else "false"
+            has_mixed = "true" if album.has_mixed_mb_ids else "false"
+
+            print(
+                f"{idx},{album.path},{album.track_count},{album.total_size},"
+                f"{size_str},{album.quality_info},{album.avg_quality_score:.1f},"
+                f"{is_best},{album.musicbrainz_albumid or ''},"
+                f"{album.album_name or ''},{album.artist_name or ''},{has_mixed}"
+            )
+
+
 def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
     """Format and print duplicates in CSV format with quality info."""
     from .hasher import AudioHasher
@@ -285,6 +412,28 @@ Examples:
     )
 
     parser.add_argument(
+        "--album-mode",
+        action="store_true",
+        help="Find duplicate albums instead of individual files",
+    )
+
+    parser.add_argument(
+        "--album-match-strategy",
+        choices=["auto", "musicbrainz", "fingerprint"],
+        default="auto",
+        help="Album matching strategy: 'auto' uses MusicBrainz IDs with "
+        "fingerprint fallback, 'musicbrainz' uses only MB IDs, "
+        "'fingerprint' uses only perceptual matching (default: auto)",
+    )
+
+    parser.add_argument(
+        "--delete-duplicate-albums",
+        action="store_true",
+        help="Interactively delete duplicate albums after finding them "
+        "(requires --album-mode)",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -314,6 +463,21 @@ def main() -> int:
         print("Error: the following arguments are required: paths", file=sys.stderr)
         return 1
 
+    # Validate album-mode-specific options
+    if args.delete_duplicate_albums and not args.album_mode:
+        print("Error: --delete-duplicate-albums requires --album-mode", file=sys.stderr)
+        return 1
+
+    # Album mode
+    if args.album_mode:
+        return run_album_mode(args)
+
+    # File mode (original behavior)
+    return run_file_mode(args)
+
+
+def run_file_mode(args: argparse.Namespace) -> int:
+    """Run duplicate file detection (original behavior)."""
     # Create finder and search for duplicates
     finder = DuplicateFinder(
         min_size=args.min_size,
@@ -358,6 +522,53 @@ def main() -> int:
 
     # Exit with non-zero if duplicates found (for scripting)
     return 0 if not duplicates else 2
+
+
+def run_album_mode(args: argparse.Namespace) -> int:
+    """Run duplicate album detection."""
+    from .album import AlbumDuplicateFinder, AlbumScanner
+    from .hasher import AudioHasher
+
+    # Initialize components
+    hasher = AudioHasher(
+        use_cache=not args.no_cache,
+        update_cache=args.update_cache,
+        cache_backend=args.cache_backend,
+    )
+    scanner = AlbumScanner(hasher, verbose=not args.no_progress)
+    finder = AlbumDuplicateFinder(hasher, verbose=not args.no_progress)
+
+    try:
+        # Scan for albums
+        albums = scanner.scan_albums(args.paths, max_workers=args.workers)
+
+        # Find duplicate albums
+        duplicate_groups = finder.find_duplicates(
+            albums, strategy=args.album_match_strategy
+        )
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.", file=sys.stderr)
+        return 130
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+    # Handle delete mode (placeholder for Phase 4)
+    if args.delete_duplicate_albums:
+        print("Album deletion not yet implemented (Phase 4)", file=sys.stderr)
+        return 1
+
+    # Format and output results
+    if args.output == "json":
+        format_album_output_json(duplicate_groups)
+    elif args.output == "csv":
+        format_album_output_csv(duplicate_groups)
+    else:
+        format_album_output_text(duplicate_groups)
+
+    # Exit with non-zero if duplicates found (for scripting)
+    return 0 if not duplicate_groups else 2
 
 
 if __name__ == "__main__":
