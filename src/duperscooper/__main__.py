@@ -185,9 +185,6 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 else "  "
             )
 
-            # Calculate confidence
-            confidence = finder.calculate_confidence(album, group)
-
             # Format size
             size_mb = album.total_size / (1024 * 1024)
             if size_mb >= 1024:
@@ -202,18 +199,29 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
             )
             print(f"    Quality: {album.quality_info}")
 
-            # Confidence with color coding
-            if confidence >= 95.0:
-                conf_color = Fore.GREEN
-            elif confidence >= 85.0:
-                conf_color = Fore.YELLOW
-            else:
-                conf_color = Fore.LIGHTRED_EX
-            print(f"    Confidence: {conf_color}{confidence:.1f}%{Style.RESET_ALL}")
-
             # Match method
             if album.match_method:
                 print(f"    Matched by: {album.match_method}")
+
+            # Calculate match percentage based on method
+            if album.match_method == "MusicBrainz Album ID":
+                # Exact identifier match
+                match_pct = 100.0
+            elif is_best:
+                # Best album is the reference point
+                match_pct = 100.0
+            else:
+                # Calculate fingerprint similarity to best album
+                match_pct = (
+                    hasher.similarity_percentage(
+                        best_album.fingerprints[0], album.fingerprints[0]
+                    )
+                    if best_album.fingerprints and album.fingerprints
+                    else 0.0
+                )
+
+            match_color = get_similarity_color(match_pct)
+            print(f"    Match: {match_color}{match_pct:.1f}%{Style.RESET_ALL}")
 
             if album.musicbrainz_albumid:
                 print(f"    MusicBrainz ID: {album.musicbrainz_albumid}")
@@ -221,18 +229,6 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 artist = album.artist_name or "Unknown"
                 album_name = album.album_name or "Unknown"
                 print(f"    Metadata: {artist} - {album_name}")
-
-            # Show similarity to best (if not best)
-            if not is_best:
-                similarity = (
-                    hasher.similarity_percentage(
-                        best_album.fingerprints[0], album.fingerprints[0]
-                    )
-                    if best_album.fingerprints and album.fingerprints
-                    else 0.0
-                )
-                sim_color = get_similarity_color(similarity)
-                print(f"    Match: {sim_color}{similarity:.1f}%{Style.RESET_ALL}")
 
             print()
 
@@ -256,8 +252,21 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
         best_album = sorted_albums[0]
 
         for album in sorted_albums:
-            # Calculate confidence
-            confidence = finder.calculate_confidence(album, group)
+            is_best = album == best_album
+
+            # Calculate match percentage based on method
+            if album.match_method == "MusicBrainz Album ID":
+                match_pct = 100.0
+            elif is_best:
+                match_pct = 100.0
+            else:
+                match_pct = (
+                    hasher.similarity_percentage(
+                        best_album.fingerprints[0], album.fingerprints[0]
+                    )
+                    if best_album.fingerprints and album.fingerprints
+                    else 0.0
+                )
 
             album_data = {
                 "path": str(album.path),
@@ -265,9 +274,9 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
                 "total_size": album.total_size,
                 "quality_info": album.quality_info,
                 "quality_score": album.avg_quality_score,
-                "confidence": confidence,
+                "match_percentage": match_pct,
                 "match_method": album.match_method,
-                "is_best": album == best_album,
+                "is_best": is_best,
                 "musicbrainz_albumid": album.musicbrainz_albumid,
                 "album_name": album.album_name,
                 "artist_name": album.artist_name,
@@ -296,7 +305,7 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
 
     print(
         "group_id,matched_album,matched_artist,album_path,track_count,"
-        "total_size_bytes,total_size,quality_info,quality_score,confidence,"
+        "total_size_bytes,total_size,quality_info,quality_score,match_percentage,"
         "match_method,is_best,musicbrainz_albumid,album_name,artist_name,"
         "has_mixed_mb_ids"
     )
@@ -310,8 +319,21 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
         best_album = sorted_albums[0]
 
         for album in sorted_albums:
-            # Calculate confidence
-            confidence = finder.calculate_confidence(album, group)
+            is_best = album == best_album
+
+            # Calculate match percentage based on method
+            if album.match_method == "MusicBrainz Album ID":
+                match_pct = 100.0
+            elif is_best:
+                match_pct = 100.0
+            else:
+                match_pct = (
+                    hasher.similarity_percentage(
+                        best_album.fingerprints[0], album.fingerprints[0]
+                    )
+                    if best_album.fingerprints and album.fingerprints
+                    else 0.0
+                )
 
             size_mb = album.total_size / (1024 * 1024)
             if size_mb >= 1024:
@@ -319,15 +341,15 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
             else:
                 size_str = f"{size_mb:.1f}MB"
 
-            is_best = "true" if album == best_album else "false"
+            is_best_str = "true" if is_best else "false"
             has_mixed = "true" if album.has_mixed_mb_ids else "false"
 
             print(
                 f"{idx},{matched_album},{matched_artist},{album.path},"
                 f"{album.track_count},{album.total_size},{size_str},"
                 f"{album.quality_info},{album.avg_quality_score:.1f},"
-                f"{confidence:.1f},{album.match_method or ''},"
-                f"{is_best},{album.musicbrainz_albumid or ''},"
+                f"{match_pct:.1f},{album.match_method or ''},"
+                f"{is_best_str},{album.musicbrainz_albumid or ''},"
                 f"{album.album_name or ''},{album.artist_name or ''},{has_mixed}"
             )
 
