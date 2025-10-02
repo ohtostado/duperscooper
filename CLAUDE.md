@@ -253,6 +253,72 @@ duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
 - Add `print()` statements in code (not in production)
 - Use `pytest -v -s` to see print output in tests
 
+## Tab Completion (Optional)
+
+duperscooper supports bash and zsh tab completion for all command-line options.
+
+### Installation
+
+1. **Install shtab** (required for completion generation):
+
+   ```bash
+   pip install shtab
+   # OR
+   pip install duperscooper[completion]
+   ```
+
+2. **Run installation script**:
+
+   ```bash
+   ./install-completion.sh        # Auto-detects your shell
+   # OR
+   ./install-completion.sh bash   # Explicitly specify bash
+   ./install-completion.sh zsh    # Explicitly specify zsh
+   ```
+
+3. **Restart your shell** or source the completion file
+
+### Usage
+
+Once installed, tab completion will work for all options:
+
+```bash
+duperscooper --al<TAB>
+# Completes to: --album-mode, --album-match-strategy, --allow-partial-albums
+
+duperscooper --album-match-strategy <TAB>
+# Shows: auto  fingerprint  musicbrainz
+
+duperscooper --output <TAB>
+# Shows: csv  json  text
+
+duperscooper --cache-backend <TAB>
+# Shows: json  sqlite
+```
+
+### Uninstallation
+
+```bash
+./uninstall-completion.sh
+```
+
+### Manual Installation
+
+If the script doesn't work, you can manually generate and install:
+
+**Bash:**
+
+```bash
+shtab --shell=bash duperscooper.__main__.get_parser > ~/.local/share/bash-completion/completions/duperscooper
+```
+
+**Zsh:**
+
+```bash
+shtab --shell=zsh duperscooper.__main__.get_parser > ~/.zsh/completions/_duperscooper
+# Ensure ~/.zsh/completions is in your $fpath
+```
+
 ## Error Handling
 
 ### Expected Behaviors
