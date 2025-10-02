@@ -26,6 +26,12 @@ class Album:
     has_mixed_mb_ids: bool  # Flag if tracks have inconsistent MB IDs
     quality_info: str  # e.g., "FLAC 44.1kHz 16bit (avg)"
     match_method: Optional[str] = None  # How this album was matched to its group
+    # Partial matching info (set when album is part of partial match)
+    is_partial_match: bool = False  # True if matched with different track count
+    overlap_percentage: Optional[float] = (
+        None  # % of tracks present (for partial matches)
+    )
+    missing_track_indices: Optional[List[int]] = None  # Indices of missing tracks
 
 
 class AlbumScanner:
@@ -353,16 +359,26 @@ class AlbumScanner:
 class AlbumDuplicateFinder:
     """Find duplicate albums using various matching strategies."""
 
-    def __init__(self, hasher: AudioHasher, verbose: bool = False):
+    def __init__(
+        self,
+        hasher: AudioHasher,
+        verbose: bool = False,
+        allow_partial: bool = False,
+        min_overlap: float = 70.0,
+    ):
         """
         Initialize album duplicate finder.
 
         Args:
             hasher: AudioHasher instance for fingerprint comparison
             verbose: Enable verbose output
+            allow_partial: Allow matching albums with different track counts
+            min_overlap: Minimum percentage of tracks that must match for partial albums
         """
         self.hasher = hasher
         self.verbose = verbose
+        self.allow_partial = allow_partial
+        self.min_overlap = min_overlap
 
     def find_duplicates(
         self, albums: List[Album], strategy: str = "auto"
@@ -377,19 +393,28 @@ class AlbumDuplicateFinder:
         Returns:
             List of duplicate groups (each group is a list of Album objects)
         """
+        duplicate_groups = []
+
         if strategy == "musicbrainz":
-            return self._match_by_musicbrainz(albums)
+            duplicate_groups = self._match_by_musicbrainz(albums)
         elif strategy == "fingerprint":
-            return self._match_by_fingerprints(albums)
+            duplicate_groups = self._match_by_fingerprints(albums)
         elif strategy == "auto":
             # Auto: Establish canonical albums from MB IDs/metadata,
             # then match untagged albums against them via fingerprints
-            return self._match_canonical(albums)
+            duplicate_groups = self._match_canonical(albums)
         else:
             raise ValueError(
                 f"Unknown strategy: {strategy}. "
                 "Use 'musicbrainz', 'fingerprint', or 'auto'"
             )
+
+        # Annotate partial matches if enabled
+        if self.allow_partial:
+            for group in duplicate_groups:
+                self._annotate_partial_matches(group)
+
+        return duplicate_groups
 
     def _match_canonical(self, albums: List[Album]) -> List[List[Album]]:
         """
@@ -448,11 +473,14 @@ class AlbumDuplicateFinder:
                 # Compare against first album in canonical group (representative)
                 canonical_rep = canonical_group[0]
 
-                # Must have same track count
-                if untagged.track_count != canonical_rep.track_count:
+                # Skip if track counts differ and partial matching is disabled
+                if (
+                    not self.allow_partial
+                    and untagged.track_count != canonical_rep.track_count
+                ):
                     continue
 
-                # Calculate similarity
+                # Calculate similarity (handles both exact and partial matching)
                 similarity = self.album_similarity(untagged, canonical_rep)
 
                 if similarity >= 98.0 and similarity > best_similarity:
@@ -597,28 +625,75 @@ class AlbumDuplicateFinder:
         if not albums:
             return []
 
-        # Group by track count first (only compare albums with same number of tracks)
-        by_track_count: Dict[int, List[Album]] = defaultdict(list)
-        for album in albums:
-            by_track_count[album.track_count].append(album)
+        duplicate_groups: List[List[Album]] = []
 
-        duplicate_groups = []
+        if self.allow_partial:
+            # Partial matching enabled: compare albums across different track counts
+            # Group by approximate track count (within 50% tolerance)
+            # to reduce comparisons
+            by_track_count_range: Dict[int, List[Album]] = defaultdict(list)
+            for album in albums:
+                # Use track count bucket (rounded down to nearest 5)
+                bucket = (album.track_count // 5) * 5
+                by_track_count_range[bucket].append(album)
 
-        for _track_count, albums_with_count in by_track_count.items():
-            if len(albums_with_count) < 2:
-                continue
+            # Also check adjacent buckets for edge cases
+            for bucket, bucket_albums in by_track_count_range.items():
+                # Combine with adjacent buckets
+                combined_albums = list(bucket_albums)
+                for adjacent in [bucket - 5, bucket + 5]:
+                    if adjacent in by_track_count_range:
+                        combined_albums.extend(by_track_count_range[adjacent])
 
-            # Union-Find for grouping similar albums
-            uf_groups = self._union_find_similar_albums(albums_with_count)
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_albums = []
+                for album in combined_albums:
+                    if album.path not in seen:
+                        seen.add(album.path)
+                        unique_albums.append(album)
 
-            # Only include groups with 2+ albums
-            for group in uf_groups:
-                if len(group) >= 2:
-                    duplicate_groups.append(group)
+                if len(unique_albums) < 2:
+                    continue
+
+                # Union-Find for grouping similar albums
+                uf_groups = self._union_find_similar_albums(unique_albums)
+
+                # Only include groups with 2+ albums
+                for group in uf_groups:
+                    if len(group) >= 2:
+                        # Check if already added (due to bucket overlap)
+                        group_paths = {a.path for a in group}
+                        is_duplicate = False
+                        for existing_group in duplicate_groups:
+                            existing_paths = {a.path for a in existing_group}
+                            if group_paths == existing_paths:
+                                is_duplicate = True
+                                break
+                        if not is_duplicate:
+                            duplicate_groups.append(group)
+        else:
+            # Standard matching: only compare albums with same track count
+            by_track_count: Dict[int, List[Album]] = defaultdict(list)
+            for album in albums:
+                by_track_count[album.track_count].append(album)
+
+            for _track_count, albums_with_count in by_track_count.items():
+                if len(albums_with_count) < 2:
+                    continue
+
+                # Union-Find for grouping similar albums
+                uf_groups = self._union_find_similar_albums(albums_with_count)
+
+                # Only include groups with 2+ albums
+                for group in uf_groups:
+                    if len(group) >= 2:
+                        duplicate_groups.append(group)
 
         if self.verbose and duplicate_groups:
             count = len(duplicate_groups)
-            print(f"Found {count} duplicate groups via fingerprint matching")
+            mode = "partial" if self.allow_partial else "exact"
+            print(f"Found {count} duplicate groups via fingerprint matching ({mode})")
 
         return duplicate_groups
 
@@ -666,6 +741,8 @@ class AlbumDuplicateFinder:
         Calculate similarity percentage between two albums.
 
         Compares all tracks pairwise and returns average similarity.
+        If track counts differ and partial matching is enabled, uses
+        overlap-based matching.
 
         Args:
             album1: First album
@@ -674,13 +751,24 @@ class AlbumDuplicateFinder:
         Returns:
             Similarity percentage (0-100)
         """
-        if album1.track_count != album2.track_count:
-            return 0.0
-
         if not album1.fingerprints or not album2.fingerprints:
             return 0.0
 
-        # Compare each track pair
+        # Different track counts: use partial matching if enabled
+        if album1.track_count != album2.track_count:
+            if self.allow_partial:
+                overlap_pct, avg_sim, _ = self.partial_album_similarity(album1, album2)
+                # Only consider match if overlap meets threshold
+                if overlap_pct >= self.min_overlap:
+                    # Return combined score: weighted average of overlap and similarity
+                    # Higher weight on average similarity for quality of match
+                    return overlap_pct * 0.3 + avg_sim * 0.7
+                return 0.0
+            else:
+                # Partial matching disabled, different track counts = no match
+                return 0.0
+
+        # Same track count: use position-based matching (existing logic)
         similarities = []
         for fp1, fp2 in zip(album1.fingerprints, album2.fingerprints):
             track_similarity = self.hasher.similarity_percentage(fp1, fp2)
@@ -688,6 +776,115 @@ class AlbumDuplicateFinder:
 
         # Return average similarity across all tracks
         return sum(similarities) / len(similarities) if similarities else 0.0
+
+    def partial_album_similarity(
+        self, album1: Album, album2: Album, min_track_similarity: float = 98.0
+    ) -> Tuple[float, float, Dict[int, Tuple[int, float]]]:
+        """
+        Calculate similarity between albums with different track counts.
+
+        Uses best-effort matching: for each track in the smaller album,
+        finds the best matching track in the larger album.
+
+        Args:
+            album1: First album
+            album2: Second album
+            min_track_similarity: Minimum similarity for a track to be
+                considered matching
+
+        Returns:
+            Tuple of (overlap_percentage, avg_similarity, track_mapping)
+            - overlap_percentage: What % of smaller album's tracks are in larger (0-100)
+            - avg_similarity: Average similarity of matched tracks (0-100)
+            - track_mapping: Dict mapping small_idx -> (large_idx, similarity)
+        """
+        if not album1.fingerprints or not album2.fingerprints:
+            return (0.0, 0.0, {})
+
+        # Determine smaller and larger albums
+        if album1.track_count <= album2.track_count:
+            smaller, larger = album1, album2
+        else:
+            smaller, larger = album2, album1
+
+        matches = []
+        track_mapping: Dict[int, Tuple[int, float]] = {}
+
+        # For each track in smaller album, find best match in larger album
+        for small_idx, fp_small in enumerate(smaller.fingerprints):
+            best_match_sim = 0.0
+            best_match_idx = -1
+
+            for large_idx, fp_large in enumerate(larger.fingerprints):
+                similarity = self.hasher.similarity_percentage(fp_small, fp_large)
+                if similarity > best_match_sim:
+                    best_match_sim = similarity
+                    best_match_idx = large_idx
+
+            # Only count as match if similarity meets threshold
+            if best_match_sim >= min_track_similarity:
+                matches.append(best_match_sim)
+                track_mapping[small_idx] = (best_match_idx, best_match_sim)
+
+        # Calculate overlap percentage: what % of smaller album is present
+        overlap_pct = (len(matches) / smaller.track_count * 100.0) if matches else 0.0
+
+        # Calculate average similarity of matched tracks
+        avg_sim = (sum(matches) / len(matches)) if matches else 0.0
+
+        return (overlap_pct, avg_sim, track_mapping)
+
+    def _annotate_partial_matches(self, group: List[Album]) -> None:
+        """
+        Annotate albums in a group with partial match information.
+
+        Sets is_partial_match, overlap_percentage, and missing_track_indices
+        for albums that have different track counts than the majority.
+
+        Args:
+            group: List of albums in a duplicate group
+        """
+        if not self.allow_partial:
+            return
+
+        # Find most common track count (reference)
+        from collections import Counter
+
+        track_counts = [a.track_count for a in group]
+        most_common_count = Counter(track_counts).most_common(1)[0][0]
+
+        # Find a reference album with the most common track count
+        reference_album = None
+        for album in group:
+            if album.track_count == most_common_count:
+                reference_album = album
+                break
+
+        if not reference_album:
+            return
+
+        # Annotate albums with different track counts
+        for album in group:
+            if album.track_count != most_common_count:
+                # This is a partial match
+                album.is_partial_match = True
+
+                # Calculate overlap and missing tracks
+                overlap_pct, _, track_mapping = self.partial_album_similarity(
+                    album, reference_album
+                )
+                album.overlap_percentage = overlap_pct
+
+                # Determine which tracks are missing
+                if album.track_count < reference_album.track_count:
+                    # This album is missing tracks
+                    matched_indices = set(track_mapping.keys())
+                    all_indices = set(range(album.track_count))
+                    missing_in_small = list(all_indices - matched_indices)
+                    album.missing_track_indices = missing_in_small
+                else:
+                    # Reference album is smaller, no missing tracks to report
+                    album.missing_track_indices = []
 
     def get_matched_album_info(self, group: List[Album]) -> Tuple[str, str]:
         """
