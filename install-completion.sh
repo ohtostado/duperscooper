@@ -8,15 +8,8 @@ SHELL_NAME="${1:-$(basename "$SHELL")}"
 
 echo "Installing tab completion for $SHELL_NAME..."
 
-# Check if shtab command is available
-if ! command -v shtab &> /dev/null; then
-    echo "Error: shtab command not found in PATH"
-    echo "Install it with: pip install shtab  OR  pipx install shtab"
-    exit 1
-fi
-
 # Determine which Python to use
-# Priority: active venv > .venv in current dir > system python
+# Priority: active venv > .venv in current dir > venv in current dir > system python
 if [ -n "$VIRTUAL_ENV" ]; then
     PYTHON="python"
     echo "Using active virtual environment: $VIRTUAL_ENV"
@@ -29,6 +22,39 @@ elif [ -f "venv/bin/python" ]; then
 else
     PYTHON="python"
     echo "Using system Python"
+fi
+
+# Check if shtab is available (either via Python or as command)
+if $PYTHON -c "import shtab" 2>/dev/null; then
+    # shtab is installed in the Python environment - use it via python -m
+    SHTAB="$PYTHON -m shtab"
+    echo "Using shtab from Python environment"
+elif command -v shtab &> /dev/null; then
+    # shtab is available as a command (e.g., pipx install)
+    # But we need to use it with the venv's Python to access duperscooper
+    if [ "$PYTHON" != "python" ]; then
+        # Use python -m if available, otherwise warn
+        if $PYTHON -c "import shtab" 2>/dev/null; then
+            SHTAB="$PYTHON -m shtab"
+            echo "Using shtab via Python environment to access duperscooper"
+        else
+            echo "Error: shtab found in PATH but not in Python environment"
+            echo "Install shtab in the same environment as duperscooper:"
+            echo "  $PYTHON -m pip install shtab"
+            exit 1
+        fi
+    else
+        SHTAB="shtab"
+        echo "Using shtab from PATH"
+    fi
+else
+    echo "Error: shtab is not installed"
+    echo ""
+    echo "Install it with one of:"
+    echo "  pip install shtab      # Install in active environment"
+    echo "  pipx install shtab     # Install globally"
+    echo ""
+    exit 1
 fi
 
 # Check if duperscooper is installed (needed for shtab to import the parser)
@@ -44,53 +70,36 @@ if ! $PYTHON -c "import duperscooper" 2>/dev/null; then
     exit 1
 fi
 
-# Export PYTHONPATH if using local venv so shtab can find duperscooper
-if [ "$PYTHON" != "python" ]; then
-    # Get the site-packages path from the venv
-    SITE_PACKAGES=$($PYTHON -c "import site; print(site.getsitepackages()[0])")
-    export PYTHONPATH="$SITE_PACKAGES:$PYTHONPATH"
-fi
-
 case "$SHELL_NAME" in
     bash)
-        # Try user directory first, fall back to system
-        if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
-            COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
-            SUDO=""
-        elif [ -d "/usr/share/bash-completion/completions" ]; then
-            COMPLETION_DIR="/usr/share/bash-completion/completions"
-            SUDO="sudo"
-        else
-            echo "Error: Could not find bash completion directory"
-            echo "Creating user completion directory..."
-            mkdir -p "$HOME/.local/share/bash-completion/completions"
-            COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
-            SUDO=""
+        # Always prefer user directory (no sudo needed)
+        COMPLETION_DIR="$HOME/.local/share/bash-completion/completions"
+
+        # Create directory if it doesn't exist
+        if [ ! -d "$COMPLETION_DIR" ]; then
+            echo "Creating user completion directory: $COMPLETION_DIR"
+            mkdir -p "$COMPLETION_DIR"
         fi
 
         echo "Generating bash completion script..."
-        shtab --shell=bash duperscooper.__main__.get_parser | \
-            $SUDO tee "$COMPLETION_DIR/duperscooper" > /dev/null
+        $SHTAB --shell=bash duperscooper.__main__.get_parser > \
+            "$COMPLETION_DIR/duperscooper"
 
         echo "✓ Bash completion installed to $COMPLETION_DIR/duperscooper"
         echo ""
-        echo "Restart your shell or run:"
+        echo "Completion will be loaded automatically in new bash sessions."
+        echo "For the current session, run:"
         echo "  source $COMPLETION_DIR/duperscooper"
         ;;
 
     zsh)
-        # Try user directory first, fall back to system
-        if [ -d "$HOME/.zsh/completions" ]; then
-            COMPLETION_DIR="$HOME/.zsh/completions"
-            SUDO=""
-        elif [ -d "/usr/local/share/zsh/site-functions" ]; then
-            COMPLETION_DIR="/usr/local/share/zsh/site-functions"
-            SUDO="sudo"
-        else
-            echo "Creating user completion directory..."
-            mkdir -p "$HOME/.zsh/completions"
-            COMPLETION_DIR="$HOME/.zsh/completions"
-            SUDO=""
+        # Always prefer user directory (no sudo needed)
+        COMPLETION_DIR="$HOME/.zsh/completions"
+
+        # Create directory if it doesn't exist
+        if [ ! -d "$COMPLETION_DIR" ]; then
+            echo "Creating user completion directory: $COMPLETION_DIR"
+            mkdir -p "$COMPLETION_DIR"
             echo ""
             echo "Note: Add this to your ~/.zshrc if not already present:"
             echo "  fpath=(~/.zsh/completions \$fpath)"
@@ -99,8 +108,8 @@ case "$SHELL_NAME" in
         fi
 
         echo "Generating zsh completion script..."
-        shtab --shell=zsh duperscooper.__main__.get_parser | \
-            $SUDO tee "$COMPLETION_DIR/_duperscooper" > /dev/null
+        $SHTAB --shell=zsh duperscooper.__main__.get_parser > \
+            "$COMPLETION_DIR/_duperscooper"
 
         echo "✓ Zsh completion installed to $COMPLETION_DIR/_duperscooper"
         echo ""
@@ -113,7 +122,7 @@ case "$SHELL_NAME" in
         mkdir -p "$COMPLETION_DIR"
 
         echo "Generating tcsh completion script..."
-        shtab --shell=tcsh duperscooper.__main__.get_parser > \
+        $SHTAB --shell=tcsh duperscooper.__main__.get_parser > \
             "$COMPLETION_DIR/duperscooper.completion.csh"
 
         echo "✓ Tcsh completion installed to $COMPLETION_DIR/duperscooper.completion.csh"
