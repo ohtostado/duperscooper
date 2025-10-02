@@ -240,7 +240,7 @@ duperscooper ~/Music --album-mode --album-match-strategy musicbrainz
 duperscooper ~/Music --album-mode --album-match-strategy fingerprint
 
 # Album mode with JSON output (includes matched album/artist and confidence)
-duperscooper ~/Music --album-mode --output json
+duperscooper ~/Music --album-mode --output json > duplicate_albums.json
 
 # Album mode with CSV output (good for GUI integration)
 duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
@@ -347,14 +347,20 @@ duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
 
 All output formats now include quality information for duplicate groups:
 
-- **Text Output** (default): Shows best quality file first with `[Best]` marker, followed by duplicates with similarity percentage
-  ```
+- **Text Output** (default): Shows best quality file first with `[Best]`
+  marker, followed by duplicates with similarity percentage
+
+  ```text
   [Best] /path/to/file.flac (30.9 MB) - FLAC 44.1kHz 16bit
-    ├─ /path/to/file-320.mp3 (13.4 MB) - MP3 CBR 320kbps [99.9% match]
-    ├─ /path/to/file-192.mp3 (8.0 MB) - MP3 CBR 192kbps [99.8% match]
+    ├─ /path/to/file-320.mp3 (13.4 MB) - MP3 CBR 320kbps
+       [99.9% match]
+    ├─ /path/to/file-192.mp3 (8.0 MB) - MP3 CBR 192kbps
+       [99.8% match]
   ```
 
-- **JSON Output**: Includes `audio_info`, `quality_score`, `similarity_to_best`, and `is_best` fields
+- **JSON Output**: Includes `audio_info`, `quality_score`,
+  `similarity_to_best`, and `is_best` fields
+
   ```json
   {
     "path": "/path/to/file.flac",
@@ -365,25 +371,33 @@ All output formats now include quality information for duplicate groups:
   }
   ```
 
-- **CSV Output**: Adds columns for `audio_info`, `quality_score`, `similarity_to_best`, and `is_best`
+- **CSV Output**: Adds columns for `audio_info`, `quality_score`,
+  `similarity_to_best`, and `is_best`
 
-- **Interactive Delete**: Shows quality info for each file to help decide which duplicates to keep/delete
+- **Interactive Delete**: Shows quality info for each file to help decide
+  which duplicates to keep/delete
 
 ### Quality Scoring System
 
-- **Lossless formats** (FLAC, WAV, ALAC, etc.): `10000 + (bit_depth × 100) + (sample_rate / 1000)`
+- **Lossless formats** (FLAC, WAV, ALAC, etc.):
+  `10000 + (bit_depth × 100) + (sample_rate / 1000)`
   - Example: 24-bit 96kHz FLAC = 10000 + 2400 + 96 = 12496
 - **Lossy formats** (MP3, AAC, OGG, etc.): `bitrate / 1000` (in kbps)
   - Example: 320kbps MP3 = 320
 
-This ensures lossless files always rank higher than lossy, with finer granularity within each category.
+This ensures lossless files always rank higher than lossy, with finer
+granularity within each category.
 
 ### Album Mode Output Formats
 
-Album mode adds matched album/artist identification and confidence scoring:
+Album mode adds matched album/artist identification and confidence
+scoring:
 
-- **Text Output** (default): Shows matched album/artist at group level, best quality album with `[Best]` marker, confidence percentage with color coding
-  ```
+- **Text Output** (default): Shows matched album/artist at group level,
+  best quality album with `[Best]` marker, confidence percentage with
+  color coding
+
+  ```text
   Group 1: Dirty Deeds by AC/DC
   [Best] /music/ac-dc/dirty-deeds-flac (15 tracks, 450.2 MB)
     Quality: FLAC 44.1kHz 16bit (avg)
@@ -397,7 +411,9 @@ Album mode adds matched album/artist identification and confidence scoring:
     Match: 99.8%
   ```
 
-- **JSON Output**: Includes `matched_album`, `matched_artist` at group level, `confidence` for each album
+- **JSON Output**: Includes `matched_album`, `matched_artist` at group
+  level, `confidence` for each album
+
   ```json
   {
     "matched_album": "Dirty Deeds Done Dirt Cheap",
@@ -414,8 +430,12 @@ Album mode adds matched album/artist identification and confidence scoring:
   }
   ```
 
-- **CSV Output**: Adds columns for `matched_album`, `matched_artist`, `confidence`
-  - Format: `group_id,matched_album,matched_artist,album_path,track_count,total_size_bytes,total_size,quality_info,quality_score,confidence,is_best,musicbrainz_albumid,album_name,artist_name,has_mixed_mb_ids`
+- **CSV Output**: Adds columns for `matched_album`, `matched_artist`,
+  `confidence`
+  - Format: `group_id,matched_album,matched_artist,album_path,
+    track_count,total_size_bytes,total_size,quality_info,
+    quality_score,confidence,is_best,musicbrainz_albumid,
+    album_name,artist_name,has_mixed_mb_ids`
   - Good for GUI integration and spreadsheet analysis
 
 ### Album Confidence Scoring
@@ -423,14 +443,17 @@ Album mode adds matched album/artist identification and confidence scoring:
 Confidence that an album belongs to a matched duplicate group:
 
 - **100%**: All albums have matching MusicBrainz album ID
-- **90-95%**: Album/artist metadata matches + high fingerprint similarity
+- **90-95%**: Album/artist metadata matches + high fingerprint
+  similarity
 - **80-90%**: Fingerprint similarity only (no metadata match)
 
 Confidence calculation factors:
+
 - Base confidence: 80%
 - +5% if album name matches the group's matched album
 - +5% if artist name matches the group's matched artist
-- +0-10% based on average fingerprint similarity to other albums in group (98-100% similarity range)
+- +0-10% based on average fingerprint similarity to other albums in
+  group (98-100% similarity range)
 
 ## Future Enhancements
 
@@ -450,10 +473,14 @@ Confidence calculation factors:
 
 ### Album Mode Future Phases
 
-- **Fuzzy Tag Matching**: Match albums/tracks with possible misspellings in ID3 tags
-  - Use Levenshtein distance or similar algorithms to match album/artist names
-  - Example: "The Beatles" vs "Beatles" or "Led Zeppelin" vs "Led Zepplin"
-  - Match against canonical albums (those with MusicBrainz IDs) within close edit distance
+- **Fuzzy Tag Matching**: Match albums/tracks with possible misspellings
+  in ID3 tags
+  - Use Levenshtein distance or similar algorithms to match
+    album/artist names
+  - Example: "The Beatles" vs "Beatles" or "Led Zeppelin" vs
+    "Led Zepplin"
+  - Match against canonical albums (those with MusicBrainz IDs) within
+    close edit distance
   - Configurable threshold for fuzzy matching sensitivity
   - Useful for poorly tagged or user-edited metadata
 
@@ -503,11 +530,14 @@ fpcalc --version
 
 ## Notes for Claude
 
-- **Read `.claude-state.md` FIRST** before taking any actions - it contains complete session context, recent work, and current development state
+- **Read `.claude-state.md` FIRST** before taking any actions - it
+  contains complete session context, recent work, and current
+  development state
 - **Always format code** with Black before presenting to user
 - **Always run linting** with Ruff when making changes
 - **Prefer editing** existing files over creating new ones
 - **Test changes** when modifying core logic
 - **Document breaking changes** in commit messages
 - **Ask before** installing system packages or major refactors
-- **Reference files** using markdown links: `[file.py](src/duperscooper/file.py)`
+- **Reference files** using markdown links:
+  `[file.py](src/duperscooper/file.py)`
