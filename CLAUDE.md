@@ -484,6 +484,15 @@ Confidence calculation factors:
   - Configurable threshold for fuzzy matching sensitivity
   - Useful for poorly tagged or user-edited metadata
 
+- **Strict Fingerprint Mode**: Ultra-conservative duplicate detection
+  - Add `--strict` flag to ignore all metadata completely
+  - Use only acoustic fingerprint matching with high threshold (e.g.,
+    99.5%)
+  - Configurable with `--strict-threshold` option
+  - Useful for libraries with poor/inconsistent tagging
+  - Avoids false positives from metadata matches with different audio
+  - Quality control: verify MB ID matches are actually the same recording
+
 ## Git & GitHub
 
 ### Commit Guidelines
