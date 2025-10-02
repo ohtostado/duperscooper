@@ -215,7 +215,7 @@ duperscooper ~/Music --no-cache
 # Update cache (regenerate hashes for files already in cache)
 duperscooper ~/Music --update-cache
 
-# Adjust similarity threshold (default 98%)
+# Adjust similarity threshold (default 97%)
 duperscooper ~/Music --similarity-threshold 95.0
 
 # Clear the hash cache
@@ -342,7 +342,7 @@ shtab --shell=zsh duperscooper.__main__.get_parser > ~/.zsh/completions/_dupersc
 
 - Uses raw Chromaprint fingerprints (list of 32-bit integers)
 - Calculates Hamming distance (bit-level differences) between fingerprints
-- Groups files with similarity ≥ threshold (default 98%)
+- Groups files with similarity ≥ threshold (default 97%)
 - Detects duplicates across all bitrates and formats:
   - 64kbps MP3 ↔ FLAC: ~98.9% similar
   - 128kbps MP3 ↔ FLAC: ~99.5% similar
