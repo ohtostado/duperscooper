@@ -102,8 +102,9 @@ def format_output_text(duplicates: Dict[str, List[tuple]]) -> None:
             else:
                 duplicate_entries.append(entry)
 
-        # Sort duplicates by similarity descending (best matches first)
-        duplicate_entries.sort(key=lambda x: x[4], reverse=True)  # x[4] is similarity
+        # Sort duplicates by quality ascending (worst first),
+        # then similarity descending. Shows deletion candidates first.
+        duplicate_entries.sort(key=lambda x: (x[3], -x[4]))
 
         # Print best file first
         if best_entry:
@@ -159,6 +160,21 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
             file_list, hasher
         )
 
+        # Separate best from duplicates
+        best_entry = None
+        duplicate_entries = []
+        for entry in enriched_files:
+            if entry[0] == best_file:
+                best_entry = entry
+            else:
+                duplicate_entries.append(entry)
+
+        # Sort duplicates by quality ascending, then similarity descending
+        duplicate_entries.sort(key=lambda x: (x[3], -x[4]))
+
+        # Reassemble with best first
+        sorted_files = [best_entry] + duplicate_entries if best_entry else []
+
         files_data = []
         for (
             file_path,
@@ -166,7 +182,7 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
             metadata,
             quality_score,
             similarity,
-        ) in enriched_files:
+        ) in sorted_files:
             file_info = DuplicateManager.get_file_info(file_path)
             file_info["audio_info"] = AudioHasher.format_audio_info(metadata)
             file_info["quality_score"] = quality_score
@@ -226,12 +242,21 @@ def format_album_output_text(
         # Find best quality album as reference
         best_album = max(group, key=lambda a: a.avg_quality_score)
 
-        # Sort by match percentage descending (best matches first)
-        sorted_albums = sorted(
-            group,
-            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
-            reverse=True,
+        # Separate best from duplicates
+        duplicates = [a for a in group if a != best_album]
+
+        # Sort duplicates by quality ascending (worst first),
+        # then match percentage descending
+        sorted_duplicates = sorted(
+            duplicates,
+            key=lambda a: (
+                a.avg_quality_score,
+                -_get_album_match_percentage(a, best_album, hasher),
+            ),
         )
+
+        # Best album first, then sorted duplicates
+        sorted_albums = [best_album] + sorted_duplicates
 
         for album in sorted_albums:
             is_best = album == best_album
@@ -296,12 +321,20 @@ def format_album_output_json(
         # Find best quality album as reference
         best_album = max(group, key=lambda a: a.avg_quality_score)
 
-        # Sort by match percentage descending
-        sorted_albums = sorted(
-            group,
-            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
-            reverse=True,
+        # Separate best from duplicates
+        duplicates = [a for a in group if a != best_album]
+
+        # Sort duplicates by quality ascending, then match % descending
+        sorted_duplicates = sorted(
+            duplicates,
+            key=lambda a: (
+                a.avg_quality_score,
+                -_get_album_match_percentage(a, best_album, hasher),
+            ),
         )
+
+        # Best album first, then sorted duplicates
+        sorted_albums = [best_album] + sorted_duplicates
 
         for album in sorted_albums:
             is_best = album == best_album
@@ -357,12 +390,20 @@ def format_album_output_csv(
         # Find best quality album as reference
         best_album = max(group, key=lambda a: a.avg_quality_score)
 
-        # Sort by match percentage descending
-        sorted_albums = sorted(
-            group,
-            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
-            reverse=True,
+        # Separate best from duplicates
+        duplicates = [a for a in group if a != best_album]
+
+        # Sort duplicates by quality ascending, then match % descending
+        sorted_duplicates = sorted(
+            duplicates,
+            key=lambda a: (
+                a.avg_quality_score,
+                -_get_album_match_percentage(a, best_album, hasher),
+            ),
         )
+
+        # Best album first, then sorted duplicates
+        sorted_albums = [best_album] + sorted_duplicates
 
         for album in sorted_albums:
             is_best = album == best_album
@@ -420,13 +461,28 @@ def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
             file_list, hasher
         )
 
+        # Separate best from duplicates
+        best_entry = None
+        duplicate_entries = []
+        for entry in enriched_files:
+            if entry[0] == best_file:
+                best_entry = entry
+            else:
+                duplicate_entries.append(entry)
+
+        # Sort duplicates by quality ascending, then similarity descending
+        duplicate_entries.sort(key=lambda x: (x[3], -x[4]))
+
+        # Reassemble with best first
+        sorted_files = [best_entry] + duplicate_entries if best_entry else []
+
         for (
             file_path,
             _fingerprint,
             metadata,
             quality_score,
             similarity,
-        ) in enriched_files:
+        ) in sorted_files:
             info = DuplicateManager.get_file_info(file_path)
             audio_info = AudioHasher.format_audio_info(metadata)
             is_best = "true" if file_path == best_file else "false"
