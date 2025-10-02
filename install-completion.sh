@@ -15,11 +15,40 @@ if ! command -v shtab &> /dev/null; then
     exit 1
 fi
 
+# Determine which Python to use
+# Priority: active venv > .venv in current dir > system python
+if [ -n "$VIRTUAL_ENV" ]; then
+    PYTHON="python"
+    echo "Using active virtual environment: $VIRTUAL_ENV"
+elif [ -f ".venv/bin/python" ]; then
+    PYTHON=".venv/bin/python"
+    echo "Using local .venv: $(pwd)/.venv"
+elif [ -f "venv/bin/python" ]; then
+    PYTHON="venv/bin/python"
+    echo "Using local venv: $(pwd)/venv"
+else
+    PYTHON="python"
+    echo "Using system Python"
+fi
+
 # Check if duperscooper is installed (needed for shtab to import the parser)
-if ! python -c "import duperscooper" 2>/dev/null; then
+if ! $PYTHON -c "import duperscooper" 2>/dev/null; then
     echo "Error: duperscooper is not installed or not importable"
-    echo "Install it with: pip install -e .  OR  pip install duperscooper"
+    echo ""
+    echo "Install it with one of:"
+    echo "  pip install -e .           # Development install"
+    echo "  pip install duperscooper   # Production install"
+    echo ""
+    echo "Or activate your virtual environment first:"
+    echo "  source .venv/bin/activate"
     exit 1
+fi
+
+# Export PYTHONPATH if using local venv so shtab can find duperscooper
+if [ "$PYTHON" != "python" ]; then
+    # Get the site-packages path from the venv
+    SITE_PACKAGES=$($PYTHON -c "import site; print(site.getsitepackages()[0])")
+    export PYTHONPATH="$SITE_PACKAGES:$PYTHONPATH"
 fi
 
 case "$SHELL_NAME" in
