@@ -183,31 +183,22 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
     print(json.dumps(output, indent=2))
 
 
-def _calculate_group_avg_match(group: List[Any], hasher: Any) -> float:
-    """Calculate average match percentage for an album group."""
-    if len(group) <= 1:
+def _get_album_match_percentage(album: Any, best_album: Any, hasher: Any) -> float:
+    """Get match percentage for an album compared to the best album."""
+    if album == best_album:
         return 100.0
-
-    # Find best quality album as reference
-    sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
-    best_album = sorted_albums[0]
-
-    # Calculate average similarity of all albums to best
-    similarities = []
-    for album in group:
-        if album == best_album:
-            similarities.append(100.0)
-        elif album.match_method == "MusicBrainz Album ID":
-            similarities.append(100.0)
-        elif best_album.fingerprints and album.fingerprints:
-            sim = hasher.similarity_percentage(
+    elif album.match_method == "MusicBrainz Album ID":
+        return 100.0
+    else:
+        # Calculate fingerprint similarity to best album
+        sim: float = (
+            hasher.similarity_percentage(
                 best_album.fingerprints[0], album.fingerprints[0]
             )
-            similarities.append(sim)
-        else:
-            similarities.append(0.0)
-
-    return sum(similarities) / len(similarities) if similarities else 0.0
+            if best_album.fingerprints and album.fingerprints
+            else 0.0
+        )
+        return sim
 
 
 def format_album_output_text(duplicate_groups: List[List]) -> None:
@@ -222,19 +213,12 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
     hasher = AudioHasher()
     finder = AlbumDuplicateFinder(hasher, verbose=False)
 
-    # Sort groups by average match percentage descending (best matches first)
-    sorted_groups = sorted(
-        duplicate_groups,
-        key=lambda g: _calculate_group_avg_match(g, hasher),
-        reverse=True,
-    )
-
     print(
-        f"{Fore.CYAN}{Style.BRIGHT}Found {len(sorted_groups)} group(s) "
+        f"{Fore.CYAN}{Style.BRIGHT}Found {len(duplicate_groups)} group(s) "
         f"of duplicate albums:{Style.RESET_ALL}\n"
     )
 
-    for idx, group in enumerate(sorted_groups, 1):
+    for idx, group in enumerate(duplicate_groups, 1):
         # Get matched album info for the group
         matched_album, matched_artist = finder.get_matched_album_info(group)
 
@@ -243,9 +227,15 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
             f"{matched_album} by {matched_artist}{Style.RESET_ALL}"
         )
 
-        # Sort by quality descending (best first)
-        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
-        best_album = sorted_albums[0]
+        # Find best quality album as reference
+        best_album = max(group, key=lambda a: a.avg_quality_score)
+
+        # Sort by match percentage descending (best matches first)
+        sorted_albums = sorted(
+            group,
+            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
+            reverse=True,
+        )
 
         for album in sorted_albums:
             is_best = album == best_album
@@ -273,23 +263,8 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
             if album.match_method:
                 print(f"    Matched by: {album.match_method}")
 
-            # Calculate match percentage based on method
-            if album.match_method == "MusicBrainz Album ID":
-                # Exact identifier match
-                match_pct = 100.0
-            elif is_best:
-                # Best album is the reference point
-                match_pct = 100.0
-            else:
-                # Calculate fingerprint similarity to best album
-                match_pct = (
-                    hasher.similarity_percentage(
-                        best_album.fingerprints[0], album.fingerprints[0]
-                    )
-                    if best_album.fingerprints and album.fingerprints
-                    else 0.0
-                )
-
+            # Get match percentage
+            match_pct = _get_album_match_percentage(album, best_album, hasher)
             match_color = get_similarity_color(match_pct)
             if album.is_partial_match and album.overlap_percentage is not None:
                 # Show partial match info
@@ -319,39 +294,27 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
     hasher = AudioHasher()
     finder = AlbumDuplicateFinder(hasher, verbose=False)
 
-    # Sort groups by average match percentage descending
-    sorted_groups = sorted(
-        duplicate_groups,
-        key=lambda g: _calculate_group_avg_match(g, hasher),
-        reverse=True,
-    )
-
     output = []
-    for group in sorted_groups:
+    for group in duplicate_groups:
         # Get matched album info
         matched_album, matched_artist = finder.get_matched_album_info(group)
 
         albums_data = []
-        # Sort by quality descending
-        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
-        best_album = sorted_albums[0]
+        # Find best quality album as reference
+        best_album = max(group, key=lambda a: a.avg_quality_score)
+
+        # Sort by match percentage descending
+        sorted_albums = sorted(
+            group,
+            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
+            reverse=True,
+        )
 
         for album in sorted_albums:
             is_best = album == best_album
 
-            # Calculate match percentage based on method
-            if album.match_method == "MusicBrainz Album ID":
-                match_pct = 100.0
-            elif is_best:
-                match_pct = 100.0
-            else:
-                match_pct = (
-                    hasher.similarity_percentage(
-                        best_album.fingerprints[0], album.fingerprints[0]
-                    )
-                    if best_album.fingerprints and album.fingerprints
-                    else 0.0
-                )
+            # Get match percentage
+            match_pct = _get_album_match_percentage(album, best_album, hasher)
 
             album_data = {
                 "path": str(album.path),
@@ -390,13 +353,6 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
     hasher = AudioHasher()
     finder = AlbumDuplicateFinder(hasher, verbose=False)
 
-    # Sort groups by average match percentage descending
-    sorted_groups = sorted(
-        duplicate_groups,
-        key=lambda g: _calculate_group_avg_match(g, hasher),
-        reverse=True,
-    )
-
     print(
         "group_id,matched_album,matched_artist,album_path,track_count,"
         "total_size_bytes,total_size,quality_info,quality_score,match_percentage,"
@@ -404,30 +360,25 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
         "has_mixed_mb_ids,is_partial_match,overlap_percentage"
     )
 
-    for idx, group in enumerate(sorted_groups, 1):
+    for idx, group in enumerate(duplicate_groups, 1):
         # Get matched album info
         matched_album, matched_artist = finder.get_matched_album_info(group)
 
-        # Sort by quality descending
-        sorted_albums = sorted(group, key=lambda a: a.avg_quality_score, reverse=True)
-        best_album = sorted_albums[0]
+        # Find best quality album as reference
+        best_album = max(group, key=lambda a: a.avg_quality_score)
+
+        # Sort by match percentage descending
+        sorted_albums = sorted(
+            group,
+            key=lambda a: _get_album_match_percentage(a, best_album, hasher),
+            reverse=True,
+        )
 
         for album in sorted_albums:
             is_best = album == best_album
 
-            # Calculate match percentage based on method
-            if album.match_method == "MusicBrainz Album ID":
-                match_pct = 100.0
-            elif is_best:
-                match_pct = 100.0
-            else:
-                match_pct = (
-                    hasher.similarity_percentage(
-                        best_album.fingerprints[0], album.fingerprints[0]
-                    )
-                    if best_album.fingerprints and album.fingerprints
-                    else 0.0
-                )
+            # Get match percentage
+            match_pct = _get_album_match_percentage(album, best_album, hasher)
 
             size_mb = album.total_size / (1024 * 1024)
             if size_mb >= 1024:
