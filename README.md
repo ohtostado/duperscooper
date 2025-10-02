@@ -313,21 +313,23 @@ duperscooper ~/Music --album-mode --output csv > duplicates.csv
 
 ### Benchmarks
 
-Tested on 120 albums (1,200 audio files, ~10GB):
+Tested on 21 albums (203 audio files, 4.6GB) - album mode:
 
 | Workers | Scan Time | Speedup |
 |---------|-----------|---------|
-| 1       | 120s      | 1.0x    |
-| 4       | 52s       | 2.3x    |
-| 8       | 44s       | 2.7x    |
-| 16      | 41s       | 2.9x    |
+| 1       | 52.3s     | 1.0x    |
+| 4       | 34.0s     | 1.5x    |
+| 8       | 34.0s     | 1.5x    |
+| 16      | 34.0s     | 1.5x    |
+| Cached  | 3.3s      | 15.8x   |
 
 **Notes:**
 
-- Default 8 workers provides best balance for most systems
-- Diminishing returns beyond 8 workers on typical hardware
-- Cached scans are near-instant (< 1s for 120 albums)
+- Parallel processing provides ~1.5x speedup on this dataset
+- Diminishing returns beyond 4 workers (likely due to dataset size)
+- Cached scans are ~16x faster (3.3s vs 52.3s for cold start)
 - I/O-bound workload (subprocess calls to `fpcalc`)
+- Larger datasets will see more benefit from additional workers
 
 ### Scaling Considerations
 
