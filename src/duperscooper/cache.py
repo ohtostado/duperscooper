@@ -5,7 +5,7 @@ import sqlite3
 import threading
 import time
 from pathlib import Path
-from typing import Dict, Optional, Protocol
+from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 
 class CacheBackend(Protocol):
@@ -73,6 +73,8 @@ class SQLiteCacheBackend:
     def _init_db(self) -> None:
         """Initialize database schema."""
         conn = self._get_connection()
+
+        # Track fingerprint cache
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS fingerprint_cache (
@@ -89,6 +91,61 @@ class SQLiteCacheBackend:
             ON fingerprint_cache(last_accessed)
             """
         )
+
+        # Album cache for duplicate detection
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS album_cache (
+                album_path TEXT PRIMARY KEY,
+                track_count INTEGER NOT NULL,
+                musicbrainz_albumid TEXT,
+                album_name TEXT,
+                artist_name TEXT,
+                total_size INTEGER NOT NULL,
+                avg_quality_score REAL NOT NULL,
+                quality_info TEXT NOT NULL,
+                has_mixed_mb_ids INTEGER NOT NULL,
+                directory_mtime INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                last_accessed INTEGER NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_album_last_accessed
+            ON album_cache(last_accessed)
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_album_mb_id
+            ON album_cache(musicbrainz_albumid)
+            WHERE musicbrainz_albumid IS NOT NULL
+            """
+        )
+
+        # Album tracks (for change detection)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS album_tracks (
+                album_path TEXT NOT NULL,
+                track_path TEXT NOT NULL,
+                track_index INTEGER NOT NULL,
+                file_hash TEXT NOT NULL,
+                PRIMARY KEY (album_path, track_index),
+                FOREIGN KEY (album_path) REFERENCES album_cache(album_path)
+                    ON DELETE CASCADE
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_album_tracks_path
+            ON album_tracks(album_path)
+            """
+        )
+
         conn.commit()
 
     def get(self, key: str) -> Optional[str]:
@@ -167,7 +224,7 @@ class SQLiteCacheBackend:
 
     def clear(self) -> bool:
         """
-        Clear all cache entries.
+        Clear all cache entries (fingerprints and albums).
 
         Returns:
             True if successful
@@ -175,6 +232,8 @@ class SQLiteCacheBackend:
         try:
             conn = self._get_connection()
             conn.execute("DELETE FROM fingerprint_cache")
+            conn.execute("DELETE FROM album_tracks")
+            conn.execute("DELETE FROM album_cache")
             conn.commit()
             with self._lock:
                 self._hits = 0
@@ -188,6 +247,151 @@ class SQLiteCacheBackend:
         if hasattr(self._local, "conn"):
             self._local.conn.close()
             delattr(self._local, "conn")
+
+    def get_album(self, album_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Get album from cache.
+
+        Args:
+            album_path: Path to album directory
+
+        Returns:
+            Album data dict or None if not cached or stale
+        """
+        conn = self._get_connection()
+        cursor = conn.execute(
+            """
+            SELECT track_count, musicbrainz_albumid, album_name, artist_name,
+                   total_size, avg_quality_score, quality_info, has_mixed_mb_ids,
+                   directory_mtime
+            FROM album_cache
+            WHERE album_path = ?
+            """,
+            (album_path,),
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        # Check if directory has been modified
+        from pathlib import Path
+
+        try:
+            current_mtime = int(Path(album_path).stat().st_mtime)
+            if current_mtime != row[8]:
+                # Directory modified, cache is stale
+                return None
+        except (OSError, FileNotFoundError):
+            return None
+
+        # Update last_accessed
+        conn.execute(
+            """
+            UPDATE album_cache
+            SET last_accessed = ?
+            WHERE album_path = ?
+            """,
+            (int(time.time()), album_path),
+        )
+        conn.commit()
+
+        # Get track list
+        cursor = conn.execute(
+            """
+            SELECT track_path, file_hash
+            FROM album_tracks
+            WHERE album_path = ?
+            ORDER BY track_index
+            """,
+            (album_path,),
+        )
+        tracks = [(row[0], row[1]) for row in cursor.fetchall()]
+
+        return {
+            "track_count": row[0],
+            "musicbrainz_albumid": row[1],
+            "album_name": row[2],
+            "artist_name": row[3],
+            "total_size": row[4],
+            "avg_quality_score": row[5],
+            "quality_info": row[6],
+            "has_mixed_mb_ids": bool(row[7]),
+            "directory_mtime": row[8],
+            "tracks": tracks,
+        }
+
+    def set_album(
+        self, album_path: str, album_data: Dict[str, Any], tracks: List[Tuple[str, str]]
+    ) -> None:
+        """
+        Store album in cache.
+
+        Args:
+            album_path: Path to album directory
+            album_data: Album metadata dict
+            tracks: List of (track_path, file_hash) tuples
+        """
+        conn = self._get_connection()
+        now = int(time.time())
+
+        # Insert or replace album
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO album_cache (
+                album_path, track_count, musicbrainz_albumid, album_name,
+                artist_name, total_size, avg_quality_score, quality_info,
+                has_mixed_mb_ids, directory_mtime, created_at, last_accessed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                album_path,
+                album_data["track_count"],
+                album_data.get("musicbrainz_albumid"),
+                album_data.get("album_name"),
+                album_data.get("artist_name"),
+                album_data["total_size"],
+                album_data["avg_quality_score"],
+                album_data["quality_info"],
+                int(album_data.get("has_mixed_mb_ids", False)),
+                album_data["directory_mtime"],
+                now,
+                now,
+            ),
+        )
+
+        # Delete old tracks
+        conn.execute("DELETE FROM album_tracks WHERE album_path = ?", (album_path,))
+
+        # Insert tracks
+        for idx, (track_path, file_hash) in enumerate(tracks):
+            conn.execute(
+                """
+                INSERT INTO album_tracks (
+                    album_path, track_path, track_index, file_hash
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (album_path, track_path, idx, file_hash),
+            )
+
+        conn.commit()
+
+    def clear_albums(self) -> bool:
+        """
+        Clear all album cache entries.
+
+        Returns:
+            True if successful
+        """
+        try:
+            conn = self._get_connection()
+            conn.execute("DELETE FROM album_tracks")
+            conn.execute("DELETE FROM album_cache")
+            conn.commit()
+            return True
+        except sqlite3.Error:
+            return False
 
     def cleanup_old(self, max_age_days: int = 90) -> int:
         """

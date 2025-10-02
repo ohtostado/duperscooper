@@ -1,11 +1,8 @@
 """Tests for cache backend implementations."""
 
 import json
-import sqlite3
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from duperscooper.cache import (
     JSONCacheBackend,
@@ -17,7 +14,7 @@ from duperscooper.cache import (
 class TestSQLiteCacheBackend:
     """Tests for SQLite cache backend."""
 
-    def test_init_creates_database(self):
+    def test_init_creates_database(self) -> None:
         """Test that initialization creates database file."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -26,7 +23,7 @@ class TestSQLiteCacheBackend:
             assert db_path.exists()
             cache.close()
 
-    def test_set_and_get(self):
+    def test_set_and_get(self) -> None:
         """Test storing and retrieving values."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -39,7 +36,7 @@ class TestSQLiteCacheBackend:
             assert cache.get("key2") == "value2"
             cache.close()
 
-    def test_get_nonexistent(self):
+    def test_get_nonexistent(self) -> None:
         """Test getting a nonexistent key returns None."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -48,7 +45,7 @@ class TestSQLiteCacheBackend:
             assert cache.get("nonexistent") is None
             cache.close()
 
-    def test_get_stats(self):
+    def test_get_stats(self) -> None:
         """Test cache statistics tracking."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -80,7 +77,7 @@ class TestSQLiteCacheBackend:
 
             cache.close()
 
-    def test_clear(self):
+    def test_clear(self) -> None:
         """Test clearing all cache entries."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -102,7 +99,7 @@ class TestSQLiteCacheBackend:
 
             cache.close()
 
-    def test_persistence(self):
+    def test_persistence(self) -> None:
         """Test that data persists across backend instances."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -117,7 +114,7 @@ class TestSQLiteCacheBackend:
             assert cache2.get("key1") == "value1"
             cache2.close()
 
-    def test_cleanup_old(self):
+    def test_cleanup_old(self) -> None:
         """Test removing old cache entries."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
@@ -148,7 +145,7 @@ class TestSQLiteCacheBackend:
 class TestJSONCacheBackend:
     """Tests for JSON cache backend."""
 
-    def test_set_and_get(self):
+    def test_set_and_get(self) -> None:
         """Test storing and retrieving values."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -161,7 +158,7 @@ class TestJSONCacheBackend:
             assert cache.get("key2") == "value2"
             cache.close()
 
-    def test_get_nonexistent(self):
+    def test_get_nonexistent(self) -> None:
         """Test getting a nonexistent key returns None."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -170,7 +167,7 @@ class TestJSONCacheBackend:
             assert cache.get("nonexistent") is None
             cache.close()
 
-    def test_get_stats(self):
+    def test_get_stats(self) -> None:
         """Test cache statistics tracking."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -194,7 +191,7 @@ class TestJSONCacheBackend:
 
             cache.close()
 
-    def test_clear(self):
+    def test_clear(self) -> None:
         """Test clearing all cache entries."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -214,7 +211,7 @@ class TestJSONCacheBackend:
 
             cache.close()
 
-    def test_persistence(self):
+    def test_persistence(self) -> None:
         """Test that data persists across backend instances."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -229,7 +226,7 @@ class TestJSONCacheBackend:
             assert cache2.get("key1") == "value1"
             cache2.close()
 
-    def test_load_existing(self):
+    def test_load_existing(self) -> None:
         """Test loading existing JSON cache file."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "test.json"
@@ -248,7 +245,7 @@ class TestJSONCacheBackend:
 class TestMigration:
     """Tests for JSON to SQLite migration."""
 
-    def test_migrate_json_to_sqlite(self):
+    def test_migrate_json_to_sqlite(self) -> None:
         """Test migrating data from JSON to SQLite."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "hashes.json"
@@ -276,7 +273,7 @@ class TestMigration:
 
             sqlite_cache.close()
 
-    def test_migrate_nonexistent_json(self):
+    def test_migrate_nonexistent_json(self) -> None:
         """Test migrating when JSON file doesn't exist."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "nonexistent.json"
@@ -285,7 +282,7 @@ class TestMigration:
             migrated = migrate_json_to_sqlite(json_path, db_path)
             assert migrated == 0
 
-    def test_migrate_empty_json(self):
+    def test_migrate_empty_json(self) -> None:
         """Test migrating empty JSON cache."""
         with tempfile.TemporaryDirectory() as tmpdir:
             json_path = Path(tmpdir) / "hashes.json"
