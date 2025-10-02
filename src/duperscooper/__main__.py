@@ -46,7 +46,9 @@ def _calculate_track_group_avg_match(file_list: List[tuple], hasher: Any) -> flo
 
     # Extract similarities
     # (enriched_files format: (path, size, info, score, similarity))
-    similarities = [float(entry[4]) for entry in enriched_files]  # entry[4] is similarity
+    similarities = [
+        float(entry[4]) for entry in enriched_files
+    ]  # entry[4] is similarity
     return float(sum(similarities) / len(similarities)) if similarities else 0.0
 
 
@@ -489,8 +491,16 @@ def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
             )
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command line arguments."""
+def get_parser() -> argparse.ArgumentParser:
+    """
+    Get the argument parser for duperscooper.
+
+    This function is used by tab completion tools (e.g., shtab) to generate
+    completion scripts.
+
+    Returns:
+        ArgumentParser configured with all duperscooper options
+    """
     parser = argparse.ArgumentParser(
         prog="duperscooper",
         description="Find duplicate audio files recursively in given paths.",
@@ -634,6 +644,12 @@ Examples:
         version=f"%(prog)s {__version__}",
     )
 
+    return parser
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = get_parser()
     return parser.parse_args()
 
 
