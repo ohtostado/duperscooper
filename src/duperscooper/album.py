@@ -873,7 +873,14 @@ class AlbumDuplicateFinder:
                 overlap_pct, _, track_mapping = self.partial_album_similarity(
                     album, reference_album
                 )
-                album.overlap_percentage = overlap_pct
+                # Calculate overlap relative to reference album, not smaller album
+                # (e.g., 7 matched out of 9 reference tracks = 77.8%, not 100%)
+                num_matched = len(track_mapping)
+                album.overlap_percentage = (
+                    num_matched / reference_album.track_count * 100.0
+                    if reference_album.track_count > 0
+                    else 0.0
+                )
 
                 # Determine which tracks are missing
                 if album.track_count < reference_album.track_count:
