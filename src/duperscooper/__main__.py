@@ -246,12 +246,22 @@ def format_album_output_text(
         duplicates = [a for a in group if a != best_album]
 
         # Sort duplicates by quality ascending (worst first),
+        # then by metadata presence (albums without metadata first),
         # then match percentage descending
+        def _has_metadata(album: Any) -> bool:
+            """Check if album has MusicBrainz ID or album/artist tags"""
+            return bool(
+                album.musicbrainz_albumid or (album.album_name and album.artist_name)
+            )
+
         sorted_duplicates = sorted(
             duplicates,
             key=lambda a: (
-                a.avg_quality_score,
-                -_get_album_match_percentage(a, best_album, hasher),
+                a.avg_quality_score,  # Lower quality first
+                _has_metadata(a),  # No metadata first (False < True)
+                -_get_album_match_percentage(
+                    a, best_album, hasher
+                ),  # Higher match last
             ),
         )
 
@@ -324,11 +334,18 @@ def format_album_output_json(
         # Separate best from duplicates
         duplicates = [a for a in group if a != best_album]
 
-        # Sort duplicates by quality ascending, then match % descending
+        # Sort duplicates by quality ascending, metadata presence, match % descending
+        def _has_metadata(album: Any) -> bool:
+            """Check if album has MusicBrainz ID or album/artist tags"""
+            return bool(
+                album.musicbrainz_albumid or (album.album_name and album.artist_name)
+            )
+
         sorted_duplicates = sorted(
             duplicates,
             key=lambda a: (
                 a.avg_quality_score,
+                _has_metadata(a),
                 -_get_album_match_percentage(a, best_album, hasher),
             ),
         )
@@ -393,11 +410,18 @@ def format_album_output_csv(
         # Separate best from duplicates
         duplicates = [a for a in group if a != best_album]
 
-        # Sort duplicates by quality ascending, then match % descending
+        # Sort duplicates by quality ascending, metadata presence, match % descending
+        def _has_metadata(album: Any) -> bool:
+            """Check if album has MusicBrainz ID or album/artist tags"""
+            return bool(
+                album.musicbrainz_albumid or (album.album_name and album.artist_name)
+            )
+
         sorted_duplicates = sorted(
             duplicates,
             key=lambda a: (
                 a.avg_quality_score,
+                _has_metadata(a),
                 -_get_album_match_percentage(a, best_album, hasher),
             ),
         )
