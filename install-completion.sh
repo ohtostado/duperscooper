@@ -8,17 +8,17 @@ SHELL_NAME="${1:-$(basename "$SHELL")}"
 
 echo "Installing tab completion for $SHELL_NAME..."
 
-# Check if shtab is installed
-if ! python -c "import shtab" 2>/dev/null; then
-    echo "Error: shtab is not installed"
-    echo "Install it with: pip install shtab"
+# Check if shtab command is available
+if ! command -v shtab &> /dev/null; then
+    echo "Error: shtab command not found in PATH"
+    echo "Install it with: pip install shtab  OR  pipx install shtab"
     exit 1
 fi
 
-# Check if duperscooper is installed
+# Check if duperscooper is installed (needed for shtab to import the parser)
 if ! python -c "import duperscooper" 2>/dev/null; then
-    echo "Error: duperscooper is not installed"
-    echo "Install it with: pip install -e ."
+    echo "Error: duperscooper is not installed or not importable"
+    echo "Install it with: pip install -e .  OR  pip install duperscooper"
     exit 1
 fi
 
