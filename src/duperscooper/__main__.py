@@ -221,7 +221,15 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
                 )
 
             match_color = get_similarity_color(match_pct)
-            print(f"    Match: {match_color}{match_pct:.1f}%{Style.RESET_ALL}")
+            if album.is_partial_match and album.overlap_percentage is not None:
+                # Show partial match info
+                print(
+                    f"    Match: {match_color}{match_pct:.1f}%{Style.RESET_ALL} "
+                    f"{Style.DIM}(Partial: {album.overlap_percentage:.1f}% overlap)"
+                    f"{Style.RESET_ALL}"
+                )
+            else:
+                print(f"    Match: {match_color}{match_pct:.1f}%{Style.RESET_ALL}")
 
             if album.musicbrainz_albumid:
                 print(f"    MusicBrainz ID: {album.musicbrainz_albumid}")
@@ -281,6 +289,8 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
                 "album_name": album.album_name,
                 "artist_name": album.artist_name,
                 "has_mixed_mb_ids": album.has_mixed_mb_ids,
+                "is_partial_match": album.is_partial_match,
+                "overlap_percentage": album.overlap_percentage,
             }
             albums_data.append(album_data)
 
@@ -307,7 +317,7 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
         "group_id,matched_album,matched_artist,album_path,track_count,"
         "total_size_bytes,total_size,quality_info,quality_score,match_percentage,"
         "match_method,is_best,musicbrainz_albumid,album_name,artist_name,"
-        "has_mixed_mb_ids"
+        "has_mixed_mb_ids,is_partial_match,overlap_percentage"
     )
 
     for idx, group in enumerate(duplicate_groups, 1):
@@ -343,6 +353,12 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
 
             is_best_str = "true" if is_best else "false"
             has_mixed = "true" if album.has_mixed_mb_ids else "false"
+            is_partial_str = "true" if album.is_partial_match else "false"
+            overlap_str = (
+                f"{album.overlap_percentage:.1f}"
+                if album.overlap_percentage is not None
+                else ""
+            )
 
             print(
                 f"{idx},{matched_album},{matched_artist},{album.path},"
@@ -350,7 +366,8 @@ def format_album_output_csv(duplicate_groups: List[List]) -> None:
                 f"{album.quality_info},{album.avg_quality_score:.1f},"
                 f"{match_pct:.1f},{album.match_method or ''},"
                 f"{is_best_str},{album.musicbrainz_albumid or ''},"
-                f"{album.album_name or ''},{album.artist_name or ''},{has_mixed}"
+                f"{album.album_name or ''},{album.artist_name or ''},"
+                f"{has_mixed},{is_partial_str},{overlap_str}"
             )
 
 
@@ -507,6 +524,21 @@ Examples:
     )
 
     parser.add_argument(
+        "--allow-partial-albums",
+        action="store_true",
+        help="Match albums with different track counts "
+        "(e.g., missing tracks, bonus editions)",
+    )
+
+    parser.add_argument(
+        "--min-album-overlap",
+        type=float,
+        default=70.0,
+        help="Minimum percentage of tracks that must match for partial albums "
+        "(default: 70.0)",
+    )
+
+    parser.add_argument(
         "--delete-duplicate-albums",
         action="store_true",
         help="Interactively delete duplicate albums after finding them "
@@ -616,7 +648,12 @@ def run_album_mode(args: argparse.Namespace) -> int:
         cache_backend=args.cache_backend,
     )
     scanner = AlbumScanner(hasher, verbose=not args.no_progress)
-    finder = AlbumDuplicateFinder(hasher, verbose=not args.no_progress)
+    finder = AlbumDuplicateFinder(
+        hasher,
+        verbose=not args.no_progress,
+        allow_partial=args.allow_partial_albums,
+        min_overlap=args.min_album_overlap,
+    )
 
     try:
         # Scan for albums
