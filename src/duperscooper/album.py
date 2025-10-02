@@ -723,10 +723,20 @@ class AlbumDuplicateFinder:
         # Compare all pairs
         for i in range(len(albums)):
             for j in range(i + 1, len(albums)):
-                similarity = self.album_similarity(albums[i], albums[j])
-                # Use 98% threshold for album similarity
-                if similarity >= 98.0:
+                # If both albums have same MusicBrainz ID, they're definitely duplicates
+                if (
+                    albums[i].musicbrainz_albumid
+                    and albums[j].musicbrainz_albumid
+                    and albums[i].musicbrainz_albumid == albums[j].musicbrainz_albumid
+                    and not albums[i].has_mixed_mb_ids
+                    and not albums[j].has_mixed_mb_ids
+                ):
                     union(i, j)
+                else:
+                    # Otherwise use fingerprint similarity with 98% threshold
+                    similarity = self.album_similarity(albums[i], albums[j])
+                    if similarity >= 98.0:
+                        union(i, j)
 
         # Extract groups
         groups: Dict[int, List[Album]] = defaultdict(list)
