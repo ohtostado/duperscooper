@@ -201,17 +201,13 @@ def _get_album_match_percentage(album: Any, best_album: Any, hasher: Any) -> flo
         return sim
 
 
-def format_album_output_text(duplicate_groups: List[List]) -> None:
+def format_album_output_text(
+    duplicate_groups: List[List], hasher: Any, finder: Any
+) -> None:
     """Format and print duplicate albums in text format."""
-    from .album import AlbumDuplicateFinder
-    from .hasher import AudioHasher
-
     if not duplicate_groups:
         print("No duplicate albums found.")
         return
-
-    hasher = AudioHasher()
-    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     print(
         f"{Fore.CYAN}{Style.BRIGHT}Found {len(duplicate_groups)} group(s) "
@@ -286,13 +282,10 @@ def format_album_output_text(duplicate_groups: List[List]) -> None:
             print()
 
 
-def format_album_output_json(duplicate_groups: List[List]) -> None:
+def format_album_output_json(
+    duplicate_groups: List[List], hasher: Any, finder: Any
+) -> None:
     """Format and print duplicate albums in JSON format."""
-    from .album import AlbumDuplicateFinder
-    from .hasher import AudioHasher
-
-    hasher = AudioHasher()
-    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     output = []
     for group in duplicate_groups:
@@ -345,13 +338,10 @@ def format_album_output_json(duplicate_groups: List[List]) -> None:
     print(json.dumps(output, indent=2))
 
 
-def format_album_output_csv(duplicate_groups: List[List]) -> None:
+def format_album_output_csv(
+    duplicate_groups: List[List], hasher: Any, finder: Any
+) -> None:
     """Format and print duplicate albums in CSV format."""
-    from .album import AlbumDuplicateFinder
-    from .hasher import AudioHasher
-
-    hasher = AudioHasher()
-    finder = AlbumDuplicateFinder(hasher, verbose=False)
 
     print(
         "group_id,matched_album,matched_artist,album_path,track_count,"
@@ -752,11 +742,11 @@ def run_album_mode(args: argparse.Namespace) -> int:
 
     # Format and output results
     if args.output == "json":
-        format_album_output_json(duplicate_groups)
+        format_album_output_json(duplicate_groups, hasher, finder)
     elif args.output == "csv":
-        format_album_output_csv(duplicate_groups)
+        format_album_output_csv(duplicate_groups, hasher, finder)
     else:
-        format_album_output_text(duplicate_groups)
+        format_album_output_text(duplicate_groups, hasher, finder)
 
     # Exit with non-zero if duplicates found (for scripting)
     return 0 if not duplicate_groups else 2
