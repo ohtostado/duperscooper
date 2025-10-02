@@ -483,7 +483,7 @@ class AlbumDuplicateFinder:
                 # Calculate similarity (handles both exact and partial matching)
                 similarity = self.album_similarity(untagged, canonical_rep)
 
-                if similarity >= 98.0 and similarity > best_similarity:
+                if similarity >= 97.0 and similarity > best_similarity:
                     best_similarity = similarity
                     best_match_idx = idx
 
@@ -733,9 +733,9 @@ class AlbumDuplicateFinder:
                 ):
                     union(i, j)
                 else:
-                    # Otherwise use fingerprint similarity with 98% threshold
+                    # Otherwise use fingerprint similarity with 97% threshold
                     similarity = self.album_similarity(albums[i], albums[j])
-                    if similarity >= 98.0:
+                    if similarity >= 97.0:
                         union(i, j)
 
         # Extract groups
@@ -788,7 +788,7 @@ class AlbumDuplicateFinder:
         return sum(similarities) / len(similarities) if similarities else 0.0
 
     def partial_album_similarity(
-        self, album1: Album, album2: Album, min_track_similarity: float = 98.0
+        self, album1: Album, album2: Album, min_track_similarity: float = 97.0
     ) -> Tuple[float, float, Dict[int, Tuple[int, float]]]:
         """
         Calculate similarity between albums with different track counts.
@@ -999,8 +999,8 @@ class AlbumDuplicateFinder:
                     similarities.append(sim)
             if similarities:
                 avg_similarity = sum(similarities) / len(similarities)
-                # Map 98-100% similarity to +5-10% confidence boost
-                boost = (avg_similarity - 98.0) / 2.0 * 10.0
+                # Map 97-100% similarity to +0-10% confidence boost
+                boost = (avg_similarity - 97.0) / 3.0 * 10.0
                 confidence += min(10.0, max(0.0, boost))
 
         return min(100.0, confidence)

@@ -567,9 +567,9 @@ Examples:
     parser.add_argument(
         "--similarity-threshold",
         type=float,
-        default=98.0,
+        default=97.0,
         metavar="PERCENT",
-        help="Minimum similarity percentage for perceptual matching (default: 98.0)",
+        help="Minimum similarity percentage for perceptual matching (default: 97.0)",
     )
 
     parser.add_argument(
