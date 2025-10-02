@@ -62,26 +62,39 @@ class AlbumScanner:
             List of Album objects
         """
         if self.verbose:
-            print("Discovering album directories...")
+            print("Discovering album directories...", flush=True)
 
         # Find all directories containing audio files
         album_dirs = self._find_album_directories(paths)
 
         if self.verbose:
-            print(f"Found {len(album_dirs)} album directories")
+            print(f"Found {len(album_dirs)} album directories", flush=True)
 
         # Extract metadata and fingerprints for each album
         albums = []
-        for idx, album_dir in enumerate(album_dirs, 1):
-            if self.verbose and idx % 100 == 0:
-                print(f"Processing album {idx}/{len(album_dirs)}...")
 
+        if self.verbose:
+            from tqdm import tqdm
+
+            iterator = tqdm(
+                album_dirs,
+                desc="Scanning albums",
+                unit="album",
+                disable=False,
+            )
+        else:
+            iterator = album_dirs
+
+        for album_dir in iterator:
             try:
                 album = self.extract_album_metadata(album_dir)
                 albums.append(album)
             except Exception as e:
                 if self.verbose:
-                    print(f"Error processing {album_dir}: {e}")
+                    # tqdm.write prints without disrupting progress bar
+                    from tqdm import tqdm
+
+                    tqdm.write(f"Error processing {album_dir}: {e}")
 
         if self.verbose:
             print(f"Successfully processed {len(albums)} albums")
