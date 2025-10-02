@@ -8,6 +8,12 @@ from typing import Any, Dict, List
 
 from colorama import Fore, Style, init
 
+try:
+    from shtab import FILE
+except ImportError:
+    # shtab not installed - tab completion won't work but that's okay
+    FILE = None  # type: ignore
+
 from . import __version__
 from .finder import DuplicateFinder, DuplicateManager
 
@@ -514,12 +520,15 @@ Examples:
         """,
     )
 
-    parser.add_argument(
+    paths_arg = parser.add_argument(
         "paths",
         nargs="*",
         type=Path,
         help="Paths to search for duplicate audio files (files or directories)",
     )
+    # Enable file/directory completion for tab completion (shtab)
+    if FILE is not None:
+        paths_arg.complete = FILE  # type: ignore
 
     parser.add_argument(
         "-o",
