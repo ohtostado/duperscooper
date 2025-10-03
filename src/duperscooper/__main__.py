@@ -700,6 +700,13 @@ Examples:
     )
 
     parser.add_argument(
+        "--restore-to",
+        metavar="PATH",
+        help="Restore to custom location instead of original paths "
+        "(use with --restore or --restore-interactive)",
+    )
+
+    parser.add_argument(
         "--empty-deleted",
         action="store_true",
         help="Permanently delete staged batches",
@@ -771,11 +778,20 @@ def main() -> int:
         return 0
 
     if args.restore:
+        from pathlib import Path
+
         from .staging import StagingManager
 
         try:
-            count = StagingManager.restore_batch(args.restore)
-            print(f"\nRestored {count} item(s) from batch {args.restore}")
+            restore_to = Path(args.restore_to) if args.restore_to else None
+            count = StagingManager.restore_batch(args.restore, restore_to=restore_to)
+            if restore_to:
+                print(
+                    f"\nRestored {count} item(s) from batch {args.restore} "
+                    f"to {restore_to}"
+                )
+            else:
+                print(f"\nRestored {count} item(s) from batch {args.restore}")
             return 0
         except FileNotFoundError as e:
             print(f"Error: {e}", file=sys.stderr)
@@ -851,8 +867,14 @@ def main() -> int:
                     continue
 
                 try:
-                    count = StagingManager.restore_from_manifest(manifest_path)
-                    print(f"✓ Restored {count} item(s)\n")
+                    restore_to = Path(args.restore_to) if args.restore_to else None
+                    count = StagingManager.restore_from_manifest(
+                        manifest_path, restore_to=restore_to
+                    )
+                    if restore_to:
+                        print(f"✓ Restored {count} item(s) to {restore_to}\n")
+                    else:
+                        print(f"✓ Restored {count} item(s)\n")
 
                     # Remove from list
                     manifests.pop(idx - 1)

@@ -307,13 +307,18 @@ class StagingManager:
         return batches
 
     @staticmethod
-    def restore_batch(batch_timestamp: str, staging_base: Optional[Path] = None) -> int:
+    def restore_batch(
+        batch_timestamp: str,
+        staging_base: Optional[Path] = None,
+        restore_to: Optional[Path] = None,
+    ) -> int:
         """
         Restore all items from a deletion batch.
 
         Args:
             batch_timestamp: Timestamp of batch to restore (e.g., "2025-10-02_15-30-45")
             staging_base: Base staging directory (if None, searches for batch)
+            restore_to: Custom restoration root path (if None, uses original paths)
 
         Returns:
             Number of items restored
@@ -321,6 +326,11 @@ class StagingManager:
         Raises:
             FileNotFoundError: If batch not found
             ValueError: If manifest is invalid
+
+        Note:
+            If restore_to is provided, files are restored to:
+              restore_to/<original_relative_path>
+            This is useful when original locations are unavailable.
         """
         # Find batch
         batch_dir = None
@@ -347,7 +357,7 @@ class StagingManager:
         restored_count = 0
         for item in manifest["deletion_batch"]["deleted_items"]:
             if item["type"] == "album":
-                StagingManager._restore_album(item, batch_dir)
+                StagingManager._restore_album(item, batch_dir, restore_to)
                 restored_count += 1
 
         # Remove batch directory after successful restoration
@@ -356,7 +366,9 @@ class StagingManager:
         return restored_count
 
     @staticmethod
-    def _restore_album(item: Dict[str, Any], batch_dir: Path) -> None:
+    def _restore_album(
+        item: Dict[str, Any], batch_dir: Path, restore_to: Optional[Path] = None
+    ) -> None:
         """
         Restore album by recreating directory and moving tracks back.
 
@@ -365,16 +377,37 @@ class StagingManager:
         Args:
             item: Album item from manifest
             batch_dir: Directory containing staged files
+            restore_to: Custom restoration root (if None, uses original paths)
 
         Raises:
             ValueError: If SHA256 hash verification fails for any track
+
+        Note:
+            If restore_to is provided, album is restored to:
+              restore_to/<album_directory_name>/
+            Otherwise restored to original path from manifest.
         """
-        original_path = Path(item["original_path"])
-        original_path.mkdir(parents=True, exist_ok=True)
+        if restore_to:
+            # Restore to custom location: restore_to/<album_dir_name>/
+            original_path = Path(item["original_path"])
+            album_dir_name = original_path.name
+            restore_path = restore_to / album_dir_name
+            restore_path.mkdir(parents=True, exist_ok=True)
+        else:
+            # Restore to original location
+            restore_path = Path(item["original_path"])
+            restore_path.mkdir(parents=True, exist_ok=True)
 
         for track in item["tracks"]:
             staged_file = batch_dir / track["staged_filename"]
-            original_file = Path(track["original_path"])
+
+            if restore_to:
+                # Use just the filename in the custom location
+                original_file_path = Path(track["original_path"])
+                original_file = restore_path / original_file_path.name
+            else:
+                # Use original path
+                original_file = Path(track["original_path"])
 
             if staged_file.exists():
                 # Verify SHA256 hash if present in manifest
@@ -500,12 +533,15 @@ class StagingManager:
         return manifests
 
     @staticmethod
-    def restore_from_manifest(manifest_path: Path) -> int:
+    def restore_from_manifest(
+        manifest_path: Path, restore_to: Optional[Path] = None
+    ) -> int:
         """
         Restore files from a specific manifest file.
 
         Args:
             manifest_path: Path to manifest.json file
+            restore_to: Custom restoration root path (if None, uses original paths)
 
         Returns:
             Number of items restored
@@ -532,7 +568,7 @@ class StagingManager:
 
         for item in manifest["deletion_batch"]["deleted_items"]:
             if item["type"] == "album":
-                StagingManager._restore_album(item, batch_dir)
+                StagingManager._restore_album(item, batch_dir, restore_to)
                 restored_count += 1
 
         # Remove manifest directory after successful restoration
