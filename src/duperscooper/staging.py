@@ -32,17 +32,25 @@ class StagingManager:
         self.batch_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.batch_dir = self.staging_base / self.batch_id
         self.command = command
+        self.created_timestamp = datetime.now().isoformat()
         self.manifest: Dict[str, Any] = {
+            "_duperscooper_manifest": {
+                "format_version": "1.0",
+                "created_by": "duperscooper",
+                "created_at": self.created_timestamp,
+                "created_with_version": __version__,
+                "manifest_location": str(self.batch_dir / "manifest.json"),
+            },
             "deletion_batch": {
                 "id": f"batch_{self.batch_id}",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": self.created_timestamp,
                 "duperscooper_version": __version__,
                 "command": command,
                 "deleted_items": [],
                 "total_items_deleted": 0,
                 "total_tracks_deleted": 0,
                 "space_freed_bytes": 0,
-            }
+            },
         }
 
     def stage_album(
@@ -341,3 +349,105 @@ class StagingManager:
                 deleted_count += 1
 
         return deleted_count
+
+    @staticmethod
+    def find_manifests(paths: List[Path]) -> List[Dict[str, Any]]:
+        """
+        Recursively find all duperscooper manifest.json files in given paths.
+
+        Args:
+            paths: List of paths to search recursively
+
+        Returns:
+            List of manifest info dictionaries with metadata
+        """
+        manifests = []
+
+        for search_path in paths:
+            if not search_path.exists():
+                continue
+
+            # Recursively find all manifest.json files
+            for manifest_path in search_path.rglob("manifest.json"):
+                try:
+                    with open(manifest_path) as f:
+                        data = json.load(f)
+
+                    # Check if this is a duperscooper manifest
+                    if "_duperscooper_manifest" not in data:
+                        continue
+
+                    manifest_info = data["_duperscooper_manifest"]
+                    deletion_batch = data.get("deletion_batch", {})
+
+                    manifests.append(
+                        {
+                            "manifest_path": str(manifest_path),
+                            "manifest_dir": str(manifest_path.parent),
+                            "created_at": manifest_info.get("created_at", "unknown"),
+                            "created_with_version": manifest_info.get(
+                                "created_with_version", "unknown"
+                            ),
+                            "format_version": manifest_info.get(
+                                "format_version", "1.0"
+                            ),
+                            "original_location": manifest_info.get(
+                                "manifest_location", str(manifest_path)
+                            ),
+                            "batch_id": deletion_batch.get("id", "unknown"),
+                            "total_items": deletion_batch.get("total_items_deleted", 0),
+                            "space_freed_bytes": deletion_batch.get(
+                                "space_freed_bytes", 0
+                            ),
+                            "command": deletion_batch.get("command", ""),
+                        }
+                    )
+                except (json.JSONDecodeError, KeyError, OSError):
+                    # Skip invalid or inaccessible manifests
+                    continue
+
+        # Sort by creation time (newest first)
+        manifests.sort(key=lambda m: m["created_at"], reverse=True)
+
+        return manifests
+
+    @staticmethod
+    def restore_from_manifest(manifest_path: Path) -> int:
+        """
+        Restore files from a specific manifest file.
+
+        Args:
+            manifest_path: Path to manifest.json file
+
+        Returns:
+            Number of items restored
+
+        Raises:
+            FileNotFoundError: If manifest doesn't exist
+            ValueError: If manifest is invalid or not a duperscooper manifest
+        """
+        if not manifest_path.exists():
+            raise FileNotFoundError(f"Manifest not found: {manifest_path}")
+
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+
+        # Validate this is a duperscooper manifest
+        if "_duperscooper_manifest" not in manifest:
+            raise ValueError(
+                f"Not a duperscooper manifest: {manifest_path}\n"
+                "Missing '_duperscooper_manifest' identifier block"
+            )
+
+        batch_dir = manifest_path.parent
+        restored_count = 0
+
+        for item in manifest["deletion_batch"]["deleted_items"]:
+            if item["type"] == "album":
+                StagingManager._restore_album(item, batch_dir)
+                restored_count += 1
+
+        # Remove manifest directory after successful restoration
+        shutil.rmtree(batch_dir)
+
+        return restored_count

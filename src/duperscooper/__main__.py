@@ -688,6 +688,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--restore-interactive",
+        action="store_true",
+        help="Interactively restore from manifest.json files found in scan paths",
+    )
+
+    parser.add_argument(
         "--empty-deleted",
         action="store_true",
         help="Permanently delete staged batches",
@@ -768,6 +774,100 @@ def main() -> int:
         except FileNotFoundError as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
+
+    if args.restore_interactive:
+        from pathlib import Path
+
+        from .staging import StagingManager
+
+        if not args.paths:
+            print(
+                "Error: --restore-interactive requires paths to search", file=sys.stderr
+            )
+            return 1
+
+        paths = [Path(p) for p in args.paths]
+        manifests = StagingManager.find_manifests(paths)
+
+        if not manifests:
+            print("No duperscooper manifest.json files found in specified paths.")
+            return 0
+
+        print(f"Found {len(manifests)} manifest(s):\n")
+
+        # Display manifests with numbers
+        for idx, manifest in enumerate(manifests, 1):
+            created_at = manifest["created_at"]
+            version = manifest["created_with_version"]
+            items = manifest["total_items"]
+            space = StagingManager.format_size(manifest["space_freed_bytes"])
+            location = manifest["manifest_dir"]
+
+            print(f"{idx}. Created: {created_at}")
+            print(f"   Version: {version}")
+            print(f"   Items: {items} ({space})")
+            print(f"   Location: {location}")
+            if manifest["command"]:
+                print(f"   Command: {manifest['command']}")
+            print()
+
+        # Interactive restoration loop
+        while True:
+            try:
+                choice = input(
+                    "Enter manifest number to restore (or 'q' to quit): "
+                ).strip()
+
+                if choice.lower() == "q":
+                    print("No manifests restored.")
+                    return 0
+
+                try:
+                    idx = int(choice)
+                    if idx < 1 or idx > len(manifests):
+                        print(f"Invalid choice. Please enter 1-{len(manifests)}.\n")
+                        continue
+                except ValueError:
+                    print("Invalid input. Please enter a number or 'q'.\n")
+                    continue
+
+                # Restore selected manifest
+                selected = manifests[idx - 1]
+                manifest_path = Path(selected["manifest_path"])
+
+                confirm = input(
+                    f"\nRestore {selected['total_items']} item(s) from "
+                    f"{selected['created_at']}? (y/n): "
+                ).strip()
+
+                if confirm.lower() != "y":
+                    print("Skipped.\n")
+                    continue
+
+                try:
+                    count = StagingManager.restore_from_manifest(manifest_path)
+                    print(f"✓ Restored {count} item(s)\n")
+
+                    # Remove from list
+                    manifests.pop(idx - 1)
+
+                    if not manifests:
+                        print("All manifests processed.")
+                        return 0
+
+                    # Show remaining manifests
+                    print(f"\n{len(manifests)} manifest(s) remaining:\n")
+                    for i, m in enumerate(manifests, 1):
+                        print(f"{i}. {m['created_at']} - {m['total_items']} items")
+                    print()
+
+                except Exception as e:
+                    print(f"Error restoring manifest: {e}", file=sys.stderr)
+                    continue
+
+            except KeyboardInterrupt:
+                print("\n\nOperation cancelled by user.")
+                return 130
 
     if args.empty_deleted:
         from .staging import StagingManager
