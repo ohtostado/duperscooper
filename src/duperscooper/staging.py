@@ -357,7 +357,18 @@ class StagingManager:
 
     @staticmethod
     def _restore_album(item: Dict[str, Any], batch_dir: Path) -> None:
-        """Restore album by recreating directory and moving tracks back."""
+        """
+        Restore album by recreating directory and moving tracks back.
+
+        Verifies SHA256 hash of each track before moving to ensure integrity.
+
+        Args:
+            item: Album item from manifest
+            batch_dir: Directory containing staged files
+
+        Raises:
+            ValueError: If SHA256 hash verification fails for any track
+        """
         original_path = Path(item["original_path"])
         original_path.mkdir(parents=True, exist_ok=True)
 
@@ -366,6 +377,19 @@ class StagingManager:
             original_file = Path(track["original_path"])
 
             if staged_file.exists():
+                # Verify SHA256 hash if present in manifest
+                if "sha256" in track:
+                    computed_hash = StagingManager._compute_sha256(staged_file)
+                    expected_hash = track["sha256"]
+                    if computed_hash != expected_hash:
+                        raise ValueError(
+                            f"SHA256 mismatch for {staged_file.name}\n"
+                            f"Expected: {expected_hash}\n"
+                            f"Computed: {computed_hash}\n"
+                            f"File may be corrupted or tampered with"
+                        )
+
+                # Hash verified or not present, move file
                 shutil.move(str(staged_file), str(original_file))
 
     @staticmethod
