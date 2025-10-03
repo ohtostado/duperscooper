@@ -104,12 +104,16 @@ class StagingManager:
             # Move file to staging
             shutil.move(str(track_path), str(staged_path))
 
-            # Build track entry
+            # Build track entry with restoration tracking fields
             track_entry = {
                 "original_path": str(track_path),
                 "staged_filename": staged_filename,
                 "size_bytes": staged_path.stat().st_size,
                 "sha256": sha256,
+                "restored": False,
+                "restored_at": None,
+                "restored_to": None,
+                "restore_error": None,
             }
 
             # Add fingerprint if available
@@ -126,7 +130,7 @@ class StagingManager:
             # Leave it for now, user can clean up manually
             pass
 
-        # Update manifest
+        # Update manifest with restoration tracking
         self.manifest["deletion_batch"]["deleted_items"].append(
             {
                 "id": album_uuid,
@@ -146,6 +150,9 @@ class StagingManager:
                     album.musicbrainz_albumid
                     or (album.album_name and album.artist_name)
                 ),
+                "restored_status": "none",
+                "tracks_restored": 0,
+                "tracks_total": len(tracks_data),
                 "tracks": tracks_data,
             }
         )
@@ -213,9 +220,7 @@ class StagingManager:
         with open(manifest_path, "w") as f:
             json.dump(self.manifest, f, indent=2)
 
-        # Make manifest read-only to prevent accidental modification
-        manifest_path.chmod(0o444)
-
+        # Note: Manifest is writable to allow restoration tracking updates
         return self.manifest
 
     def _get_staging_base(self, scan_path: Path) -> Path:
@@ -360,8 +365,10 @@ class StagingManager:
                 StagingManager._restore_album(item, batch_dir, restore_to)
                 restored_count += 1
 
-        # Remove batch directory after successful restoration
-        shutil.rmtree(batch_dir)
+        # Check if batch is fully restored
+        if StagingManager._is_batch_fully_restored(batch_dir):
+            # Archive to .restored/ directory
+            StagingManager._archive_batch(batch_dir)
 
         return restored_count
 
@@ -373,6 +380,7 @@ class StagingManager:
         Restore album by recreating directory and moving tracks back.
 
         Verifies SHA256 hash of each track before moving to ensure integrity.
+        Updates manifest to mark restored tracks and album status.
 
         Args:
             item: Album item from manifest
@@ -386,6 +394,8 @@ class StagingManager:
             If restore_to is provided, album is restored to:
               restore_to/<album_directory_name>/
             Otherwise restored to original path from manifest.
+
+            Manifest is updated after each track restoration to track progress.
         """
         if restore_to:
             # Restore to custom location: restore_to/<album_dir_name>/
@@ -398,7 +408,15 @@ class StagingManager:
             restore_path = Path(item["original_path"])
             restore_path.mkdir(parents=True, exist_ok=True)
 
+        manifest_path = batch_dir / "manifest.json"
+        tracks_restored_count = 0
+
         for track in item["tracks"]:
+            # Skip already restored tracks
+            if track.get("restored", False):
+                tracks_restored_count += 1
+                continue
+
             staged_file = batch_dir / track["staged_filename"]
 
             if restore_to:
@@ -409,21 +427,119 @@ class StagingManager:
                 # Use original path
                 original_file = Path(track["original_path"])
 
-            if staged_file.exists():
+            if not staged_file.exists():
+                continue  # Skip missing files
+
+            try:
                 # Verify SHA256 hash if present in manifest
                 if "sha256" in track:
                     computed_hash = StagingManager._compute_sha256(staged_file)
                     expected_hash = track["sha256"]
                     if computed_hash != expected_hash:
-                        raise ValueError(
-                            f"SHA256 mismatch for {staged_file.name}\n"
-                            f"Expected: {expected_hash}\n"
-                            f"Computed: {computed_hash}\n"
-                            f"File may be corrupted or tampered with"
+                        # Mark track with error, don't restore
+                        track["restore_error"] = (
+                            f"SHA256 mismatch: expected {expected_hash[:16]}..., "
+                            f"got {computed_hash[:16]}..."
                         )
+                        StagingManager._update_manifest(
+                            manifest_path, item["id"], track["staged_filename"], track
+                        )
+                        continue
 
-                # Hash verified or not present, move file
+                # Hash verified, move file
                 shutil.move(str(staged_file), str(original_file))
+
+                # Mark track as restored
+                track["restored"] = True
+                track["restored_at"] = datetime.now().isoformat()
+                track["restored_to"] = str(restore_to) if restore_to else None
+                track["restore_error"] = None
+                tracks_restored_count += 1
+
+                # Update manifest
+                StagingManager._update_manifest(
+                    manifest_path, item["id"], track["staged_filename"], track
+                )
+
+            except Exception as e:
+                # Mark track with error
+                track["restore_error"] = str(e)
+                StagingManager._update_manifest(
+                    manifest_path, item["id"], track["staged_filename"], track
+                )
+                raise
+
+        # Update album restoration status
+        total_tracks = item.get("tracks_total", len(item["tracks"]))
+        if tracks_restored_count == 0:
+            status = "none"
+        elif tracks_restored_count == total_tracks:
+            status = "complete"
+        else:
+            status = "partial"
+
+        StagingManager._update_album_status(
+            manifest_path, item["id"], status, tracks_restored_count
+        )
+
+    @staticmethod
+    def _update_manifest(
+        manifest_path: Path,
+        album_id: str,
+        staged_filename: str,
+        track_data: Dict[str, Any],
+    ) -> None:
+        """
+        Update a single track entry in the manifest file.
+
+        Args:
+            manifest_path: Path to manifest.json
+            album_id: Album ID to update
+            staged_filename: Filename of the track to update
+            track_data: Updated track data dictionary
+        """
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+
+        # Find and update the track
+        for item in manifest["deletion_batch"]["deleted_items"]:
+            if item["id"] == album_id:
+                for i, track in enumerate(item["tracks"]):
+                    if track["staged_filename"] == staged_filename:
+                        item["tracks"][i] = track_data
+                        break
+                break
+
+        # Write updated manifest
+        with open(manifest_path, "w") as f:
+            json.dump(manifest, f, indent=2)
+
+    @staticmethod
+    def _update_album_status(
+        manifest_path: Path, album_id: str, status: str, tracks_restored: int
+    ) -> None:
+        """
+        Update album restoration status in manifest.
+
+        Args:
+            manifest_path: Path to manifest.json
+            album_id: Album ID to update
+            status: Restoration status ("none", "partial", "complete")
+            tracks_restored: Number of tracks restored
+        """
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+
+        # Find and update the album
+        for item in manifest["deletion_batch"]["deleted_items"]:
+            if item["id"] == album_id:
+                item["restored_status"] = status
+                item["tracks_restored"] = tracks_restored
+                break
+
+        # Write updated manifest
+        with open(manifest_path, "w") as f:
+            json.dump(manifest, f, indent=2)
 
     @staticmethod
     def empty_batches(
@@ -571,7 +687,39 @@ class StagingManager:
                 StagingManager._restore_album(item, batch_dir, restore_to)
                 restored_count += 1
 
-        # Remove manifest directory after successful restoration
-        shutil.rmtree(batch_dir)
+        # Check if batch is fully restored
+        if StagingManager._is_batch_fully_restored(batch_dir):
+            # Archive to .restored/ directory
+            StagingManager._archive_batch(batch_dir)
 
         return restored_count
+
+    @staticmethod
+    def _is_batch_fully_restored(batch_dir: Path) -> bool:
+        """Check if all items in a batch are fully restored."""
+        manifest_path = batch_dir / "manifest.json"
+        if not manifest_path.exists():
+            return False
+
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+
+        for item in manifest["deletion_batch"]["deleted_items"]:
+            status = item.get("restored_status", "none")
+            if status != "complete":
+                return False
+
+        return True
+
+    @staticmethod
+    def _archive_batch(batch_dir: Path) -> None:
+        """Archive a fully-restored batch to .restored/ directory."""
+        staging_base = batch_dir.parent
+        archive_dir = staging_base / ".restored"
+        archive_dir.mkdir(exist_ok=True)
+
+        batch_name = batch_dir.name
+        archive_path = archive_dir / batch_name
+
+        # Move batch to archive
+        shutil.move(str(batch_dir), str(archive_path))
