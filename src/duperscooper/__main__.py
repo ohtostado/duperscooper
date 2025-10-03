@@ -669,6 +669,45 @@ Examples:
     )
 
     parser.add_argument(
+        "--auto-delete-dupes",
+        action="store_true",
+        help="Automatically stage all duplicates for deletion "
+        "(keeps best quality only, moves rest to .deletedByDuperscooper/)",
+    )
+
+    parser.add_argument(
+        "--list-deleted",
+        action="store_true",
+        help="List all deletion batches in staging folders",
+    )
+
+    parser.add_argument(
+        "--restore",
+        metavar="TIMESTAMP",
+        help="Restore deletion batch by timestamp (e.g., 2025-10-02_15-30-45)",
+    )
+
+    parser.add_argument(
+        "--empty-deleted",
+        action="store_true",
+        help="Permanently delete staged batches",
+    )
+
+    parser.add_argument(
+        "--older-than",
+        type=int,
+        metavar="DAYS",
+        help="With --empty-deleted: only delete batches older than N days",
+    )
+
+    parser.add_argument(
+        "--keep-last",
+        type=int,
+        metavar="N",
+        help="With --empty-deleted: keep the N most recent batches",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -699,7 +738,47 @@ def main() -> int:
             print(f"No cache to clear (or failed to delete): {hasher.cache_path}")
             return 1
 
-    # Require paths unless --clear-cache
+    # Handle staging management commands (don't require paths)
+    if args.list_deleted:
+        from .staging import StagingManager
+
+        batches = StagingManager.list_batches()
+        if not batches:
+            print("No deletion batches found in staging.")
+            return 0
+
+        print(f"Found {len(batches)} deletion batch(es):\n")
+        for batch in batches:
+            space_freed = StagingManager.format_size(batch["space_freed_bytes"])
+            print(
+                f"{batch['id'].replace('batch_', '')}  "
+                f"{batch['total_items_deleted']} items  "
+                f"{space_freed}  "
+                f"{batch['staging_path']}"
+            )
+        return 0
+
+    if args.restore:
+        from .staging import StagingManager
+
+        try:
+            count = StagingManager.restore_batch(args.restore)
+            print(f"\nRestored {count} item(s) from batch {args.restore}")
+            return 0
+        except FileNotFoundError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+
+    if args.empty_deleted:
+        from .staging import StagingManager
+
+        count = StagingManager.empty_batches(
+            older_than_days=args.older_than, keep_last=args.keep_last
+        )
+        print(f"Permanently deleted {count} batch(es)")
+        return 0
+
+    # Require paths unless --clear-cache or staging commands
     if not args.paths:
         print("Error: the following arguments are required: paths", file=sys.stderr)
         return 1
@@ -707,6 +786,10 @@ def main() -> int:
     # Validate album-mode-specific options
     if args.delete_duplicate_albums and not args.album_mode:
         print("Error: --delete-duplicate-albums requires --album-mode", file=sys.stderr)
+        return 1
+
+    if args.auto_delete_dupes and not args.album_mode:
+        print("Error: --auto-delete-dupes requires --album-mode", file=sys.stderr)
         return 1
 
     # Album mode
@@ -800,9 +883,62 @@ def run_album_mode(args: argparse.Namespace) -> int:
         print(f"Error: {e}", file=sys.stderr)
         return 1
 
-    # Handle delete mode (placeholder for Phase 4)
+    # Handle auto-delete-dupes mode
+    if args.auto_delete_dupes:
+        if not duplicate_groups:
+            print("No duplicates found to delete.")
+            return 0
+
+        from .staging import StagingManager
+
+        # Build command string for manifest
+        command = " ".join(sys.argv)
+
+        # Initialize staging manager
+        staging = StagingManager(args.paths[0], command=command)
+
+        # Stage all non-best albums
+        total_staged = 0
+        for group in duplicate_groups:
+            # Find best quality album
+            best_album = max(group, key=lambda a: a.avg_quality_score)
+
+            # Stage all others
+            for album in group:
+                if album == best_album:
+                    continue  # Don't delete the best
+
+                # Calculate similarity to best
+                similarity = _get_album_match_percentage(album, best_album, hasher)
+
+                # Stage this album
+                staging.stage_album(
+                    album,
+                    reason="worst_quality_duplicate",
+                    duplicate_of=str(best_album.path),
+                    similarity=similarity,
+                )
+                total_staged += 1
+
+        # Finalize staging
+        manifest = staging.finalize()
+
+        if total_staged > 0:
+            space_freed = StagingManager.format_size(
+                manifest["deletion_batch"]["space_freed_bytes"]
+            )
+            print(f"\nStaged {total_staged} album(s) for deletion")
+            print(f"Location: {staging.batch_dir}")
+            print(f"Space freed: {space_freed}")
+            print(f"\nTo restore: duperscooper --restore {staging.batch_id}")
+        else:
+            print("No albums staged (all are best quality)")
+
+        return 0
+
+    # Handle delete mode (placeholder for interactive deletion)
     if args.delete_duplicate_albums:
-        print("Album deletion not yet implemented (Phase 4)", file=sys.stderr)
+        print("Interactive album deletion not yet implemented", file=sys.stderr)
         return 1
 
     # Print cache statistics (text mode only)
