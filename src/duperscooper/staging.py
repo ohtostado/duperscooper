@@ -1,7 +1,9 @@
 """Staging folder management for safe deletion with restoration capability."""
 
+import hashlib
 import json
 import shutil
+import subprocess
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -83,6 +85,12 @@ class StagingManager:
             if not track_path.exists():
                 continue  # Skip if already moved/deleted
 
+            # Compute SHA256 hash before moving (required)
+            sha256 = self._compute_sha256(track_path)
+
+            # Get compressed fingerprint before moving (optional)
+            fingerprint = self._get_compressed_fingerprint(track_path)
+
             # Generate staged filename: UUID-tracknum-originalname
             staged_filename = f"{album_uuid}-{idx:02d}-{track_path.name}"
             staged_path = self.batch_dir / staged_filename
@@ -90,13 +98,19 @@ class StagingManager:
             # Move file to staging
             shutil.move(str(track_path), str(staged_path))
 
-            tracks_data.append(
-                {
-                    "original_path": str(track_path),
-                    "staged_filename": staged_filename,
-                    "size_bytes": staged_path.stat().st_size,
-                }
-            )
+            # Build track entry
+            track_entry = {
+                "original_path": str(track_path),
+                "staged_filename": staged_filename,
+                "size_bytes": staged_path.stat().st_size,
+                "sha256": sha256,
+            }
+
+            # Add fingerprint if available
+            if fingerprint:
+                track_entry["fingerprint_compressed"] = fingerprint
+
+            tracks_data.append(track_entry)
 
         # Remove empty album directory
         try:
@@ -133,6 +147,50 @@ class StagingManager:
         self.manifest["deletion_batch"]["total_items_deleted"] += 1
         self.manifest["deletion_batch"]["total_tracks_deleted"] += len(tracks_data)
         self.manifest["deletion_batch"]["space_freed_bytes"] += album.total_size
+
+    @staticmethod
+    def _compute_sha256(file_path: Path) -> str:
+        """
+        Compute SHA256 hash of a file.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            Hexadecimal SHA256 hash string
+        """
+        sha256_hash = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            # Read in 64KB chunks to handle large files efficiently
+            for chunk in iter(lambda: f.read(65536), b""):
+                sha256_hash.update(chunk)
+        return sha256_hash.hexdigest()
+
+    @staticmethod
+    def _get_compressed_fingerprint(file_path: Path) -> Optional[str]:
+        """
+        Get compressed Chromaprint fingerprint from fpcalc.
+
+        Args:
+            file_path: Path to audio file
+
+        Returns:
+            Base64-encoded compressed fingerprint, or None if fpcalc fails
+        """
+        try:
+            result = subprocess.run(
+                ["fpcalc", "-json", str(file_path)],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                fp = data.get("fingerprint")
+                return fp if isinstance(fp, str) else None
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+            pass
+        return None
 
     def finalize(self) -> Dict[str, Any]:
         """
