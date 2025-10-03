@@ -676,6 +676,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--store-fingerprints",
+        action="store_true",
+        help="Store compressed audio fingerprints in manifest (increases staging time)",
+    )
+
+    parser.add_argument(
         "--list-deleted",
         action="store_true",
         help="List all deletion batches in staging folders",
@@ -995,7 +1001,9 @@ def run_album_mode(args: argparse.Namespace) -> int:
         command = " ".join(sys.argv)
 
         # Initialize staging manager
-        staging = StagingManager(args.paths[0], command=command)
+        staging = StagingManager(
+            args.paths[0], command=command, store_fingerprints=args.store_fingerprints
+        )
 
         # Stage all non-best albums
         total_staged = 0

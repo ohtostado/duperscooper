@@ -21,19 +21,23 @@ class StagingManager:
     deletions for restoration.
     """
 
-    def __init__(self, scan_path: Path, command: str = ""):
+    def __init__(
+        self, scan_path: Path, command: str = "", store_fingerprints: bool = False
+    ):
         """
         Initialize staging manager for a scan path.
 
         Args:
             scan_path: Path being scanned (determines staging location)
             command: Command that triggered deletion (for manifest)
+            store_fingerprints: Whether to store compressed audio fingerprints
         """
         self.scan_path = scan_path.resolve()
         self.staging_base = self._get_staging_base(self.scan_path)
         self.batch_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.batch_dir = self.staging_base / self.batch_id
         self.command = command
+        self.store_fingerprints = store_fingerprints
         self.created_timestamp = datetime.now().isoformat()
         self.manifest: Dict[str, Any] = {
             "_duperscooper_manifest": {
@@ -88,8 +92,10 @@ class StagingManager:
             # Compute SHA256 hash before moving (required)
             sha256 = self._compute_sha256(track_path)
 
-            # Get compressed fingerprint before moving (optional)
-            fingerprint = self._get_compressed_fingerprint(track_path)
+            # Get compressed fingerprint before moving (optional, if enabled)
+            fingerprint = None
+            if self.store_fingerprints:
+                fingerprint = self._get_compressed_fingerprint(track_path)
 
             # Generate staged filename: UUID-tracknum-originalname
             staged_filename = f"{album_uuid}-{idx:02d}-{track_path.name}"
