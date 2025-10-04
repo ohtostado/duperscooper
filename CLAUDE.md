@@ -44,9 +44,12 @@ src/duperscooper/
 ├── hasher.py         # AudioHasher: perceptual & exact hashing
 ├── finder.py         # DuplicateFinder: search logic, parallelization
 │                     # DuplicateManager: file operations
-└── album.py          # Album: dataclass for album metadata
-                      # AlbumScanner: album discovery and metadata extraction
-                      # AlbumDuplicateFinder: album duplicate detection
+├── album.py          # Album: dataclass for album metadata
+│                     # AlbumScanner: album discovery and metadata extraction
+│                     # AlbumDuplicateFinder: album duplicate detection
+├── staging.py        # StagingManager: deletion staging and restoration
+├── rules.py          # RuleEngine: deletion rules and strategies
+└── apply.py          # ScanResultLoader, ApplyEngine: JSON/CSV ingestion
 ```
 
 ### Key Components
@@ -136,6 +139,47 @@ src/duperscooper/
   - Fingerprint similarity only: 80-90%
 - Three matching strategies: `auto` (MB + fingerprint fallback),
   `musicbrainz`, `fingerprint`
+
+#### StagingManager (staging.py)
+
+- `stage_album()`: Stage album for deletion by moving to staging folder
+- `finalize()`: Write manifest and prepare batch for restoration
+- `restore_batch()`: Restore all items from a staging batch
+- `restore_from_manifest()`: Interactive restoration from manifest
+- `list_batches()`: List all staging batches
+- `empty_batches()`: Permanently delete staged batches
+- UUID-based staging in `.deletedByDuperscooper/<uuid>/` directories
+- Track-level restoration tracking with SHA256 verification
+- Batch archival to `.restored/` when fully restored
+
+#### RuleEngine (rules.py)
+
+- `RuleCondition`: Single condition evaluation (10 operators: ==, !=, <, >, <=,
+  >=, in, not in, contains, matches)
+- `Rule`: Multi-condition rules with AND/OR logic and priority
+- `RuleEngine`: Evaluates rules against file/album data
+- `get_strategy()`: Load built-in strategies
+  - `eliminate-duplicates`: Keep best quality only
+  - `keep-lossless`: Keep lossless, delete lossy
+  - `keep-format`: Keep specific format (e.g., FLAC)
+- `load_from_config()`: Load custom rules from YAML/JSON config
+- Priority-based evaluation (highest priority first)
+
+#### ScanResultLoader (apply.py)
+
+- `load_json()`: Parse JSON from `--output json`, auto-detect mode
+- `load_csv()`: Parse CSV from `--output csv`, auto-detect mode
+- `extract_fields()`: Extract rule-relevant fields from scan results
+  - Parses `audio_info`/`quality_info` to extract format, codec, bitrate
+  - Derives `is_lossless`, `format`, `bitrate`, `sample_rate`, `bit_depth`
+- Supports both track and album modes
+
+#### ApplyEngine (apply.py)
+
+- `apply_rules()`: Apply rules to scan results, mark items for keep/delete
+- `generate_report()`: Create deletion plan report with statistics
+- `execute_deletions()`: Stage marked items for deletion
+- Integrates with StagingManager for safe reversible deletions
 
 ## Development Guidelines
 
@@ -250,6 +294,53 @@ duperscooper ~/Music --album-mode --output json > duplicate_albums.json
 duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
 ```
 
+### Two-Phase Workflow: Apply Rules to Scan Results
+
+```bash
+# Step 1: Scan and save results (track mode)
+duperscooper ~/Music --output json > scan.json
+
+# Step 2: Preview deletion plan (dry-run, default)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates
+
+# Step 3: Execute deletions (stages to .deletedByDuperscooper/)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates --execute
+
+# Alternative strategies:
+# Keep only lossless formats
+duperscooper --apply-rules scan.json --strategy keep-lossless --execute
+
+# Keep only specific format (e.g., FLAC)
+duperscooper --apply-rules scan.json --strategy keep-format --format FLAC --execute
+
+# Use custom rules from YAML config
+duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml --execute
+
+# Works with album mode too
+duperscooper ~/Music --album-mode --output json > albums.json
+duperscooper --apply-rules albums.json --strategy eliminate-duplicates --execute
+```
+
+### Staging Management
+
+```bash
+# List all staged deletions
+duperscooper --list-deleted
+
+# Restore a specific batch
+duperscooper --restore <batch-uuid>
+
+# Restore to different location
+duperscooper --restore <batch-uuid> --restore-to /new/location
+
+# Interactive restoration (choose tracks)
+duperscooper --restore-interactive <batch-uuid>
+
+# Permanently delete old staged batches
+duperscooper --empty-deleted --older-than 30  # older than 30 days
+duperscooper --empty-deleted --keep-last 5     # keep only 5 most recent
+```
+
 ### Debugging
 
 - Progress output shown by default; use `--no-progress` to disable
@@ -322,6 +413,78 @@ shtab --shell=bash duperscooper.__main__.get_parser > ~/.local/share/bash-comple
 shtab --shell=zsh duperscooper.__main__.get_parser > ~/.zsh/completions/_duperscooper
 # Ensure ~/.zsh/completions is in your $fpath
 ```
+
+## Custom Rules Engine
+
+### Overview
+
+The rules engine allows you to create custom deletion rules in YAML or JSON format. Rules are evaluated in priority order, and the first matching rule determines the action (keep or delete).
+
+### Rule Structure
+
+```yaml
+rules:
+  - name: "Rule description"
+    action: keep  # or delete
+    priority: 100  # higher = evaluated first
+    logic: AND     # or OR (for multiple conditions)
+    conditions:
+      - field: is_best
+        operator: "=="
+        value: true
+      - field: quality_score
+        operator: ">="
+        value: 10000
+
+default_action: keep  # action if no rules match
+```
+
+### Available Operators
+
+- **Equality**: `==`, `!=`
+- **Comparison**: `<`, `>`, `<=`, `>=`
+- **Membership**: `in`, `not in`
+- **String**: `contains`, `matches` (regex)
+
+### Available Fields
+
+**Track Mode:**
+- `path`, `is_best`, `quality_score`, `audio_info`
+- `format`, `codec`, `bitrate`, `sample_rate`, `bit_depth`
+- `is_lossless`, `file_size`, `similarity_to_best`
+
+**Album Mode:**
+- `path`, `is_best`, `quality_score`, `quality_info`
+- `format`, `codec`, `bitrate` (parsed from quality_info)
+- `is_lossless`, `file_size` (total_size), `track_count`
+- `match_percentage`, `match_method`
+- `musicbrainz_albumid`, `album_name`, `artist_name`
+
+### Example Rules
+
+See [docs/rules-examples.yaml](docs/rules-examples.yaml) for comprehensive examples including:
+
+1. Keep best quality only (eliminate-duplicates equivalent)
+2. Keep lossless only (keep-lossless equivalent)
+3. Keep specific format (keep-format equivalent)
+4. Delete low quality MP3s only
+5. Complex multi-priority rules
+6. Path-based rules
+
+### Usage
+
+```bash
+# Create custom rules file (my-rules.yaml)
+duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml --execute
+```
+
+### Rule Evaluation Logic
+
+1. Rules are sorted by priority (highest first)
+2. For each item, rules are evaluated in order
+3. First matching rule determines the action
+4. If no rules match, `default_action` is used
+5. Logic can be `AND` (all conditions must match) or `OR` (any condition matches)
 
 ## Error Handling
 
@@ -577,6 +740,10 @@ Confidence calculation factors:
 - `main`: Stable releases
 - Feature branches: `add-feature-name` or `fix-bug-description`
 - Keep commits atomic and well-described
+
+### Testing Notes
+
+**Important:** Do NOT use the existing `test-albums/` directory to generate new test albums or modify its structure. The existing test albums are carefully curated for specific test scenarios and should not be altered. If you need to create test albums for new test cases, create them in a separate directory (e.g., `temp-test-albums/`) or use temporary directories in your tests.
 
 ## Troubleshooting
 

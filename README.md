@@ -6,9 +6,11 @@ duperscooper is a Python CLI tool that identifies duplicate audio files using ac
 
 ## Key Features
 
-- **Perceptual Audio Matching** - Detects duplicates across all formats and bitrates using Chromaprint fingerprints with Hamming distance (default 97% similarity threshold)
+- **Perceptual Audio Matching** - Detects duplicates across all formats and bitrates using Chromaprint fingerprints with Hamming distance (default 98% similarity threshold)
 - **Album-Level Detection** - Find duplicate albums using MusicBrainz IDs, ID3 tags, or acoustic fingerprints
 - **Quality Detection** - Automatically identifies the best quality version (lossless > lossy, higher bitrate/bit depth preferred)
+- **Rules Engine** - Apply custom deletion rules to scan results with built-in strategies or YAML/JSON configs
+- **Safe Deletion** - Staging system with full restoration capability and SHA256 verification
 - **Fast Performance** - Multi-threaded fingerprinting (8 workers default) with SQLite caching for instant repeated scans
 - **Flexible Output** - Text (color-coded), JSON, or CSV formats for easy integration with other tools
 - **Partial Album Matching** - Detect albums with missing tracks as potential duplicates
@@ -183,6 +185,91 @@ duperscooper ~/Music --workers 1
 
 # Disable progress bar output
 duperscooper ~/Music --no-progress
+```
+
+### Apply Rules to Scan Results (Two-Phase Workflow)
+
+Save scan results, review them, then apply deletion rules:
+
+```bash
+# Step 1: Scan and save (track or album mode)
+duperscooper ~/Music --output json > scan.json
+duperscooper ~/Music --album-mode --output json > albums.json
+
+# Step 2: Preview deletion plan (dry-run mode, default)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates
+
+# Step 3: Execute deletions (stages to .deletedByDuperscooper/)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates --execute
+```
+
+**Built-in strategies:**
+
+```bash
+# Keep best quality only (default)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates --execute
+
+# Keep only lossless formats (FLAC, WAV, etc.)
+duperscooper --apply-rules scan.json --strategy keep-lossless --execute
+
+# Keep only specific format (e.g., FLAC)
+duperscooper --apply-rules scan.json --strategy keep-format --format FLAC --execute
+
+# Use custom rules from YAML config
+duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml --execute
+```
+
+**Example custom rules** (`my-rules.yaml`):
+
+```yaml
+rules:
+  # Always keep best quality
+  - name: "Keep best quality"
+    action: keep
+    priority: 100
+    conditions:
+      - field: is_best
+        operator: "=="
+        value: true
+
+  # Delete low bitrate MP3s
+  - name: "Delete MP3s under 192kbps"
+    action: delete
+    priority: 50
+    logic: AND
+    conditions:
+      - field: format
+        operator: "=="
+        value: "MP3"
+      - field: quality_score
+        operator: "<"
+        value: 192
+
+default_action: keep
+```
+
+See [docs/rules-examples.yaml](docs/rules-examples.yaml) for more examples.
+
+### Staging and Restoration
+
+All deletions are staged for safety - you can restore them at any time:
+
+```bash
+# List all staged deletions
+duperscooper --list-deleted
+
+# Restore a specific batch
+duperscooper --restore <batch-uuid>
+
+# Restore to different location
+duperscooper --restore <batch-uuid> --restore-to /backup/music
+
+# Interactive restoration (choose individual tracks/albums)
+duperscooper --restore-interactive <batch-uuid>
+
+# Permanently delete old staged batches
+duperscooper --empty-deleted --older-than 30  # older than 30 days
+duperscooper --empty-deleted --keep-last 5     # keep only 5 most recent
 ```
 
 ## How It Works
