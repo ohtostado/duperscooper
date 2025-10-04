@@ -1013,7 +1013,9 @@ def main() -> int:
                     if restore_to:
                         print(f"✓ Restored {count} item(s) to {restore_to}")
                     else:
-                        print(f"✓ Restored {count} item(s) from {manifest['created_at']}")
+                        print(
+                            f"✓ Restored {count} item(s) from {manifest['created_at']}"
+                        )
                 except Exception as e:
                     print(f"Error restoring manifest: {e}", file=sys.stderr)
             return 0
@@ -1253,10 +1255,22 @@ def run_album_mode(args: argparse.Namespace) -> int:
 
         return 0
 
-    # Handle delete mode (placeholder for interactive deletion)
+    # Handle delete mode for albums
     if args.delete_duplicate_albums:
-        print("Interactive album deletion not yet implemented", file=sys.stderr)
-        return 1
+        from .finder import AlbumManager
+
+        if duplicate_groups:
+            try:
+                deleted = AlbumManager.interactive_delete_albums(
+                    duplicate_groups, hasher, finder, skip_confirm=args.yes
+                )
+                print(f"\nDeleted {deleted} album(s).")
+            except KeyboardInterrupt:
+                print("\nDeletion cancelled by user.", file=sys.stderr)
+                return 130
+        else:
+            print("No duplicate albums to delete.")
+        return 0
 
     # Print cache statistics (text mode only)
     if args.output == "text" and not args.no_progress:

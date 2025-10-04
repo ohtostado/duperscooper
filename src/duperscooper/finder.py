@@ -6,7 +6,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from colorama import Fore, Style
 
@@ -529,7 +529,7 @@ class DuplicateManager:
         Args:
             duplicates: Dictionary mapping hash to duplicate file tuples
             hasher: AudioHasher instance for metadata extraction
-            skip_confirm: If True, automatically delete all duplicates except best quality
+            skip_confirm: If True, auto-delete all except best quality
 
         Returns:
             Number of files deleted
@@ -602,7 +602,7 @@ class DuplicateManager:
 
             # Non-interactive mode: delete all except best quality
             if skip_confirm:
-                for i, file_path in enumerate(files_for_deletion):
+                for file_path in files_for_deletion:
                     if file_path != best_file:
                         try:
                             file_path.unlink()
@@ -647,6 +647,189 @@ class DuplicateManager:
                                 print(
                                     f"  {Fore.RED}✗ Failed to delete {file_to_delete}: "
                                     f"{e}{Style.RESET_ALL}"
+                                )
+                        else:
+                            print(
+                                f"  {Fore.RED}✗ Invalid index: {index}{Style.RESET_ALL}"
+                            )
+                except ValueError:
+                    print(
+                        f"  {Fore.RED}✗ Invalid input. Please enter numbers "
+                        f"separated by spaces.{Style.RESET_ALL}"
+                    )
+
+        return deleted_count
+
+
+class AlbumManager:
+    """Manages duplicate album operations like interactive deletion."""
+
+    @staticmethod
+    def interactive_delete_albums(
+        duplicate_groups: List[List],
+        hasher: "AudioHasher",
+        finder: Any,
+        skip_confirm: bool = False,
+    ) -> int:
+        """
+        Interactively delete duplicate albums with quality information.
+
+        Args:
+            duplicate_groups: List of album duplicate groups
+            hasher: AudioHasher instance for quality info
+            finder: AlbumDuplicateFinder instance for matched album info
+            skip_confirm: If True, automatically delete all except best quality
+
+        Returns:
+            Number of albums deleted
+        """
+        deleted_count = 0
+        import shutil
+
+        for idx, group in enumerate(duplicate_groups, 1):
+            # Get matched album info
+            matched_album, matched_artist = finder.get_matched_album_info(group)
+
+            print(
+                f"\n{Fore.CYAN}{Style.BRIGHT}--- Duplicate Group "
+                f"{idx}/{len(duplicate_groups)} ---{Style.RESET_ALL}"
+            )
+            if matched_album and matched_artist:
+                print(
+                    f"{Style.DIM}Matched: {matched_album} by {matched_artist}"
+                    f"{Style.RESET_ALL}"
+                )
+            elif matched_album:
+                print(f"{Style.DIM}Matched: {matched_album}{Style.RESET_ALL}")
+
+            # Find best quality album
+            best_album = max(group, key=lambda a: a.avg_quality_score)
+
+            # Separate best from duplicates
+            duplicates = [a for a in group if a != best_album]
+
+            # Sort duplicates by quality ascending
+            sorted_duplicates = sorted(duplicates, key=lambda a: a.avg_quality_score)
+
+            # Display all albums in group with quality info
+            albums_for_deletion = []
+
+            # Best album first
+            size_mb = best_album.total_size / (1024 * 1024)
+            size_str = (
+                f"{size_mb / 1024:.1f} GB" if size_mb >= 1024 else f"{size_mb:.1f} MB"
+            )
+
+            print(
+                f"  [0] {Fore.LIGHTGREEN_EX}{Style.BRIGHT}[Best]"
+                f"{Style.RESET_ALL} {best_album.path}"
+            )
+            print(
+                f"      {Style.DIM}({best_album.track_count} tracks, {size_str})"
+                f"{Style.RESET_ALL} - {Fore.LIGHTGREEN_EX}"
+                f"{best_album.quality_info}{Style.RESET_ALL}"
+            )
+            if best_album.musicbrainz_albumid:
+                print(
+                    f"      {Style.DIM}MusicBrainz ID: "
+                    f"{best_album.musicbrainz_albumid}{Style.RESET_ALL}"
+                )
+            if best_album.album_name and best_album.artist_name:
+                print(
+                    f"      {Style.DIM}Tags: {best_album.album_name} - "
+                    f"{best_album.artist_name}{Style.RESET_ALL}"
+                )
+
+            # Duplicate albums
+            for i, album in enumerate(sorted_duplicates, 1):
+                size_mb = album.total_size / (1024 * 1024)
+                size_str = (
+                    f"{size_mb / 1024:.1f} GB"
+                    if size_mb >= 1024
+                    else f"{size_mb:.1f} MB"
+                )
+
+                # Calculate match percentage
+                if album == best_album:
+                    match_pct = 100.0
+                elif album.match_method == "MusicBrainz Album ID":
+                    match_pct = 100.0
+                elif best_album.fingerprints and album.fingerprints:
+                    match_pct = hasher.similarity_percentage(
+                        best_album.fingerprints[0], album.fingerprints[0]
+                    )
+                else:
+                    match_pct = 0.0
+
+                match_color = (
+                    Fore.GREEN
+                    if match_pct >= 99.0
+                    else Fore.YELLOW if match_pct >= 95.0 else Fore.LIGHTRED_EX
+                )
+
+                print(f"  [{i}] {album.path}")
+                print(
+                    f"      {Style.DIM}({album.track_count} tracks, {size_str})"
+                    f"{Style.RESET_ALL} - {album.quality_info} {match_color}"
+                    f"[{match_pct:.1f}% match]{Style.RESET_ALL}"
+                )
+                if album.musicbrainz_albumid:
+                    print(
+                        f"      {Style.DIM}MusicBrainz ID: "
+                        f"{album.musicbrainz_albumid}{Style.RESET_ALL}"
+                    )
+                if album.album_name and album.artist_name:
+                    print(
+                        f"      {Style.DIM}Tags: {album.album_name} - "
+                        f"{album.artist_name}{Style.RESET_ALL}"
+                    )
+
+                albums_for_deletion.append(album)
+
+            # Non-interactive mode: delete all except best quality
+            if skip_confirm:
+                for album in albums_for_deletion:
+                    try:
+                        shutil.rmtree(album.path)
+                        print(f"  {Fore.GREEN}✓ Deleted:{Style.RESET_ALL} {album.path}")
+                        deleted_count += 1
+                    except OSError as e:
+                        print(
+                            f"  {Fore.RED}✗ Failed to delete {album.path}: "
+                            f"{e}{Style.RESET_ALL}"
+                        )
+                continue
+
+            # Interactive mode: ask user what to do
+            print(f"\n{Style.BRIGHT}Options:{Style.RESET_ALL}")
+            print("  - Enter album number(s) to delete (space-separated)")
+            print("  - Press Enter to skip this group")
+            print("  - Type 'q' to quit")
+
+            choice = input("Your choice: ").strip().lower()
+
+            if choice == "q":
+                break
+            elif choice == "":
+                continue
+            else:
+                # Parse selected indices
+                try:
+                    indices = [int(x) for x in choice.split()]
+                    for index in indices:
+                        if 0 < index <= len(albums_for_deletion):
+                            album_to_delete = albums_for_deletion[index - 1]
+                            try:
+                                shutil.rmtree(album_to_delete.path)
+                                print(
+                                    f"  {Fore.GREEN}✓ Deleted:{Style.RESET_ALL} "
+                                    f"{album_to_delete.path}"
+                                )
+                                deleted_count += 1
+                            except OSError as e:
+                                print(
+                                    f"  {Fore.RED}✗ Failed to delete "
+                                    f"{album_to_delete.path}: {e}{Style.RESET_ALL}"
                                 )
                         else:
                             print(
