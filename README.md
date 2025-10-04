@@ -124,7 +124,10 @@ duperscooper ~/Music --algorithm exact
 # Interactive deletion mode
 duperscooper ~/Music --delete-duplicates
 
-# Output formats
+# Non-interactive deletion (auto-delete all except best quality)
+duperscooper ~/Music --delete-duplicates --yes
+
+# Output formats (includes recommended_action field for GUI integration)
 duperscooper ~/Music --output json > duplicates.json
 duperscooper ~/Music --output csv > duplicates.csv
 ```
@@ -149,7 +152,13 @@ duperscooper ~/Music --album-mode --allow-partial-albums
 # Set minimum overlap for partial matches (default: 70%)
 duperscooper ~/Music --album-mode --allow-partial-albums --min-album-overlap 80
 
-# Output formats
+# Interactive album deletion
+duperscooper ~/Music --album-mode --delete-duplicate-albums
+
+# Non-interactive album deletion (auto-delete all except best quality)
+duperscooper ~/Music --album-mode --delete-duplicate-albums --yes
+
+# Output formats (includes recommended_action field for GUI integration)
 duperscooper ~/Music --album-mode --output json > albums.json
 duperscooper ~/Music --album-mode --output csv > albums.csv
 ```
@@ -201,6 +210,9 @@ duperscooper --apply-rules scan.json --strategy eliminate-duplicates
 
 # Step 3: Execute deletions (stages to .deletedByDuperscooper/)
 duperscooper --apply-rules scan.json --strategy eliminate-duplicates --execute
+
+# Non-interactive execution (skip confirmations, for automation/GUI)
+duperscooper --apply-rules scan.json --strategy eliminate-duplicates --execute --yes
 ```
 
 **Built-in strategies:**

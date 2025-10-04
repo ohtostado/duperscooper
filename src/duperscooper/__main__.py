@@ -187,7 +187,9 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
             file_info["audio_info"] = AudioHasher.format_audio_info(metadata)
             file_info["quality_score"] = quality_score
             file_info["similarity_to_best"] = similarity
-            file_info["is_best"] = file_path == best_file
+            is_best = file_path == best_file
+            file_info["is_best"] = is_best
+            file_info["recommended_action"] = "keep" if is_best else "delete"
             files_data.append(file_info)
 
         group = {
@@ -368,6 +370,7 @@ def format_album_output_json(
                 "match_percentage": match_pct,
                 "match_method": album.match_method,
                 "is_best": is_best,
+                "recommended_action": "keep" if is_best else "delete",
                 "musicbrainz_albumid": album.musicbrainz_albumid,
                 "album_name": album.album_name,
                 "artist_name": album.artist_name,
@@ -396,7 +399,7 @@ def format_album_output_csv(
     print(
         "group_id,matched_album,matched_artist,album_path,track_count,"
         "total_size_bytes,total_size,quality_info,quality_score,match_percentage,"
-        "match_method,is_best,musicbrainz_albumid,album_name,artist_name,"
+        "match_method,is_best,recommended_action,musicbrainz_albumid,album_name,artist_name,"
         "has_mixed_mb_ids,is_partial_match,overlap_percentage"
     )
 
@@ -442,6 +445,7 @@ def format_album_output_csv(
                 size_str = f"{size_mb:.1f}MB"
 
             is_best_str = "true" if is_best else "false"
+            recommended_action = "keep" if is_best else "delete"
             has_mixed = "true" if album.has_mixed_mb_ids else "false"
             is_partial_str = "true" if album.is_partial_match else "false"
             overlap_str = (
@@ -455,7 +459,7 @@ def format_album_output_csv(
                 f"{album.track_count},{album.total_size},{size_str},"
                 f"{album.quality_info},{album.avg_quality_score:.1f},"
                 f"{match_pct:.1f},{album.match_method or ''},"
-                f"{is_best_str},{album.musicbrainz_albumid or ''},"
+                f"{is_best_str},{recommended_action},{album.musicbrainz_albumid or ''},"
                 f"{album.album_name or ''},{album.artist_name or ''},"
                 f"{has_mixed},{is_partial_str},{overlap_str}"
             )
@@ -476,7 +480,7 @@ def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
 
     print(
         "group_id,hash,file_path,file_size,file_size_bytes,"
-        "audio_info,quality_score,similarity_to_best,is_best"
+        "audio_info,quality_score,similarity_to_best,is_best,recommended_action"
     )
 
     for idx, (hash_val, file_list) in enumerate(sorted_groups, 1):
@@ -509,12 +513,14 @@ def format_output_csv(duplicates: Dict[str, List[tuple]]) -> None:
         ) in sorted_files:
             info = DuplicateManager.get_file_info(file_path)
             audio_info = AudioHasher.format_audio_info(metadata)
-            is_best = "true" if file_path == best_file else "false"
+            is_best_file = file_path == best_file
+            is_best = "true" if is_best_file else "false"
+            recommended_action = "keep" if is_best_file else "delete"
 
             print(
                 f"{idx},{hash_val},{info['path']},{info['size']},"
                 f"{info['size_bytes']},{audio_info},{quality_score:.1f},"
-                f"{similarity:.1f},{is_best}"
+                f"{similarity:.1f},{is_best},{recommended_action}"
             )
 
 
@@ -767,6 +773,13 @@ Examples:
     )
 
     parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip all confirmations (non-interactive mode, for GUI/automation)",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -988,6 +1001,25 @@ def main() -> int:
                 print(f"   Command: {manifest['command']}")
             print()
 
+        # Non-interactive mode: restore all manifests without prompting
+        if args.yes:
+            for manifest in manifests:
+                manifest_path = Path(manifest["manifest_path"])
+                try:
+                    restore_to = Path(args.restore_to) if args.restore_to else None
+                    count = StagingManager.restore_from_manifest(
+                        manifest_path, restore_to=restore_to
+                    )
+                    if restore_to:
+                        print(f"✓ Restored {count} item(s) to {restore_to}")
+                    else:
+                        print(
+                            f"✓ Restored {count} item(s) from {manifest['created_at']}"
+                        )
+                except Exception as e:
+                    print(f"Error restoring manifest: {e}", file=sys.stderr)
+            return 0
+
         # Interactive restoration loop
         while True:
             try:
@@ -1110,7 +1142,9 @@ def run_file_mode(args: argparse.Namespace) -> int:
     if args.delete_duplicates:
         if duplicates:
             try:
-                deleted = DuplicateManager.interactive_delete(duplicates, finder.hasher)
+                deleted = DuplicateManager.interactive_delete(
+                    duplicates, finder.hasher, skip_confirm=args.yes
+                )
                 print(f"\nDeleted {deleted} file(s).")
             except KeyboardInterrupt:
                 print("\nDeletion cancelled by user.", file=sys.stderr)
@@ -1221,10 +1255,22 @@ def run_album_mode(args: argparse.Namespace) -> int:
 
         return 0
 
-    # Handle delete mode (placeholder for interactive deletion)
+    # Handle delete mode for albums
     if args.delete_duplicate_albums:
-        print("Interactive album deletion not yet implemented", file=sys.stderr)
-        return 1
+        from .finder import AlbumManager
+
+        if duplicate_groups:
+            try:
+                deleted = AlbumManager.interactive_delete_albums(
+                    duplicate_groups, hasher, finder, skip_confirm=args.yes
+                )
+                print(f"\nDeleted {deleted} album(s).")
+            except KeyboardInterrupt:
+                print("\nDeletion cancelled by user.", file=sys.stderr)
+                return 130
+        else:
+            print("No duplicate albums to delete.")
+        return 0
 
     # Print cache statistics (text mode only)
     if args.output == "text" and not args.no_progress:
