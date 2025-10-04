@@ -43,7 +43,8 @@ src/duperscooper/
 ├── cache.py          # CacheBackend interface, SQLite/JSON implementations
 ├── hasher.py         # AudioHasher: perceptual & exact hashing
 ├── finder.py         # DuplicateFinder: search logic, parallelization
-│                     # DuplicateManager: file operations
+│                     # DuplicateManager: track file operations
+│                     # AlbumManager: album deletion operations
 ├── album.py          # Album: dataclass for album metadata
 │                     # AlbumScanner: album discovery and metadata extraction
 │                     # AlbumDuplicateFinder: album duplicate detection
@@ -102,8 +103,18 @@ src/duperscooper/
   calculate similarity scores
 - `interactive_delete()`: User-driven duplicate removal with quality
   information
+  - Supports `skip_confirm` parameter for non-interactive mode (--yes flag)
 - `format_file_size()`: Human-readable size strings
 - `get_file_info()`: File metadata for display
+
+#### AlbumManager (finder.py)
+
+- `interactive_delete_albums()`: Interactive album deletion with quality info
+  - Shows matched album/artist, quality scores, MusicBrainz IDs
+  - Interactive mode: user selects albums to delete by number
+  - Non-interactive mode (`skip_confirm=True`): auto-deletes all except best
+  - Uses `shutil.rmtree()` to delete album directories
+  - Returns count of deleted albums
 
 #### Album (album.py)
 
@@ -254,6 +265,9 @@ duperscooper ~/Music --algorithm exact
 # Interactive deletion mode without progress output
 duperscooper ~/Music --delete-duplicates --no-progress
 
+# Non-interactive deletion (auto-delete all except best quality)
+duperscooper ~/Music --delete-duplicates --yes
+
 # Multiple paths, CSV output
 duperscooper ~/Music ~/Downloads --output csv > duplicates.csv
 
@@ -292,6 +306,12 @@ duperscooper ~/Music --album-mode --output json > duplicate_albums.json
 
 # Album mode with CSV output (good for GUI integration)
 duperscooper ~/Music --album-mode --output csv > duplicate_albums.csv
+
+# Interactive album deletion
+duperscooper ~/Music --album-mode --delete-duplicate-albums
+
+# Non-interactive album deletion (auto-delete all except best quality)
+duperscooper ~/Music --album-mode --delete-duplicate-albums --yes
 ```
 
 ### Two-Phase Workflow: Apply Rules to Scan Results
@@ -592,7 +612,7 @@ All output formats now include quality information for duplicate groups:
   ```
 
 - **JSON Output**: Includes `audio_info`, `quality_score`,
-  `similarity_to_best`, and `is_best` fields
+  `similarity_to_best`, `is_best`, and `recommended_action` fields
 
   ```json
   {
@@ -600,12 +620,16 @@ All output formats now include quality information for duplicate groups:
     "audio_info": "FLAC 44.1kHz 16bit",
     "quality_score": 11644.1,
     "similarity_to_best": 100.0,
-    "is_best": true
+    "is_best": true,
+    "recommended_action": "keep"
   }
   ```
 
+  - `recommended_action`: `"keep"` for best quality, `"delete"` for duplicates
+  - Essential for GUI integration (pre-selects checkboxes for deletion)
+
 - **CSV Output**: Adds columns for `audio_info`, `quality_score`,
-  `similarity_to_best`, and `is_best`
+  `similarity_to_best`, `is_best`, and `recommended_action`
 
 - **Interactive Delete**: Shows quality info for each file to help decide
   which duplicates to keep/delete
@@ -656,6 +680,7 @@ scoring:
         "path": "/music/ac-dc/dirty-deeds-flac",
         "confidence": 100.0,
         "is_best": true,
+        "recommended_action": "keep",
         "quality_score": 11644.1,
         ...
       }
@@ -663,12 +688,14 @@ scoring:
   }
   ```
 
+  - `recommended_action`: `"keep"` for best quality, `"delete"` for duplicates
+
 - **CSV Output**: Adds columns for `matched_album`, `matched_artist`,
-  `confidence`
+  `confidence`, `recommended_action`
   - Format: `group_id,matched_album,matched_artist,album_path,
     track_count,total_size_bytes,total_size,quality_info,
-    quality_score,confidence,is_best,musicbrainz_albumid,
-    album_name,artist_name,has_mixed_mb_ids`
+    quality_score,match_percentage,match_method,is_best,recommended_action,
+    musicbrainz_albumid,album_name,artist_name,has_mixed_mb_ids`
   - Good for GUI integration and spreadsheet analysis
 
 ### Album Confidence Scoring
