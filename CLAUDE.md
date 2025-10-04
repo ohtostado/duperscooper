@@ -8,6 +8,10 @@ fingerprints and Hamming distance to detect duplicate audio content across
 different formats, bitrates, and encodings. Also supports exact byte-matching
 for identical files.
 
+**IMPORTANT:** Before working on any GUI-related features, consult
+[CLAUDE-GUI-PLANS.md](CLAUDE-GUI-PLANS.md) for GUI requirements and design
+decisions.
+
 ## Code Style & Standards
 
 ### Python Conventions
