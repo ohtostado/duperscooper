@@ -17,9 +17,11 @@ dependencies = [
 
 [project.optional-dependencies]
 completion = ["shtab>=1.7.0"]
+gui = ["PySide6>=6.6.0"]
 
 [project.scripts]
 duperscooper = "duperscooper.__main__:main"
+duperscooper-gui = "duperscooper_gui.__main__:main"
 
 [tool.black]
 line-length = 88
