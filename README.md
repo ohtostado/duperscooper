@@ -34,6 +34,8 @@ ffprobe -version
 
 ### Install duperscooper
 
+#### Local Development Installation
+
 ```bash
 # Clone repository
 git clone https://github.com/ohtostado/duperscooper.git
@@ -53,6 +55,31 @@ pip install -e .
 pip install shtab
 ./install-completion.sh bash  # or zsh, tcsh
 ```
+
+#### Docker Installation
+
+Add duperscooper to any Dockerfile with just 2 additions:
+
+```dockerfile
+# Add system dependencies to your apt install section
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libchromaprint-tools \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install duperscooper (works for both root and non-root users)
+RUN pip install --no-cache-dir git+https://github.com/ohtostado/duperscooper.git
+```
+
+**Alternative:** Install from local copy (if building with repo context):
+
+```dockerfile
+# In your Dockerfile
+COPY duperscooper /tmp/duperscooper
+RUN pip install --no-cache-dir /tmp/duperscooper && rm -rf /tmp/duperscooper
+```
+
+The `duperscooper` command will be available in the shell after installation.
 
 ## Quick Start
 

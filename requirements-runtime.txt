@@ -1,0 +1,5 @@
+# Runtime dependencies for duperscooper
+# Use this for Docker/production installations where dev tools are not needed
+
+tqdm>=4.66.0
+colorama>=0.4.6
