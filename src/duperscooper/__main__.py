@@ -726,6 +726,46 @@ Examples:
         help="With --empty-deleted: keep the N most recent batches",
     )
 
+    # Rules engine and JSON ingestion arguments
+    parser.add_argument(
+        "--apply-rules",
+        metavar="FILE",
+        help="Apply deletion rules to JSON/CSV scan results (e.g., scan.json)",
+    )
+
+    parser.add_argument(
+        "--strategy",
+        choices=["eliminate-duplicates", "keep-lossless", "keep-format", "custom"],
+        default="eliminate-duplicates",
+        help="Built-in deletion strategy (default: eliminate-duplicates). "
+        "Use with --apply-rules.",
+    )
+
+    parser.add_argument(
+        "--config",
+        metavar="FILE",
+        help="Custom rules config file (YAML/JSON) for --strategy custom",
+    )
+
+    parser.add_argument(
+        "--format",
+        metavar="FORMAT",
+        help="Audio format to keep for --strategy keep-format (e.g., FLAC, MP3)",
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be deleted without executing "
+        "(default behavior for --apply-rules)",
+    )
+
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Actually execute deletions (overrides --dry-run for --apply-rules)",
+    )
+
     parser.add_argument(
         "--version",
         action="version",
@@ -744,6 +784,121 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     """Main entry point for CLI."""
     args = parse_args()
+
+    # Handle --apply-rules option (apply deletion rules to scan results)
+    if args.apply_rules:
+        from pathlib import Path
+
+        from .apply import ApplyEngine, ScanResultLoader
+        from .rules import RuleEngine
+        from .staging import StagingManager
+
+        try:
+            scan_file = Path(args.apply_rules)
+            if not scan_file.exists():
+                print(f"Error: Scan file not found: {scan_file}", file=sys.stderr)
+                return 1
+
+            # Load scan results
+            if scan_file.suffix == ".json":
+                mode, groups = ScanResultLoader.load_json(scan_file)
+            elif scan_file.suffix == ".csv":
+                mode, groups = ScanResultLoader.load_csv(scan_file)
+            else:
+                print(
+                    f"Error: Unsupported file format: {scan_file.suffix}. "
+                    "Use .json or .csv",
+                    file=sys.stderr,
+                )
+                return 1
+
+            print(f"Loaded {len(groups)} duplicate group(s) from {scan_file}")
+            print(f"Mode: {mode}")
+
+            # Load rule engine based on strategy
+            if args.strategy == "custom":
+                if not args.config:
+                    print(
+                        "Error: --config required for --strategy custom",
+                        file=sys.stderr,
+                    )
+                    return 1
+
+                config_path = Path(args.config)
+                if not config_path.exists():
+                    print(
+                        f"Error: Config file not found: {config_path}",
+                        file=sys.stderr,
+                    )
+                    return 1
+
+                engine = RuleEngine.load_from_config(config_path)
+                print(f"Loaded custom rules from {config_path}")
+
+            else:
+                # Built-in strategy
+                if args.strategy == "keep-format" and not args.format:
+                    print(
+                        "Error: --format required for --strategy keep-format",
+                        file=sys.stderr,
+                    )
+                    return 1
+
+                engine = RuleEngine.get_strategy(args.strategy, args.format)
+                print(f"Using strategy: {args.strategy}")
+
+            # Apply rules
+            annotated = ApplyEngine.apply_rules(mode, groups, engine)
+
+            # Generate and show report
+            report = ApplyEngine.generate_report(mode, annotated)
+            print("\n" + report)
+
+            # Execute deletions if requested (default is dry-run)
+            if args.execute:
+                print("\nExecuting deletions...")
+
+                # We need a scan path for staging - use current directory as fallback
+                # In practice, the scan results should include path info
+                staging_mgr = StagingManager(
+                    scan_path=Path.cwd(),
+                    command=f"apply-rules {args.strategy}",
+                    store_fingerprints=False,
+                )
+
+                count = ApplyEngine.execute_deletions(mode, annotated, staging_mgr)
+
+                if count > 0:
+                    manifest = staging_mgr.finalize()
+                    manifest_path = manifest["_duperscooper_manifest"][
+                        "manifest_location"
+                    ]
+                    print(f"\n✓ Staged {count} item(s) for deletion")
+                    print(f"Manifest: {manifest_path}")
+                    print(
+                        f"\nTo restore: duperscooper --restore {staging_mgr.batch_id}"
+                    )
+                    return 0
+                else:
+                    print("\nNo items to delete based on rules.")
+                    return 0
+
+            else:
+                print(
+                    "\nDry-run mode (no deletions executed). "
+                    "Use --execute to actually delete files."
+                )
+                return 0
+
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+        except Exception as e:
+            print(f"Unexpected error: {e}", file=sys.stderr)
+            import traceback
+
+            traceback.print_exc()
+            return 1
 
     # Handle --clear-cache option
     if args.clear_cache:

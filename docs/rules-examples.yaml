@@ -1,0 +1,276 @@
+# duperscooper Custom Rules Examples
+#
+# This file contains example rule configurations for duperscooper's
+# --apply-rules feature. Use these as templates for creating your own
+# custom deletion rules.
+#
+# Usage:
+#   duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml
+
+# =============================================================================
+# Example 1: Keep Best Quality Only (Equivalent to eliminate-duplicates)
+# =============================================================================
+
+rules:
+  - name: "Keep best quality in each group"
+    action: keep
+    priority: 100
+    conditions:
+      - field: is_best
+        operator: "=="
+        value: true
+
+  - name: "Delete non-best quality"
+    action: delete
+    priority: 10
+    conditions:
+      - field: is_best
+        operator: "=="
+        value: false
+
+default_action: keep
+
+
+# =============================================================================
+# Example 2: Keep Lossless Only (Equivalent to keep-lossless)
+# =============================================================================
+
+# rules:
+#   - name: "Keep all lossless files"
+#     action: keep
+#     priority: 100
+#     conditions:
+#       - field: is_lossless
+#         operator: "=="
+#         value: true
+#
+#   - name: "Delete all lossy files"
+#     action: delete
+#     priority: 10
+#     conditions:
+#       - field: is_lossless
+#         operator: "=="
+#         value: false
+#
+# default_action: keep
+
+
+# =============================================================================
+# Example 3: Keep Specific Format (Equivalent to keep-format FLAC)
+# =============================================================================
+
+# rules:
+#   - name: "Keep FLAC files"
+#     action: keep
+#     priority: 100
+#     conditions:
+#       - field: format
+#         operator: "=="
+#         value: "FLAC"
+#
+#   - name: "Delete non-FLAC files"
+#     action: delete
+#     priority: 10
+#     conditions:
+#       - field: format
+#         operator: "!="
+#         value: "FLAC"
+#
+# default_action: keep
+
+
+# =============================================================================
+# Example 4: Delete Low Quality MP3s Only
+# =============================================================================
+
+# rules:
+#   - name: "Delete MP3s under 192kbps"
+#     action: delete
+#     priority: 50
+#     logic: AND
+#     conditions:
+#       - field: format
+#         operator: "=="
+#         value: "MP3"
+#       - field: quality_score
+#         operator: "<"
+#         value: 192
+#
+# default_action: keep
+
+
+# =============================================================================
+# Example 5: Complex Rules with Multiple Priorities
+# =============================================================================
+
+# rules:
+#   # Highest priority: Always keep the best quality file
+#   - name: "Always keep best quality"
+#     action: keep
+#     priority: 100
+#     conditions:
+#       - field: is_best
+#         operator: "=="
+#         value: true
+#
+#   # High priority: Always keep lossless formats
+#   - name: "Keep all lossless formats (FLAC, WAV, ALAC)"
+#     action: keep
+#     priority: 90
+#     conditions:
+#       - field: is_lossless
+#         operator: "=="
+#         value: true
+#
+#   # Medium priority: Delete files in backup directories
+#   - name: "Delete files in backup folders"
+#     action: delete
+#     priority: 50
+#     conditions:
+#       - field: path
+#         operator: contains
+#         value: "/backup/"
+#
+#   # Medium priority: Delete old MP3s under 192kbps
+#   - name: "Delete low bitrate MP3s"
+#     action: delete
+#     priority: 40
+#     logic: AND
+#     conditions:
+#       - field: format
+#         operator: "=="
+#         value: "MP3"
+#       - field: quality_score
+#         operator: "<"
+#         value: 192
+#
+#   # Low priority: Delete AAC format
+#   - name: "Delete AAC files"
+#     action: delete
+#     priority: 20
+#     conditions:
+#       - field: format
+#         operator: "=="
+#         value: "AAC"
+#
+# default_action: keep
+
+
+# =============================================================================
+# Example 6: Keep Multiple Formats (OR Logic)
+# =============================================================================
+
+# rules:
+#   - name: "Keep FLAC or WAV"
+#     action: keep
+#     priority: 100
+#     logic: OR
+#     conditions:
+#       - field: format
+#         operator: "=="
+#         value: "FLAC"
+#       - field: format
+#         operator: "=="
+#         value: "WAV"
+#
+#   - name: "Delete everything else"
+#     action: delete
+#     priority: 10
+#     conditions:
+#       - field: format
+#         operator: not in
+#         value: ["FLAC", "WAV"]
+#
+# default_action: keep
+
+
+# =============================================================================
+# Example 7: Path-Based Rules
+# =============================================================================
+
+# rules:
+#   # Keep files in main library
+#   - name: "Keep files in main library"
+#     action: keep
+#     priority: 100
+#     conditions:
+#       - field: path
+#         operator: contains
+#         value: "/music/library/"
+#
+#   # Delete files in temp/download folders
+#   - name: "Delete files from download folders"
+#     action: delete
+#     priority: 50
+#     logic: OR
+#     conditions:
+#       - field: path
+#         operator: contains
+#         value: "/downloads/"
+#       - field: path
+#         operator: contains
+#         value: "/temp/"
+#       - field: path
+#         operator: contains
+#         value: "/tmp/"
+#
+# default_action: keep
+
+
+# =============================================================================
+# Available Fields (Track Mode)
+# =============================================================================
+#
+# - path (string): Full file path
+# - is_best (boolean): Whether this is the best quality file
+# - quality_score (number): Quality score
+# - audio_info (string): Format info (e.g., "MP3 CBR 320kbps")
+# - format (string): Extracted format (MP3, FLAC, etc.)
+# - codec (string): Audio codec
+# - bitrate (number): Bitrate in kbps (lossy files only)
+# - sample_rate (number): Sample rate in Hz
+# - bit_depth (number): Bit depth (lossless files only)
+# - is_lossless (boolean): Derived from quality_score >= 10000
+# - file_size (number): Size in bytes
+# - similarity_to_best (number): Similarity percentage
+
+
+# =============================================================================
+# Available Fields (Album Mode)
+# =============================================================================
+#
+# - path (string): Album directory path
+# - is_best (boolean): Whether this is the best quality album
+# - quality_score (number): Average quality score
+# - quality_info (string): Format info
+# - track_count (number): Number of tracks
+# - file_size (number): Total size in bytes (from total_size field)
+# - match_percentage (number): Match percentage to best album
+# - match_method (string): How it was matched
+# - musicbrainz_albumid (string): MusicBrainz ID
+# - album_name (string): Album name
+# - artist_name (string): Artist name
+# - has_mixed_mb_ids (boolean): Mixed MusicBrainz IDs
+# - is_partial_match (boolean): Partial album match
+# - format, codec, bitrate, sample_rate, bit_depth, is_lossless:
+#   Extracted from quality_info string
+
+
+# =============================================================================
+# Available Operators
+# =============================================================================
+#
+# - Equality: ==, !=
+# - Comparison: <, >, <=, >=
+# - Membership: in, not in
+# - String: contains, matches (regex)
+
+
+# =============================================================================
+# Rule Evaluation Logic
+# =============================================================================
+#
+# 1. Rules are evaluated in priority order (highest first)
+# 2. First matching rule determines the action
+# 3. If no rules match, default_action is used
+# 4. Logic can be "AND" (all conditions must match) or "OR" (any condition matches)
