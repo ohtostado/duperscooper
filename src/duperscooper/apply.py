@@ -4,7 +4,7 @@ import csv
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 
 from .rules import RuleEngine
 from .staging import StagingManager
@@ -29,7 +29,7 @@ class ScanResultLoader:
         Raises:
             ValueError: If JSON format is invalid
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             data = json.load(f)
 
         if not isinstance(data, list) or not data:
@@ -40,16 +40,18 @@ class ScanResultLoader:
 
         if "files" in first_group:
             # Track mode: {"hash": "...", "files": [...]}
-            mode = "track"
+            mode: Literal["track", "album"] = "track"
             # Validate structure
             for group in data:
                 if "hash" not in group or "files" not in group:
-                    raise ValueError("Track mode JSON must have 'hash' and 'files' fields")
+                    raise ValueError(
+                        "Track mode JSON must have 'hash' and 'files' fields"
+                    )
                 if not isinstance(group["files"], list):
                     raise ValueError("'files' must be a list")
 
         elif "albums" in first_group:
-            # Album mode: {"matched_album": "...", "matched_artist": "...", "albums": [...]}
+            # Album mode: {"matched_album": "...", "matched_artist": "...", "albums"}
             mode = "album"
             # Validate structure
             for group in data:
@@ -60,7 +62,8 @@ class ScanResultLoader:
 
         else:
             raise ValueError(
-                "Unknown JSON format. Expected track mode (with 'files') or album mode (with 'albums')"
+                "Unknown JSON format. Expected track mode (with 'files') "
+                "or album mode (with 'albums')"
             )
 
         return mode, data
@@ -79,7 +82,7 @@ class ScanResultLoader:
         Raises:
             ValueError: If CSV format is invalid
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -91,7 +94,7 @@ class ScanResultLoader:
 
         if "group_id" in first_row and "file_path" in first_row:
             # Track mode CSV
-            mode = "track"
+            mode: Literal["track", "album"] = "track"
             groups = ScanResultLoader._reconstruct_track_groups_from_csv(rows)
 
         elif "group_id" in first_row and "album_path" in first_row:
@@ -191,7 +194,8 @@ class ScanResultLoader:
         extracted["is_lossless"] = quality_score >= 10000
 
         # Parse audio_info to extract format, codec, bitrate, etc.
-        audio_info = item.get("audio_info", "")
+        # Albums use "quality_info" instead of "audio_info"
+        audio_info = item.get("audio_info", "") or item.get("quality_info", "")
 
         if audio_info:
             # Extract format (first word before space)
@@ -354,9 +358,7 @@ class ApplyEngine:
         lines.append("=" * 70)
         lines.append(f"Items to keep:   {keep_count}")
         lines.append(f"Items to delete: {delete_count}")
-        lines.append(
-            f"Space to free:   {ApplyEngine._format_size(bytes_to_free)}"
-        )
+        lines.append(f"Space to free:   {ApplyEngine._format_size(bytes_to_free)}")
         lines.append("=" * 70)
 
         return "\n".join(lines)
@@ -400,7 +402,14 @@ class ApplyEngine:
                         pass
                     else:  # album
                         # Stage entire album
-                        staging_manager.stage_album(path)
+                        # Convert path to Album-like object (staging expects Album type)
+                        # For now, create a minimal mock - proper implementation TBD
+                        from types import SimpleNamespace
+
+                        album_obj = SimpleNamespace(path=path)
+                        staging_manager.stage_album(
+                            album_obj, reason="apply-rules deletion"
+                        )
                         staged_count += 1
 
         return staged_count
@@ -408,8 +417,9 @@ class ApplyEngine:
     @staticmethod
     def _format_size(size_bytes: int) -> str:
         """Format size in bytes as human-readable string."""
+        size_float = float(size_bytes)
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if size_bytes < 1024.0:
-                return f"{size_bytes:.1f} {unit}"
-            size_bytes /= 1024.0
-        return f"{size_bytes:.1f} PB"
+            if size_float < 1024.0:
+                return f"{size_float:.1f} {unit}"
+            size_float /= 1024.0
+        return f"{size_float:.1f} PB"

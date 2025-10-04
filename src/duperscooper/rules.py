@@ -21,7 +21,7 @@ class RuleCondition:
     """
 
     field: str
-    operator: Literal["==", "!=", "<", ">", "<=", ">=", "in", "not in", "contains", "matches"]  # fmt: skip
+    operator: Literal["==", "!=", "<", ">", "<=", ">=", "in", "not in", "contains", "matches"]  # fmt: skip  # noqa: E501
     value: Union[str, int, float, bool, List[Any]]
 
     def evaluate(self, item: Dict[str, Any]) -> bool:
@@ -42,9 +42,9 @@ class RuleCondition:
 
         # Evaluate based on operator
         if self.operator == "==":
-            return field_value == self.value
+            return bool(field_value == self.value)
         elif self.operator == "!=":
-            return field_value != self.value
+            return bool(field_value != self.value)
         elif self.operator == "<":
             return field_value < self.value  # type: ignore
         elif self.operator == ">":
@@ -145,14 +145,13 @@ class RuleEngine:
         return self.default_action
 
     @staticmethod
-    def get_strategy(
-        strategy: str, format_param: Optional[str] = None
-    ) -> "RuleEngine":
+    def get_strategy(strategy: str, format_param: Optional[str] = None) -> "RuleEngine":
         """
         Get a rule engine with built-in strategy pre-loaded.
 
         Args:
-            strategy: Strategy name (eliminate-duplicates, keep-lossless, keep-format, custom)
+            strategy: Strategy name (eliminate-duplicates, keep-lossless,
+                keep-format, custom)
             format_param: Format to keep (required for keep-format strategy)
 
         Returns:
@@ -256,7 +255,7 @@ class RuleEngine:
         Returns:
             RuleEngine configured from the file
         """
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             if config_path.suffix in [".yaml", ".yml"]:
                 config = yaml.safe_load(f)
             elif config_path.suffix == ".json":
@@ -265,7 +264,8 @@ class RuleEngine:
                 config = json.load(f)
             else:
                 raise ValueError(
-                    f"Unsupported config format: {config_path.suffix}. Use .yaml, .yml, or .json"
+                    f"Unsupported config format: {config_path.suffix}. "
+                    "Use .yaml, .yml, or .json"
                 )
 
         # Get default action
