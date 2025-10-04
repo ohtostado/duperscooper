@@ -767,6 +767,13 @@ Examples:
     )
 
     parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip all confirmations (non-interactive mode, for GUI/automation)",
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
@@ -988,6 +995,23 @@ def main() -> int:
                 print(f"   Command: {manifest['command']}")
             print()
 
+        # Non-interactive mode: restore all manifests without prompting
+        if args.yes:
+            for manifest in manifests:
+                manifest_path = Path(manifest["manifest_path"])
+                try:
+                    restore_to = Path(args.restore_to) if args.restore_to else None
+                    count = StagingManager.restore_from_manifest(
+                        manifest_path, restore_to=restore_to
+                    )
+                    if restore_to:
+                        print(f"✓ Restored {count} item(s) to {restore_to}")
+                    else:
+                        print(f"✓ Restored {count} item(s) from {manifest['created_at']}")
+                except Exception as e:
+                    print(f"Error restoring manifest: {e}", file=sys.stderr)
+            return 0
+
         # Interactive restoration loop
         while True:
             try:
@@ -1110,7 +1134,9 @@ def run_file_mode(args: argparse.Namespace) -> int:
     if args.delete_duplicates:
         if duplicates:
             try:
-                deleted = DuplicateManager.interactive_delete(duplicates, finder.hasher)
+                deleted = DuplicateManager.interactive_delete(
+                    duplicates, finder.hasher, skip_confirm=args.yes
+                )
                 print(f"\nDeleted {deleted} file(s).")
             except KeyboardInterrupt:
                 print("\nDeletion cancelled by user.", file=sys.stderr)

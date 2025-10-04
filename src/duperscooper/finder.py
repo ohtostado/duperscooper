@@ -519,7 +519,9 @@ class DuplicateManager:
 
     @staticmethod
     def interactive_delete(
-        duplicates: Dict[str, List[tuple]], hasher: "AudioHasher"
+        duplicates: Dict[str, List[tuple]],
+        hasher: "AudioHasher",
+        skip_confirm: bool = False,
     ) -> int:
         """
         Interactively delete duplicate files with quality information.
@@ -527,6 +529,7 @@ class DuplicateManager:
         Args:
             duplicates: Dictionary mapping hash to duplicate file tuples
             hasher: AudioHasher instance for metadata extraction
+            skip_confirm: If True, automatically delete all duplicates except best quality
 
         Returns:
             Number of files deleted
@@ -597,7 +600,24 @@ class DuplicateManager:
                     )
                 files_for_deletion.append(file_path)
 
-            # Ask user what to do
+            # Non-interactive mode: delete all except best quality
+            if skip_confirm:
+                for i, file_path in enumerate(files_for_deletion):
+                    if file_path != best_file:
+                        try:
+                            file_path.unlink()
+                            print(
+                                f"  {Fore.GREEN}✓ Deleted:{Style.RESET_ALL} {file_path}"
+                            )
+                            deleted_count += 1
+                        except OSError as e:
+                            print(
+                                f"  {Fore.RED}✗ Failed to delete {file_path}: "
+                                f"{e}{Style.RESET_ALL}"
+                            )
+                continue
+
+            # Interactive mode: ask user what to do
             print(f"\n{Style.BRIGHT}Options:{Style.RESET_ALL}")
             print("  - Enter file number(s) to delete (space-separated)")
             print("  - Press Enter to skip this group")
