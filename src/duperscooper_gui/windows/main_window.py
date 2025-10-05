@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMainWindow,
     QMessageBox,
-    QVBoxLayout,
 )
 
 from ..models.results_model import ScanResults
@@ -70,8 +69,8 @@ class MainWindow(QMainWindow):
 
         # Create results viewer and add to results tab
         self.results_viewer = ResultsViewer(self)
-        results_layout = QVBoxLayout(self.ui.resultsTab)
-        results_layout.addWidget(self.results_viewer.ui)
+        # Use the existing layout from the UI file instead of creating a new one
+        self.ui.resultsTab.layout().addWidget(self.results_viewer.ui)
         self.results_viewer.delete_requested.connect(self.on_delete_requested)
 
         # Track current results
@@ -172,13 +171,20 @@ class MainWindow(QMainWindow):
             self.current_results = ScanResults.from_json(json_output)
             self.results_viewer.load_results(self.current_results)
 
-            self.ui.scanLogText.append(
-                f"Found {self.current_results.total_groups} duplicate groups "
-                f"with {self.current_results.total_duplicates} duplicates."
-            )
-
-            # Switch to results tab
-            self.ui.tabWidget.setCurrentIndex(1)
+            if self.current_results.total_groups == 0:
+                self.ui.scanLogText.append("No duplicates found.")
+                self.ui.statusbar.showMessage("Scan complete - no duplicates found")
+            else:
+                self.ui.scanLogText.append(
+                    f"Found {self.current_results.total_groups} duplicate groups "
+                    f"with {self.current_results.total_duplicates} duplicates."
+                )
+                self.ui.statusbar.showMessage(
+                    f"Scan complete - found {self.current_results.total_groups} "
+                    f"duplicate group(s)"
+                )
+                # Only switch to results tab if duplicates were found
+                self.ui.tabWidget.setCurrentIndex(1)
 
         except Exception as e:
             QMessageBox.critical(
