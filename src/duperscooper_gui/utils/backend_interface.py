@@ -63,27 +63,54 @@ def run_scan(
     try:
         if progress_callback:
             # Run with live output capture for progress
+            # Use unbuffered output to get real-time progress
+            import os
+
+            env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
+
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1,
+                bufsize=0,  # Unbuffered
+                env=env,
             )
 
-            stderr_lines = []
-            json_output = []
+            stderr_output = []
+            json_output = ""
 
-            # Read stderr for progress (tqdm outputs to stderr)
+            # Read stderr character by character to catch \r updates
             if process.stderr:
-                for line in process.stderr:
-                    line = line.rstrip()
-                    if line:
-                        stderr_lines.append(line)
-                        # Parse progress from tqdm output
-                        # Example: "Fingerprinting: 45%|████ | 90/200 [00:15<00:18]"
-                        percentage = _parse_progress(line)
-                        progress_callback(line, percentage)
+                current_line = ""
+                while True:
+                    char = process.stderr.read(1)
+                    if not char:
+                        break
+
+                    if char == "\r":
+                        # Carriage return - this is a progress update
+                        if current_line.strip():
+                            stderr_output.append(current_line)
+                            percentage = _parse_progress(current_line)
+                            progress_callback(current_line, percentage)
+                        current_line = ""
+                    elif char == "\n":
+                        # Newline - end of line
+                        if current_line.strip():
+                            stderr_output.append(current_line)
+                            percentage = _parse_progress(current_line)
+                            progress_callback(current_line, percentage)
+                        current_line = ""
+                    else:
+                        current_line += char
+
+                # Handle any remaining content
+                if current_line.strip():
+                    stderr_output.append(current_line)
+                    percentage = _parse_progress(current_line)
+                    progress_callback(current_line, percentage)
 
             # Wait for completion and read stdout
             if process.stdout:
@@ -92,7 +119,9 @@ def run_scan(
             process.wait()
 
             if process.returncode != 0:
-                error_msg = "\n".join(stderr_lines) if stderr_lines else "Unknown error"
+                error_msg = (
+                    "\n".join(stderr_output) if stderr_output else "Unknown error"
+                )
                 raise RuntimeError(f"Scan failed: {error_msg}")
 
             return json_output
@@ -111,7 +140,7 @@ def run_scan(
 
 def _parse_progress(line: str) -> int:
     """
-    Parse progress percentage from tqdm output line.
+    Parse progress percentage from progress output line.
 
     Args:
         line: Output line from stderr
@@ -119,10 +148,19 @@ def _parse_progress(line: str) -> int:
     Returns:
         Percentage (0-100) or -1 if no percentage found
     """
-    # Look for percentage pattern like "45%" or "100%"
+    # Look for percentage pattern in parentheses like "(45.5%)" or direct "45%"
+    # Examples:
+    #   "Fingerprinted 9/16 files (56.2%) - Elapsed: 3s - ETA: 2s"
+    #   "Compared 100/120 pairs (83.3%)..."
+    match = re.search(r"\((\d+(?:\.\d+)?)%\)", line)
+    if match:
+        return int(float(match.group(1)))
+
+    # Fallback to simple percentage pattern
     match = re.search(r"(\d+)%", line)
     if match:
         return int(match.group(1))
+
     return -1
 
 
