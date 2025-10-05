@@ -6,8 +6,8 @@
 
 [colors.group_header]
 # Colors for duplicate group headers in the results tree
-background = "#f5f5f5"  # Light grey background
-foreground = "#333333"  # Dark grey text
+background = "#333333"  # Dark grey background
+foreground = "#fff7aa"  # Light yellow text
 
 [colors.best_quality]
 # Color for the best quality file/album (marked to keep)
