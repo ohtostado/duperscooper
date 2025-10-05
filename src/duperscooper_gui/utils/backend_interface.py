@@ -283,32 +283,34 @@ def apply_rules(
 
 def list_deleted() -> List[Dict]:
     """
-    List staged deletion batches.
+    List staged deletion batches using StagingManager directly.
 
     Returns:
-        List of batch info dicts
+        List of batch info dicts with:
+        - id: Batch ID (e.g., "batch_2025-10-05_14-30-22")
+        - timestamp: ISO timestamp
+        - total_items_deleted: Number of items
+        - total_tracks_deleted: Number of tracks
+        - space_freed_bytes: Total size in bytes
+        - staging_path: Path to staging directory
+        - mode: "track" or "album" (inferred from total_items vs total_tracks)
     """
-    cmd = [sys.executable, "-m", "duperscooper", "--list-deleted"]
-
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        from duperscooper.staging import StagingManager
 
-        # Parse output (simple text format for now)
-        # TODO: Request JSON output format for staging commands
-        batches = []
-        lines = result.stdout.strip().split("\n")
-        for line in lines:
-            if line.strip():
-                batches.append({"info": line})
+        batches = StagingManager.list_batches()
+
+        # Add mode field (infer from items vs tracks)
+        for batch in batches:
+            items = batch.get("total_items_deleted", 0)
+            tracks = batch.get("total_tracks_deleted", 0)
+
+            # If items == tracks, it's track mode, otherwise album mode
+            batch["mode"] = "track" if items == tracks else "album"
 
         return batches
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"List deleted failed: {e.stderr}") from e
+    except Exception as e:
+        raise RuntimeError(f"List deleted failed: {e}") from e
 
 
 def restore_batch(batch_id: str, restore_to: str = None) -> str:

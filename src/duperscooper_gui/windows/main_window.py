@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 
 from ..models.results_model import ScanResults
 from .results_viewer import ResultsViewer
+from .staging_viewer import StagingViewer
 
 
 class ScanThread(QThread):
@@ -140,6 +141,12 @@ class MainWindow(QMainWindow):
         self.results_viewer.delete_requested.connect(self.on_delete_requested)
         self.results_viewer.restore_requested.connect(self.on_restore_requested)
         self.results_viewer.copy_batch_requested.connect(self.on_copy_batch_requested)
+
+        # Create staging viewer and add to staging tab
+        self.staging_viewer = StagingViewer(self)
+        self.ui.stagingTab.layout().addWidget(self.staging_viewer.ui)
+        self.staging_viewer.restore_requested.connect(self.on_staging_restore_requested)
+        self.staging_viewer.empty_requested.connect(self.on_empty_requested)
 
         # Track current results
         self.current_results: Optional[ScanResults] = None
@@ -361,6 +368,9 @@ class MainWindow(QMainWindow):
             # Show restoration banner
             self.results_viewer.show_restoration_banner(batch_id, staged_count)
 
+            # Refresh staging tab to show new batch
+            self.staging_viewer.refresh_batches()
+
         else:
             # Error
             self.ui.scanLogText.append(f"❌ {result['message']}")
@@ -424,6 +434,111 @@ class MainWindow(QMainWindow):
         # Visual confirmation in scan log
         self.ui.scanLogText.append(f"📋 Copied batch ID to clipboard: {batch_id}")
         self.ui.statusbar.showMessage("Batch ID copied to clipboard", 3000)
+
+    def on_staging_restore_requested(self, batch_id: str, restore_to: str):
+        """Handle restore request from staging tab."""
+        if not batch_id:
+            return
+
+        # Start restoration in background thread
+        self.restoration_thread = RestorationThread(batch_id, restore_to)
+        self.restoration_thread.progress.connect(self.on_restoration_progress)
+        self.restoration_thread.finished.connect(self.on_staging_restoration_finished)
+        self.restoration_thread.error.connect(self.on_restoration_error)
+        self.restoration_thread.start()
+
+        # Update UI
+        self.ui.statusbar.showMessage(f"Restoring batch {batch_id}...")
+        self.ui.scanLogText.append(f"▶ Restoring batch {batch_id}...")
+
+    def on_staging_restoration_finished(self, result: dict):
+        """Handle restoration from staging tab completion."""
+        if result["success"]:
+            # Success!
+            message = result["message"]
+
+            # Log success
+            self.ui.scanLogText.append(f"✓ {message}")
+            self.ui.statusbar.showMessage("Restoration complete")
+
+            # Refresh staging tab to remove restored batch
+            self.staging_viewer.refresh_batches()
+
+        else:
+            # Error
+            self.ui.scanLogText.append(f"❌ {result.get('message', 'Unknown error')}")
+            self.ui.statusbar.showMessage("Restoration failed - see log")
+
+    def on_empty_requested(self, older_than: int, keep_last: int):
+        """Handle empty deleted request from staging tab."""
+        # Convert -1 back to None
+        older_than_val = older_than if older_than != -1 else None
+        keep_last_val = keep_last if keep_last != -1 else None
+
+        # Confirm deletion
+        criteria = []
+        if older_than_val:
+            criteria.append(f"older than {older_than_val} days")
+        if keep_last_val:
+            criteria.append(f"keeping the {keep_last_val} most recent")
+
+        criteria_str = " and ".join(criteria)
+
+        reply = QMessageBox.question(
+            self,
+            "Confirm Permanent Deletion",
+            f"This will permanently delete batches {criteria_str}.\n\n"
+            "This action cannot be undone!\n\n"
+            "Are you sure?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        # Run empty_deleted in background
+        from PySide6.QtCore import QThread
+
+        class EmptyThread(QThread):
+            finished = Signal(str)
+            error = Signal(str)
+
+            def __init__(self, older_than, keep_last):
+                super().__init__()
+                self.older_than = older_than
+                self.keep_last = keep_last
+
+            def run(self):
+                try:
+                    from ..utils.backend_interface import empty_deleted
+
+                    result = empty_deleted(self.older_than, self.keep_last)
+                    self.finished.emit(result)
+                except Exception as e:
+                    self.error.emit(str(e))
+
+        self.empty_thread = EmptyThread(older_than_val, keep_last_val)
+        self.empty_thread.finished.connect(self.on_empty_finished)
+        self.empty_thread.error.connect(self.on_empty_error)
+        self.empty_thread.start()
+
+        # Update UI
+        self.ui.statusbar.showMessage("Emptying deleted batches...")
+        self.ui.scanLogText.append("▶ Emptying deleted batches...")
+
+    def on_empty_finished(self, message: str):
+        """Handle empty deleted completion."""
+        self.ui.scanLogText.append(f"✓ {message}")
+        self.ui.statusbar.showMessage("Empty completed")
+
+        # Refresh staging tab
+        self.staging_viewer.refresh_batches()
+
+    def on_empty_error(self, error_message: str):
+        """Handle empty deleted error."""
+        self.ui.scanLogText.append(f"❌ Empty error: {error_message}")
+        self.ui.statusbar.showMessage("Empty failed - see log")
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Handle window close event - check for staged deletions."""
