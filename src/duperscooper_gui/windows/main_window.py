@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 class ScanThread(QThread):
     """Background thread for running scans."""
 
-    progress = Signal(str)  # Emits progress messages
+    progress = Signal(str, int)  # Emits (message: str, percentage: int)
     finished = Signal(str)  # Emits final JSON output
     error = Signal(str)  # Emits error messages
 
@@ -29,8 +29,11 @@ class ScanThread(QThread):
         try:
             from ..utils.backend_interface import run_scan
 
-            # This will be implemented next
-            result = run_scan(self.paths, self.options)
+            # Progress callback that emits Qt signal
+            def on_progress(message: str, percentage: int) -> None:
+                self.progress.emit(message, percentage)
+
+            result = run_scan(self.paths, self.options, progress_callback=on_progress)
             self.finished.emit(result)
         except Exception as e:
             self.error.emit(str(e))
@@ -126,13 +129,21 @@ class MainWindow(QMainWindow):
         self.scan_thread.error.connect(self.on_scan_error)
         self.scan_thread.start()
 
-    def on_scan_progress(self, message: str) -> None:
+    def on_scan_progress(self, message: str, percentage: int) -> None:
         """Handle scan progress updates."""
-        self.ui.scanLogText.append(message)
-        # Scroll to bottom
-        self.ui.scanLogText.verticalScrollBar().setValue(
-            self.ui.scanLogText.verticalScrollBar().maximum()
-        )
+        # Update progress bar if percentage is available
+        if percentage >= 0:
+            self.ui.scanProgressBar.setValue(percentage)
+
+        # Update log (only append non-empty messages, skip ANSI escape codes)
+        if message and not message.startswith("\x1b"):
+            # Clean up progress bar characters for display
+            clean_msg = message.replace("█", "#").replace("▌", "-")
+            self.ui.scanLogText.append(clean_msg)
+            # Scroll to bottom
+            self.ui.scanLogText.verticalScrollBar().setValue(
+                self.ui.scanLogText.verticalScrollBar().maximum()
+            )
 
     def on_scan_finished(self, json_output: str) -> None:
         """Handle scan completion."""

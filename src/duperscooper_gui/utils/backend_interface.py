@@ -1,13 +1,16 @@
 """Interface to duperscooper CLI backend via subprocess."""
 
-import json
+import re
 import subprocess
 import sys
-from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List, Optional
 
 
-def run_scan(paths: List[str], options: Dict) -> str:
+def run_scan(
+    paths: List[str],
+    options: Dict,
+    progress_callback: Optional[Callable[[str, int], None]] = None,
+) -> str:
     """
     Run duperscooper scan and return JSON results.
 
@@ -18,6 +21,7 @@ def run_scan(paths: List[str], options: Dict) -> str:
             - algorithm: str ("perceptual" or "exact")
             - threshold: float
             - workers: int
+        progress_callback: Optional callback(message: str, percentage: int)
 
     Returns:
         JSON string with scan results
@@ -51,20 +55,75 @@ def run_scan(paths: List[str], options: Dict) -> str:
     cmd.append("--output")
     cmd.append("json")
 
-    # No progress output (quieter for GUI)
-    cmd.append("--no-progress")
+    # If no progress callback, use --no-progress for simpler output
+    if not progress_callback:
+        cmd.append("--no-progress")
 
     # Run command
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return result.stdout
+        if progress_callback:
+            # Run with live output capture for progress
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+            )
+
+            stderr_lines = []
+            json_output = []
+
+            # Read stderr for progress (tqdm outputs to stderr)
+            if process.stderr:
+                for line in process.stderr:
+                    line = line.rstrip()
+                    if line:
+                        stderr_lines.append(line)
+                        # Parse progress from tqdm output
+                        # Example: "Fingerprinting: 45%|████ | 90/200 [00:15<00:18]"
+                        percentage = _parse_progress(line)
+                        progress_callback(line, percentage)
+
+            # Wait for completion and read stdout
+            if process.stdout:
+                json_output = process.stdout.read()
+
+            process.wait()
+
+            if process.returncode != 0:
+                error_msg = "\n".join(stderr_lines) if stderr_lines else "Unknown error"
+                raise RuntimeError(f"Scan failed: {error_msg}")
+
+            return json_output
+        else:
+            # Simple synchronous run without progress
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return result.stdout
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Scan failed: {e.stderr}") from e
+
+
+def _parse_progress(line: str) -> int:
+    """
+    Parse progress percentage from tqdm output line.
+
+    Args:
+        line: Output line from stderr
+
+    Returns:
+        Percentage (0-100) or -1 if no percentage found
+    """
+    # Look for percentage pattern like "45%" or "100%"
+    match = re.search(r"(\d+)%", line)
+    if match:
+        return int(match.group(1))
+    return -1
 
 
 def apply_rules(
