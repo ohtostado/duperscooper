@@ -377,3 +377,144 @@ def empty_deleted(older_than: int = None, keep_last: int = None) -> str:
         return result.stdout
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Empty deleted failed: {e.stderr}") from e
+
+
+def stage_items(
+    paths: List[str], mode: str, store_fingerprints: bool = False
+) -> Dict[str, any]:
+    """
+    Stage files/albums for deletion using CLI.
+
+    Args:
+        paths: List of file/album paths to stage
+        mode: "track" or "album"
+        store_fingerprints: Whether to store fingerprints in manifest
+
+    Returns:
+        Dict with:
+            - success: bool
+            - batch_id: str (UUID timestamp)
+            - message: str
+            - staged_count: int
+
+    Raises:
+        RuntimeError: If staging fails
+    """
+    # Build command - use --apply-rules with eliminate-duplicates strategy
+    # This requires a JSON file as input
+    import json
+    import tempfile
+
+    # Create temporary JSON file with paths marked for deletion
+    if mode == "track":
+        # Create track mode JSON
+        json_data = {
+            "mode": "track",
+            "duplicate_groups": [
+                {
+                    "group_id": 1,
+                    "hash": "temp",
+                    "files": [
+                        {
+                            "path": path,
+                            "recommended_action": "delete",
+                            "is_best": False,
+                        }
+                        for path in paths
+                    ],
+                }
+            ],
+        }
+    else:
+        # Create album mode JSON
+        json_data = {
+            "mode": "album",
+            "duplicate_groups": [
+                {
+                    "group_id": 1,
+                    "matched_album": "temp",
+                    "matched_artist": "temp",
+                    "albums": [
+                        {
+                            "path": path,
+                            "recommended_action": "delete",
+                            "is_best": False,
+                        }
+                        for path in paths
+                    ],
+                }
+            ],
+        }
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".json", delete=False
+    ) as temp_file:
+        json.dump(json_data, temp_file)
+        temp_path = temp_file.name
+
+    try:
+        cmd = [
+            sys.executable,
+            "-m",
+            "duperscooper",
+            "--apply-rules",
+            temp_path,
+            "--strategy",
+            "eliminate-duplicates",
+            "--execute",
+            "--yes",  # Non-interactive mode
+        ]
+
+        if store_fingerprints:
+            cmd.append("--store-fingerprints")
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=False,  # Don't raise on non-zero exit
+        )
+
+        # Parse output for batch ID
+        # Look for "Staged N items to batch_YYYY-MM-DD_HH-MM-SS"
+        batch_id = None
+        staged_count = 0
+
+        for line in result.stdout.splitlines():
+            if "Staged" in line and "batch_" in line:
+                # Extract batch ID
+                import re
+
+                match = re.search(r"batch_[\d\-_]+", line)
+                if match:
+                    batch_id = match.group(0)
+                # Extract count
+                match = re.search(r"Staged (\d+)", line)
+                if match:
+                    staged_count = int(match.group(1))
+
+        if result.returncode == 0 and batch_id:
+            return {
+                "success": True,
+                "batch_id": batch_id,
+                "message": f"Successfully staged {staged_count} items to {batch_id}",
+                "staged_count": staged_count,
+            }
+        else:
+            # Check for errors
+            error_msg = result.stderr or result.stdout or "Unknown error"
+            return {
+                "success": False,
+                "batch_id": None,
+                "message": f"Staging failed: {error_msg}",
+                "staged_count": 0,
+            }
+
+    finally:
+        # Clean up temp file
+        import os
+
+        try:
+            os.unlink(temp_path)
+        except Exception:
+            pass

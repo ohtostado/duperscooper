@@ -1,7 +1,7 @@
 """Results viewer widget for displaying duplicate groups."""
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QBrush
@@ -461,3 +461,40 @@ class ResultsViewer(QWidget):
                         paths.append(album.path)
 
         return paths
+
+    def remove_deleted_items(self, deleted_paths: List[str]):
+        """
+        Remove items from tree view after successful deletion.
+
+        Args:
+            deleted_paths: List of paths that were deleted
+        """
+        if not self.results:
+            return
+
+        deleted_set = set(deleted_paths)
+
+        # Remove from data model
+        if self.results.mode == "track":
+            for group in self.results.track_groups:
+                group.files = [f for f in group.files if f.path not in deleted_set]
+            # Remove empty groups
+            self.results.track_groups = [
+                g for g in self.results.track_groups if g.files
+            ]
+        else:
+            for group in self.results.album_groups:
+                group.albums = [a for a in group.albums if a.path not in deleted_set]
+            # Remove empty groups
+            self.results.album_groups = [
+                g for g in self.results.album_groups if g.albums
+            ]
+
+        # Reload the tree view with updated data
+        if self.results.mode == "track":
+            self._load_track_results()
+        else:
+            self._load_album_results()
+
+        # Update summary
+        self._update_summary()
