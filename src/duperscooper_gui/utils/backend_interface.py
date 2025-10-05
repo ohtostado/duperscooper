@@ -1,13 +1,16 @@
 """Interface to duperscooper CLI backend via subprocess."""
 
-import json
+import re
 import subprocess
 import sys
-from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List, Optional
 
 
-def run_scan(paths: List[str], options: Dict) -> str:
+def run_scan(
+    paths: List[str],
+    options: Dict,
+    progress_callback: Optional[Callable[[str, int], None]] = None,
+) -> str:
     """
     Run duperscooper scan and return JSON results.
 
@@ -18,6 +21,7 @@ def run_scan(paths: List[str], options: Dict) -> str:
             - algorithm: str ("perceptual" or "exact")
             - threshold: float
             - workers: int
+        progress_callback: Optional callback(message: str, percentage: int)
 
     Returns:
         JSON string with scan results
@@ -51,20 +55,162 @@ def run_scan(paths: List[str], options: Dict) -> str:
     cmd.append("--output")
     cmd.append("json")
 
-    # No progress output (quieter for GUI)
-    cmd.append("--no-progress")
+    # Progress handling
+    if progress_callback:
+        # Use simple progress format for GUI parsing
+        cmd.append("--simple-progress")
+    else:
+        # No progress output
+        cmd.append("--no-progress")
 
     # Run command
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return result.stdout
+        if progress_callback:
+            # Run with PTY to make subprocess think it has a real terminal
+            # This ensures \r progress updates are flushed immediately
+            import os
+            import pty
+            import select
+
+            env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
+            # Force tqdm to output even if it doesn't detect a TTY
+            env["TERM"] = "xterm-256color"
+
+            # Create a pseudo-terminal for stdout
+            # Progress and JSON both go to stdout, need PTY there
+            master_fd, slave_fd = pty.openpty()
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=slave_fd,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
+                close_fds=True,
+            )
+
+            os.close(slave_fd)  # Close slave in parent process
+
+            progress_output = []
+            all_output = ""
+            current_line = ""
+
+            # Read from PTY master to get stdout with real-time \r updates
+            while True:
+                # Check if data is available
+                readable, _, _ = select.select([master_fd], [], [], 0.1)
+
+                if master_fd in readable:
+                    try:
+                        data = os.read(master_fd, 1024).decode("utf-8", errors="ignore")
+                        if not data:
+                            break
+
+                        all_output += data
+
+                        for char in data:
+                            if char == "\r":
+                                # Carriage return - progress update
+                                if current_line.strip():
+                                    # Remove ANSI color codes for callback
+                                    clean_line = re.sub(
+                                        r"\x1b\[[0-9;]*m", "", current_line
+                                    )
+                                    progress_output.append(clean_line)
+                                    percentage = _parse_progress(clean_line)
+                                    if percentage >= 0:
+                                        progress_callback(clean_line, percentage)
+                                current_line = ""
+                            elif char == "\n":
+                                # Newline
+                                if current_line.strip():
+                                    clean_line = re.sub(
+                                        r"\x1b\[[0-9;]*m", "", current_line
+                                    )
+                                    progress_output.append(clean_line)
+                                    percentage = _parse_progress(clean_line)
+                                    if percentage >= 0:
+                                        progress_callback(clean_line, percentage)
+                                current_line = ""
+                            else:
+                                current_line += char
+                    except OSError:
+                        break
+
+                # Check if process has finished
+                if process.poll() is not None:
+                    # Read any remaining data
+                    try:
+                        while True:
+                            remaining = os.read(master_fd, 1024).decode(
+                                "utf-8", errors="ignore"
+                            )
+                            if not remaining:
+                                break
+                            all_output += remaining
+                    except OSError:
+                        pass
+                    break
+
+            os.close(master_fd)
+            process.wait()
+
+            if process.returncode != 0:
+                # Check stderr for error messages
+                stderr_msg = process.stderr.read() if process.stderr else ""
+                error_msg = stderr_msg or "\n".join(progress_output) or "Unknown error"
+                raise RuntimeError(f"Scan failed: {error_msg}")
+
+            # Extract JSON from the output (it's at the end after all progress messages)
+            # Remove ANSI codes first
+            clean_output = re.sub(r"\x1b\[[0-9;]*m", "", all_output)
+
+            # JSON is either [] or {...} at the end of the output
+            # Split by lines and find the last line that looks like JSON
+            json_output = ""
+            for line in reversed(clean_output.strip().split("\n")):
+                line = line.strip()
+                if line and line.startswith(("[", "{")):
+                    json_output = line
+                    break
+
+            if not json_output:
+                # Fallback: if no JSON found, might be empty result
+                json_output = "[]"
+
+            return json_output
+        else:
+            # Simple synchronous run without progress
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return result.stdout
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Scan failed: {e.stderr}") from e
+
+
+def _parse_progress(line: str) -> int:
+    """
+    Parse progress percentage from progress output line.
+
+    Args:
+        line: Output line (simple format: "PROGRESS: ... (XX.X%)")
+
+    Returns:
+        Percentage (0-100) or -1 if no percentage found
+    """
+    # Simple progress format: "PROGRESS: Fingerprinting 10/100 (10.0%)"
+    # or "PROGRESS: Scanning albums 5/10 (50.0%)"
+    if line.startswith("PROGRESS:"):
+        match = re.search(r"\((\d+(?:\.\d+)?)%\)", line)
+        if match:
+            return int(float(match.group(1)))
+
+    return -1
 
 
 def apply_rules(

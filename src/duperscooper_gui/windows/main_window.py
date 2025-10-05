@@ -1,17 +1,16 @@
 """Main window for duperscooper GUI."""
 
-import sys
 from pathlib import Path
 from typing import List, Optional
 
 from PySide6.QtCore import QThread, Signal
+from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
     QMainWindow,
     QMessageBox,
     QVBoxLayout,
 )
-from PySide6.QtUiTools import QUiLoader
 
 from ..models.results_model import ScanResults
 from .results_viewer import ResultsViewer
@@ -20,7 +19,7 @@ from .results_viewer import ResultsViewer
 class ScanThread(QThread):
     """Background thread for running scans."""
 
-    progress = Signal(str)  # Emits progress messages
+    progress = Signal(str, int)  # Emits (message: str, percentage: int)
     finished = Signal(str)  # Emits final JSON output
     error = Signal(str)  # Emits error messages
 
@@ -29,13 +28,16 @@ class ScanThread(QThread):
         self.paths = paths
         self.options = options
 
-    def run(self):
+    def run(self) -> None:
         """Run the scan in background thread."""
         try:
-            from ...utils.backend_interface import run_scan
+            from ..utils.backend_interface import run_scan
 
-            # This will be implemented next
-            result = run_scan(self.paths, self.options)
+            # Progress callback that emits Qt signal
+            def on_progress(message: str, percentage: int) -> None:
+                self.progress.emit(message, percentage)
+
+            result = run_scan(self.paths, self.options, progress_callback=on_progress)
             self.finished.emit(result)
         except Exception as e:
             self.error.emit(str(e))
@@ -44,13 +46,13 @@ class ScanThread(QThread):
 class MainWindow(QMainWindow):
     """Main application window."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # Load UI from .ui file
         ui_file = Path(__file__).parent.parent / "ui" / "main_window.ui"
         loader = QUiLoader()
-        self.ui = loader.load(str(ui_file), self)
+        self.ui = loader.load(str(ui_file), self)  # type: ignore[attr-defined]
 
         # Set the loaded UI as the central widget
         self.setCentralWidget(self.ui.centralwidget)
@@ -78,7 +80,7 @@ class MainWindow(QMainWindow):
         # Status message
         self.ui.statusbar.showMessage("Ready")
 
-    def _connect_signals(self):
+    def _connect_signals(self) -> None:
         """Connect UI signals to slots."""
         # File menu
         self.ui.actionOpen.triggered.connect(self.open_results)
@@ -91,17 +93,15 @@ class MainWindow(QMainWindow):
         self.ui.removePathButton.clicked.connect(self.remove_path)
         self.ui.startScanButton.clicked.connect(self.start_scan)
 
-    def add_path(self):
+    def add_path(self) -> None:
         """Add a path to scan."""
-        directory = QFileDialog.getExistingDirectory(
-            self, "Select Directory to Scan"
-        )
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory to Scan")
         if directory:
             self.scan_paths.append(directory)
             self.ui.pathsList.addItem(directory)
             self.ui.statusbar.showMessage(f"Added path: {directory}")
 
-    def remove_path(self):
+    def remove_path(self) -> None:
         """Remove selected path."""
         current_row = self.ui.pathsList.currentRow()
         if current_row >= 0:
@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
             self.ui.pathsList.takeItem(current_row)
             self.ui.statusbar.showMessage(f"Removed path: {removed_path}")
 
-    def start_scan(self):
+    def start_scan(self) -> None:
         """Start scanning for duplicates."""
         if not self.scan_paths:
             QMessageBox.warning(
@@ -142,19 +142,28 @@ class MainWindow(QMainWindow):
         self.scan_thread.error.connect(self.on_scan_error)
         self.scan_thread.start()
 
-    def on_scan_progress(self, message: str):
+    def on_scan_progress(self, message: str, percentage: int) -> None:
         """Handle scan progress updates."""
-        self.ui.scanLogText.append(message)
-        # Scroll to bottom
-        self.ui.scanLogText.verticalScrollBar().setValue(
-            self.ui.scanLogText.verticalScrollBar().maximum()
-        )
+        # Update progress bar if percentage is available
+        if percentage >= 0:
+            self.ui.scanProgressBar.setValue(percentage)
 
-    def on_scan_finished(self, json_output: str):
+        # Update log (only append non-empty messages, skip ANSI escape codes)
+        if message and not message.startswith("\x1b"):
+            # Clean up progress bar characters for display
+            clean_msg = message.replace("█", "#").replace("▌", "-")
+            self.ui.scanLogText.append(clean_msg)
+            # Scroll to bottom
+            self.ui.scanLogText.verticalScrollBar().setValue(
+                self.ui.scanLogText.verticalScrollBar().maximum()
+            )
+
+    def on_scan_finished(self, json_output: str) -> None:
         """Handle scan completion."""
+        import json
+
         self.ui.scanProgressBar.setValue(100)
         self.ui.startScanButton.setEnabled(True)
-        self.ui.statusbar.showMessage("Scan complete!")
 
         self.ui.scanLogText.append("\n=== Scan Complete ===")
 
@@ -179,7 +188,7 @@ class MainWindow(QMainWindow):
             )
             self.ui.scanLogText.append(f"Error loading results: {e}")
 
-    def on_scan_error(self, error_message: str):
+    def on_scan_error(self, error_message: str) -> None:
         """Handle scan errors."""
         self.ui.scanProgressBar.setValue(0)
         self.ui.startScanButton.setEnabled(True)
@@ -191,7 +200,7 @@ class MainWindow(QMainWindow):
             f"An error occurred during scanning:\n\n{error_message}",
         )
 
-    def open_results(self):
+    def open_results(self) -> None:
         """Open scan results from file."""
         filename, _ = QFileDialog.getOpenFileName(
             self, "Open Scan Results", "", "JSON Files (*.json)"
@@ -212,7 +221,7 @@ class MainWindow(QMainWindow):
                     f"Failed to load results file:\n\n{e}",
                 )
 
-    def save_results(self):
+    def save_results(self) -> None:
         """Save scan results to file."""
         if not self.current_results:
             QMessageBox.warning(
@@ -241,7 +250,7 @@ class MainWindow(QMainWindow):
             f"Backend integration coming soon!",
         )
 
-    def show_about(self):
+    def show_about(self) -> None:
         """Show about dialog."""
         from .. import __version__
 

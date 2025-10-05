@@ -27,6 +27,7 @@ class DuplicateFinder:
         similarity_threshold: float = 98.0,
         cache_backend: str = "sqlite",
         max_workers: int = 8,
+        simple_progress: bool = False,
     ):
         """
         Initialize duplicate finder.
@@ -44,12 +45,15 @@ class DuplicateFinder:
             cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
             max_workers: Maximum number of worker threads for parallel fingerprinting
                 (default: 8)
+            simple_progress: Use simple parseable progress instead of fancy output
+                (default: False)
         """
         self.min_size = min_size
         self.algorithm = algorithm
         self.verbose = verbose
         self.similarity_threshold = similarity_threshold
         self.max_workers = max_workers
+        self.simple_progress = simple_progress
         self.hasher = AudioHasher(
             cache_path=cache_path,
             use_cache=use_cache,
@@ -275,31 +279,38 @@ class DuplicateFinder:
                             or current_time - last_update_time >= 1.0
                         ):
                             percent = (completed / total_files) * 100
-                            elapsed = current_time - start_time
 
-                            # Calculate ETA
-                            if completed > 0 and completed < total_files:
-                                avg_time_per_file = elapsed / completed
-                                remaining_files = total_files - completed
-                                eta_seconds = avg_time_per_file * remaining_files
-                                eta_str = self._format_time(eta_seconds)
-                                elapsed_str = self._format_time(elapsed)
-                                print(
-                                    f"\r{Fore.CYAN}Fingerprinted "
-                                    f"{completed}/{total_files} files "
-                                    f"({percent:.1f}%) - Elapsed: {elapsed_str} "
-                                    f"- ETA: {eta_str}{Style.RESET_ALL}",
-                                    end="",
-                                    flush=True,
-                                )
+                            if self.simple_progress:
+                                # Simple parseable progress for GUI/scripts
+                                msg = f"PROGRESS: Fingerprinting {completed}/{total_files} ({percent:.1f}%)"  # noqa: E501
+                                print(msg, flush=True)
                             else:
-                                print(
-                                    f"\r{Fore.CYAN}Fingerprinted "
-                                    f"{completed}/{total_files} files "
-                                    f"({percent:.1f}%)...{Style.RESET_ALL}",
-                                    end="",
-                                    flush=True,
-                                )
+                                # Fancy progress with colors and ETA
+                                elapsed = current_time - start_time
+
+                                # Calculate ETA
+                                if completed > 0 and completed < total_files:
+                                    avg_time_per_file = elapsed / completed
+                                    remaining_files = total_files - completed
+                                    eta_seconds = avg_time_per_file * remaining_files
+                                    eta_str = self._format_time(eta_seconds)
+                                    elapsed_str = self._format_time(elapsed)
+                                    print(
+                                        f"\r{Fore.CYAN}Fingerprinted "
+                                        f"{completed}/{total_files} files "
+                                        f"({percent:.1f}%) - Elapsed: {elapsed_str} "
+                                        f"- ETA: {eta_str}{Style.RESET_ALL}",
+                                        end="",
+                                        flush=True,
+                                    )
+                                else:
+                                    print(
+                                        f"\r{Fore.CYAN}Fingerprinted "
+                                        f"{completed}/{total_files} files "
+                                        f"({percent:.1f}%)...{Style.RESET_ALL}",
+                                        end="",
+                                        flush=True,
+                                    )
 
                             last_update_time = current_time
                 else:
