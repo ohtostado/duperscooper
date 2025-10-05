@@ -55,8 +55,12 @@ def run_scan(
     cmd.append("--output")
     cmd.append("json")
 
-    # If no progress callback, use --no-progress for simpler output
-    if not progress_callback:
+    # Progress handling
+    if progress_callback:
+        # Use simple progress format for GUI parsing
+        cmd.append("--simple-progress")
+    else:
+        # No progress output
         cmd.append("--no-progress")
 
     # Run command
@@ -70,6 +74,8 @@ def run_scan(
 
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
+            # Force tqdm to output even if it doesn't detect a TTY
+            env["TERM"] = "xterm-256color"
 
             # Create a pseudo-terminal for stdout
             # Progress and JSON both go to stdout, need PTY there
@@ -157,14 +163,21 @@ def run_scan(
                 raise RuntimeError(f"Scan failed: {error_msg}")
 
             # Extract JSON from the output (it's at the end after all progress messages)
+            # Remove ANSI codes first
+            clean_output = re.sub(r"\x1b\[[0-9;]*m", "", all_output)
+
             # JSON is either [] or {...} at the end of the output
-            json_output = all_output.strip().split("\n")[-1]
-            if not json_output.startswith(("[", "{")):
-                # Fallback: find the last line that looks like JSON
-                for line in reversed(all_output.strip().split("\n")):
-                    if line.startswith(("[", "{")):
-                        json_output = line
-                        break
+            # Split by lines and find the last line that looks like JSON
+            json_output = ""
+            for line in reversed(clean_output.strip().split("\n")):
+                line = line.strip()
+                if line and line.startswith(("[", "{")):
+                    json_output = line
+                    break
+
+            if not json_output:
+                # Fallback: if no JSON found, might be empty result
+                json_output = "[]"
 
             return json_output
         else:
@@ -185,23 +198,17 @@ def _parse_progress(line: str) -> int:
     Parse progress percentage from progress output line.
 
     Args:
-        line: Output line from stderr
+        line: Output line (simple format: "PROGRESS: ... (XX.X%)")
 
     Returns:
         Percentage (0-100) or -1 if no percentage found
     """
-    # Look for percentage pattern in parentheses like "(45.5%)" or direct "45%"
-    # Examples:
-    #   "Fingerprinted 9/16 files (56.2%) - Elapsed: 3s - ETA: 2s"
-    #   "Compared 100/120 pairs (83.3%)..."
-    match = re.search(r"\((\d+(?:\.\d+)?)%\)", line)
-    if match:
-        return int(float(match.group(1)))
-
-    # Fallback to simple percentage pattern
-    match = re.search(r"(\d+)%", line)
-    if match:
-        return int(match.group(1))
+    # Simple progress format: "PROGRESS: Fingerprinting 10/100 (10.0%)"
+    # or "PROGRESS: Scanning albums 5/10 (50.0%)"
+    if line.startswith("PROGRESS:"):
+        match = re.search(r"\((\d+(?:\.\d+)?)%\)", line)
+        if match:
+            return int(float(match.group(1)))
 
     return -1
 

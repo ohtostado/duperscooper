@@ -37,16 +37,20 @@ class Album:
 class AlbumScanner:
     """Scans directories to identify albums and extract metadata."""
 
-    def __init__(self, hasher: AudioHasher, verbose: bool = False):
+    def __init__(
+        self, hasher: AudioHasher, verbose: bool = False, simple_progress: bool = False
+    ):
         """
         Initialize album scanner.
 
         Args:
             hasher: AudioHasher instance for fingerprinting
             verbose: Enable verbose output
+            simple_progress: Use simple parseable progress instead of tqdm
         """
         self.hasher = hasher
         self.verbose = verbose
+        self.simple_progress = simple_progress
         self.album_cache_hits = 0
         self.album_cache_misses = 0
 
@@ -72,8 +76,13 @@ class AlbumScanner:
 
         # Extract metadata and fingerprints for each album
         albums = []
+        total_albums = len(album_dirs)
 
-        if self.verbose:
+        if self.verbose and self.simple_progress:
+            # Simple parseable progress for GUI/scripts
+            iterator = album_dirs
+        elif self.verbose:
+            # Fancy progress with tqdm
             from tqdm import tqdm
 
             iterator = tqdm(
@@ -85,19 +94,29 @@ class AlbumScanner:
         else:
             iterator = album_dirs
 
-        for album_dir in iterator:
+        for idx, album_dir in enumerate(iterator, 1):
             try:
                 album = self.extract_album_metadata(album_dir)
                 albums.append(album)
+
+                # Output simple progress
+                if self.verbose and self.simple_progress:
+                    percent = (idx / total_albums) * 100
+                    msg = f"PROGRESS: Scanning albums {idx}/{total_albums} ({percent:.1f}%)"  # noqa: E501
+                    print(msg, flush=True)
+
             except Exception as e:
                 if self.verbose:
-                    # tqdm.write prints without disrupting progress bar
-                    from tqdm import tqdm
+                    if self.simple_progress:
+                        print(f"ERROR: {album_dir}: {e}", flush=True)
+                    else:
+                        # tqdm.write prints without disrupting progress bar
+                        from tqdm import tqdm
 
-                    tqdm.write(f"Error processing {album_dir}: {e}")
+                        tqdm.write(f"Error processing {album_dir}: {e}")
 
         if self.verbose:
-            print(f"Successfully processed {len(albums)} albums")
+            print(f"Successfully processed {len(albums)} albums", flush=True)
 
         return albums
 

@@ -589,6 +589,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--simple-progress",
+        action="store_true",
+        help="Use simple progress output (parseable by scripts/GUIs, disables tqdm)",
+    )
+
+    parser.add_argument(
         "--delete-duplicates",
         action="store_true",
         help="Interactively delete duplicate files after finding them",
@@ -1127,6 +1133,7 @@ def run_file_mode(args: argparse.Namespace) -> int:
         similarity_threshold=args.similarity_threshold,
         cache_backend=args.cache_backend,
         max_workers=args.workers,
+        simple_progress=args.simple_progress,
     )
 
     try:
@@ -1176,7 +1183,11 @@ def run_album_mode(args: argparse.Namespace) -> int:
         update_cache=args.update_cache,
         cache_backend=args.cache_backend,
     )
-    scanner = AlbumScanner(hasher, verbose=not args.no_progress)
+    scanner = AlbumScanner(
+        hasher,
+        verbose=not args.no_progress,
+        simple_progress=args.simple_progress,
+    )
     finder = AlbumDuplicateFinder(
         hasher,
         verbose=not args.no_progress,
