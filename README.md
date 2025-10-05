@@ -465,6 +465,62 @@ Tested on 21 albums (203 audio files, 4.6GB) - album mode:
 
 Perceptual matching is O(n²), suitable for libraries up to ~10,000 files.
 
+## GUI (Experimental)
+
+duperscooper includes an experimental graphical interface built with PySide6/Qt.
+
+### Installing GUI Dependencies
+
+```bash
+# Install with GUI support
+pip install -e ".[gui]"
+
+# Or install PySide6 separately
+pip install PySide6>=6.6.0
+```
+
+### Running the GUI
+
+```bash
+# Start the GUI
+duperscooper-gui
+
+# Or run directly from the module
+python -m duperscooper_gui
+```
+
+### GUI Features
+
+**Currently implemented:**
+
+- ✅ Scan configuration interface (track/album mode, paths, options)
+- ✅ Results viewer with tree display and quality information
+- ✅ Checkbox selection with pre-selection based on recommended actions
+- ✅ Selection statistics and controls
+
+**Coming soon:**
+
+- Backend deletion integration (staging system)
+- Staging management interface (restore, empty deleted)
+- Settings dialog
+
+### Editing the GUI
+
+The GUI uses Qt Designer `.ui` files for visual layout editing:
+
+```bash
+# Install Qt Designer (macOS)
+brew install qt-creator
+
+# Install Qt Designer (Ubuntu/Debian)
+sudo apt install qttools5-dev-tools
+
+# Open a UI file for editing
+designer src/duperscooper_gui/ui/main_window.ui
+```
+
+UI files are located in [src/duperscooper_gui/ui/](src/duperscooper_gui/ui/)
+
 ## Development
 
 ### Setup Development Environment
@@ -477,6 +533,9 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
+
+# Optional: Install GUI dependencies
+pip install -e ".[gui]"
 ```
 
 ### Quality Checks
