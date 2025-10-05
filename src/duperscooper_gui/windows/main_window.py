@@ -136,17 +136,36 @@ class MainWindow(QMainWindow):
 
     def on_scan_finished(self, json_output: str) -> None:
         """Handle scan completion."""
+        import json
+
         self.ui.scanProgressBar.setValue(100)
         self.ui.startScanButton.setEnabled(True)
-        self.ui.statusbar.showMessage("Scan complete!")
 
         self.ui.scanLogText.append("\n=== Scan Complete ===")
-        self.ui.scanLogText.append("Found duplicates. JSON output ready.")
 
-        # Switch to results tab
-        self.ui.tabWidget.setCurrentIndex(1)
+        # Parse JSON to check for duplicates
+        try:
+            data = json.loads(json_output)
+            duplicate_count = (
+                len(data) if isinstance(data, list) else data.get("total_groups", 0)
+            )
 
-        # TODO: Load results into results viewer
+            if duplicate_count == 0:
+                self.ui.scanLogText.append("No duplicates found.")
+                self.ui.statusbar.showMessage("Scan complete - no duplicates found")
+            else:
+                self.ui.scanLogText.append(
+                    f"Found {duplicate_count} duplicate group(s)."
+                )
+                self.ui.statusbar.showMessage(
+                    f"Scan complete - found {duplicate_count} duplicate group(s)"
+                )
+                # Switch to results tab only if duplicates found
+                self.ui.tabWidget.setCurrentIndex(1)
+                # TODO: Load results into results viewer
+        except json.JSONDecodeError:
+            self.ui.scanLogText.append("Scan complete. JSON output ready.")
+            self.ui.statusbar.showMessage("Scan complete!")
 
     def on_scan_error(self, error_message: str) -> None:
         """Handle scan errors."""
