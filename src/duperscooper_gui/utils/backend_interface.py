@@ -62,60 +62,104 @@ def run_scan(
     # Run command
     try:
         if progress_callback:
-            # Run with live output capture for progress
-            # Use unbuffered output to get real-time progress
+            # Run with PTY to make subprocess think it has a real terminal
+            # This ensures \r progress updates are flushed immediately
             import os
+            import pty
+            import select
 
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
 
+            # Create a pseudo-terminal
+            master_fd, slave_fd = pty.openpty()
+
             process = subprocess.Popen(
                 cmd,
+                stdin=slave_fd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=slave_fd,
                 text=True,
-                bufsize=0,  # Unbuffered
                 env=env,
+                close_fds=True,
             )
+
+            os.close(slave_fd)  # Close slave in parent process
 
             stderr_output = []
             json_output = ""
+            current_line = ""
 
-            # Read stderr character by character to catch \r updates
-            if process.stderr:
-                current_line = ""
-                while True:
-                    char = process.stderr.read(1)
-                    if not char:
+            # Read from PTY master to get stderr with real-time \r updates
+            while True:
+                # Check if data is available
+                readable, _, _ = select.select([master_fd, process.stdout], [], [], 0.1)
+
+                if master_fd in readable:
+                    try:
+                        data = os.read(master_fd, 1024).decode("utf-8", errors="ignore")
+                        if not data:
+                            break
+
+                        for char in data:
+                            if char == "\r":
+                                # Carriage return - progress update
+                                if current_line.strip():
+                                    # Remove ANSI color codes for callback
+                                    clean_line = re.sub(
+                                        r"\x1b\[[0-9;]*m", "", current_line
+                                    )
+                                    stderr_output.append(clean_line)
+                                    percentage = _parse_progress(clean_line)
+                                    if percentage >= 0:
+                                        progress_callback(clean_line, percentage)
+                                current_line = ""
+                            elif char == "\n":
+                                # Newline
+                                if current_line.strip():
+                                    clean_line = re.sub(
+                                        r"\x1b\[[0-9;]*m", "", current_line
+                                    )
+                                    stderr_output.append(clean_line)
+                                    percentage = _parse_progress(clean_line)
+                                    if percentage >= 0:
+                                        progress_callback(clean_line, percentage)
+                                current_line = ""
+                            else:
+                                current_line += char
+                    except OSError:
                         break
 
-                    if char == "\r":
-                        # Carriage return - this is a progress update
-                        if current_line.strip():
-                            stderr_output.append(current_line)
-                            percentage = _parse_progress(current_line)
-                            progress_callback(current_line, percentage)
-                        current_line = ""
-                    elif char == "\n":
-                        # Newline - end of line
-                        if current_line.strip():
-                            stderr_output.append(current_line)
-                            percentage = _parse_progress(current_line)
-                            progress_callback(current_line, percentage)
-                        current_line = ""
-                    else:
-                        current_line += char
+                if process.stdout in readable:
+                    chunk = process.stdout.read(1024)
+                    if chunk:
+                        json_output += chunk
 
-                # Handle any remaining content
-                if current_line.strip():
-                    stderr_output.append(current_line)
-                    percentage = _parse_progress(current_line)
-                    progress_callback(current_line, percentage)
+                # Check if process has finished
+                if process.poll() is not None:
+                    # Read any remaining data
+                    try:
+                        remaining = os.read(master_fd, 1024).decode(
+                            "utf-8", errors="ignore"
+                        )
+                        for char in remaining:
+                            if char in ("\r", "\n"):
+                                if current_line.strip():
+                                    clean_line = re.sub(
+                                        r"\x1b\[[0-9;]*m", "", current_line
+                                    )
+                                    stderr_output.append(clean_line)
+                                current_line = ""
+                            else:
+                                current_line += char
+                    except OSError:
+                        pass
 
-            # Wait for completion and read stdout
-            if process.stdout:
-                json_output = process.stdout.read()
+                    if process.stdout:
+                        json_output += process.stdout.read()
+                    break
 
+            os.close(master_fd)
             process.wait()
 
             if process.returncode != 0:
