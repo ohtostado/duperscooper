@@ -632,3 +632,7 @@ class ResultsViewer(QWidget):
 
         # Emit signal
         self.copy_batch_requested.emit(self.last_batch_id)
+
+    def has_staged_deletions(self) -> bool:
+        """Check if there are staged deletions (restoration banner visible)."""
+        return self.ui.restorationBanner.isVisible()

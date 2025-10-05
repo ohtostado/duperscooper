@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from PySide6.QtCore import QThread, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -423,6 +424,29 @@ class MainWindow(QMainWindow):
         # Visual confirmation in scan log
         self.ui.scanLogText.append(f"📋 Copied batch ID to clipboard: {batch_id}")
         self.ui.statusbar.showMessage("Batch ID copied to clipboard", 3000)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """Handle window close event - check for staged deletions."""
+        # Check if there are staged deletions (restoration banner is visible)
+        if self.results_viewer.has_staged_deletions():
+            reply = QMessageBox.question(
+                self,
+                "Confirm Exit",
+                "You have staged deletions that have not been restored.\n\n"
+                "These files are staged in .deletedByDuperscooper/ and can be "
+                "restored later using the CLI:\n"
+                f"  duperscooper --restore {self.results_viewer.last_batch_id}\n\n"
+                "Are you sure you want to exit?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
     def show_about(self) -> None:
         """Show about dialog."""

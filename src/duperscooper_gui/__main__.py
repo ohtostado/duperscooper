@@ -33,7 +33,8 @@ def main():
     def signal_handler(sig, frame):
         """Handle Ctrl+C by closing the application cleanly."""
         print("\nShutting down duperscooper GUI...")
-        app.quit()
+        # Call window.close() to trigger closeEvent confirmation
+        window.close()
 
     signal.signal(signal.SIGINT, signal_handler)
 
