@@ -418,51 +418,53 @@ def stage_items(
         }
 
     # Create temporary JSON file with paths marked for deletion
+    # NOTE: CLI expects a LIST at top level, not a dict
     if mode == "track":
-        # Create track mode JSON
-        json_data = {
-            "mode": "track",
-            "duplicate_groups": [
-                {
-                    "group_id": 1,
-                    "hash": "temp",
-                    "files": [
-                        {
-                            "path": path,
-                            "recommended_action": "delete",
-                            "is_best": False,
-                        }
-                        for path in paths
-                    ],
-                }
-            ],
-        }
+        # Create track mode JSON - list of groups
+        json_data = [
+            {
+                "hash": "staged_deletion",
+                "files": [
+                    {
+                        "path": path,
+                        "recommended_action": "delete",
+                        "is_best": False,
+                        "quality_score": 0,
+                        "similarity_to_best": 0,
+                    }
+                    for path in paths
+                ],
+            }
+        ]
     else:
-        # Create album mode JSON
-        json_data = {
-            "mode": "album",
-            "duplicate_groups": [
-                {
-                    "group_id": 1,
-                    "matched_album": "temp",
-                    "matched_artist": "temp",
-                    "albums": [
-                        {
-                            "path": path,
-                            "recommended_action": "delete",
-                            "is_best": False,
-                        }
-                        for path in paths
-                    ],
-                }
-            ],
-        }
+        # Create album mode JSON - list of groups
+        json_data = [
+            {
+                "matched_album": "Staged Deletion",
+                "matched_artist": "Various",
+                "albums": [
+                    {
+                        "path": path,
+                        "recommended_action": "delete",
+                        "is_best": False,
+                        "quality_score": 0,
+                        "track_count": 0,
+                        "total_size_bytes": 0,
+                    }
+                    for path in paths
+                ],
+            }
+        ]
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".json", delete=False
     ) as temp_file:
         json.dump(json_data, temp_file)
         temp_path = temp_file.name
+
+    # Debug: print the JSON content
+    print(f"DEBUG: Temp JSON file: {temp_path}")  # Debug
+    print(f"DEBUG: JSON content:\n{json.dumps(json_data, indent=2)}")  # Debug
 
     try:
         cmd = [
