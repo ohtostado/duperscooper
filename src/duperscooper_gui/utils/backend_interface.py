@@ -470,12 +470,18 @@ def stage_items(
         if store_fingerprints:
             cmd.append("--store-fingerprints")
 
+        print(f"DEBUG: Running command: {' '.join(cmd)}")  # Debug
+
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             check=False,  # Don't raise on non-zero exit
         )
+
+        print(f"DEBUG: Command exit code: {result.returncode}")  # Debug
+        print(f"DEBUG: stdout:\n{result.stdout}")  # Debug
+        print(f"DEBUG: stderr:\n{result.stderr}")  # Debug
 
         # Parse output for batch ID
         # Look for "Staged N items to batch_YYYY-MM-DD_HH-MM-SS"
