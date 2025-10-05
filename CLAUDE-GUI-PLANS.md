@@ -19,3 +19,9 @@
 9. [FUTURE] The GUI should make it easy to recall deletions from previous sessions (maybe keep track of manifests that were created in past sessions)
 
 10. [FUTURE] the user should have the ability to open the log output in a larger scrollable window or an external program. the GUI should also have the facility to save the log output.
+
+11. [FUTURE] the results table should let the user show or hide columns. the gui must not allow the user to hide the "critical" columns. the gui should allow the user to show additional columns that are not shown by default. suggest additional columns that could be useful (i.e. musicbrainz tags)
+
+12. [FUTURE] the GUI should allow the user to resize and reorder columns.
+
+13. [FUTURE] the GUI should save the state of the table (visible columns, column order, column widths, etc.) the GUI should allow the user to reset the table view to defaults with a confirmation.

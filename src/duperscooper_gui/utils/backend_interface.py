@@ -40,8 +40,9 @@ def run_scan(
     cmd.append("--min-size")
     cmd.append("0")
 
-    if options.get("album_mode"):
-        cmd.append("--album-mode")
+    # Album mode is now the default in CLI, so use --track-mode to disable it
+    if not options.get("album_mode", True):
+        cmd.append("--track-mode")
 
     if options.get("algorithm") == "exact":
         cmd.append("--algorithm")

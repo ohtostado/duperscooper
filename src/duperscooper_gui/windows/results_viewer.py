@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QBrush, QColor
+from PySide6.QtGui import QBrush
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMessageBox,
@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..config import Settings
 from ..models.results_model import (
     ScanResults,
 )
@@ -94,8 +95,8 @@ class ResultsViewer(QWidget):
             font.setBold(True)
             font.setPointSize(font.pointSize() + 1)
             group_item.setFont(1, font)
-            group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
-            group_item.setForeground(1, QBrush(QColor("#333333")))
+            group_item.setBackground(1, QBrush(Settings.Colors.GROUP_HEADER_BACKGROUND))
+            group_item.setForeground(1, QBrush(Settings.Colors.GROUP_HEADER_FOREGROUND))
 
             # Add files
             for file in group.files:
@@ -133,10 +134,14 @@ class ResultsViewer(QWidget):
                         font = file_item.font(col)
                         font.setBold(True)
                         file_item.setFont(col, font)
-                        file_item.setForeground(col, QBrush(QColor("#2e7d32")))
+                        file_item.setForeground(
+                            col, QBrush(Settings.Colors.BEST_QUALITY_COLOR)
+                        )
                 else:
                     # Color code similarity (now column 6 instead of 4)
-                    sim_color = self._get_similarity_color(file.similarity_to_best)
+                    sim_color = Settings.Colors.get_similarity_color(
+                        file.similarity_to_best
+                    )
                     file_item.setForeground(6, QBrush(sim_color))
 
                 # Add tooltip with detailed info
@@ -192,8 +197,8 @@ class ResultsViewer(QWidget):
             font.setBold(True)
             font.setPointSize(font.pointSize() + 1)
             group_item.setFont(1, font)
-            group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
-            group_item.setForeground(1, QBrush(QColor("#333333")))
+            group_item.setBackground(1, QBrush(Settings.Colors.GROUP_HEADER_BACKGROUND))
+            group_item.setForeground(1, QBrush(Settings.Colors.GROUP_HEADER_FOREGROUND))
 
             # Add albums
             for album in group.albums:
@@ -202,8 +207,8 @@ class ResultsViewer(QWidget):
                     [
                         "",
                         album.path,
-                        album.album_name or "",  # Album from metadata
-                        album.artist_name or "",  # Artist from metadata
+                        album.album or "",  # Track-level album tag
+                        album.artist or "",  # Track-level artist tag
                         f"{album.size_mb:.1f} MB",
                         album.quality_info,
                         f"{album.match_percentage:.1f}%",
@@ -231,10 +236,14 @@ class ResultsViewer(QWidget):
                         font = album_item.font(col)
                         font.setBold(True)
                         album_item.setFont(col, font)
-                        album_item.setForeground(col, QBrush(QColor("#2e7d32")))
+                        album_item.setForeground(
+                            col, QBrush(Settings.Colors.BEST_QUALITY_COLOR)
+                        )
                 else:
                     # Color code similarity (now column 6 instead of 4)
-                    sim_color = self._get_similarity_color(album.match_percentage)
+                    sim_color = Settings.Colors.get_similarity_color(
+                        album.match_percentage
+                    )
                     album_item.setForeground(6, QBrush(sim_color))
 
                 # Add tooltip with detailed info
@@ -259,17 +268,6 @@ class ResultsViewer(QWidget):
         # Resize columns
         for i in range(8):
             self.ui.resultsTree.resizeColumnToContents(i)
-
-    def _get_similarity_color(self, similarity: float) -> QColor:
-        """Get color based on similarity percentage."""
-        if similarity >= 99.0:
-            return QColor("#1b5e20")  # Dark green - very similar
-        elif similarity >= 97.0:
-            return QColor("#388e3c")  # Green - similar
-        elif similarity >= 95.0:
-            return QColor("#f57c00")  # Orange - moderately similar
-        else:
-            return QColor("#c62828")  # Red - less similar
 
     def _update_summary(self):
         """Update summary label."""

@@ -67,9 +67,11 @@ class AlbumDuplicate:
     is_best: bool
     recommended_action: str
     musicbrainz_albumid: Optional[str] = None
-    album_name: Optional[str] = None
-    artist_name: Optional[str] = None
+    album_name: Optional[str] = None  # Aggregated album metadata
+    artist_name: Optional[str] = None  # Aggregated album metadata
     selected_for_deletion: bool = False
+    album: Optional[str] = None  # Track-level album tag (for display)
+    artist: Optional[str] = None  # Track-level artist tag (for display)
 
     @property
     def size_mb(self) -> float:
@@ -173,6 +175,9 @@ class ScanResults:
                             album_name=a.get("album_name"),
                             artist_name=a.get("artist_name"),
                             selected_for_deletion=(a["recommended_action"] == "delete"),
+                            # Track-level tags for GUI display
+                            album=a.get("album"),
+                            artist=a.get("artist"),
                         )
                         for a in group["albums"]
                     ]

@@ -512,7 +512,7 @@ class DuplicateManager:
         return f"{size_float:.1f} TB"
 
     @staticmethod
-    def get_file_info(file_path: Path) -> Dict[str, Union[str, int]]:
+    def get_file_info(file_path: Path) -> Dict[str, Union[str, int, None]]:
         """Get file information for display."""
         try:
             stat = file_path.stat()

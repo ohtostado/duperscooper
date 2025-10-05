@@ -76,6 +76,9 @@ class MainWindow(QMainWindow):
         # Track current results
         self.current_results: Optional[ScanResults] = None
 
+        # Set default options - Album Mode is index 1
+        self.ui.modeCombo.setCurrentIndex(1)
+
         # Status message
         self.ui.statusbar.showMessage("Ready")
 
