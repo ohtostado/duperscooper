@@ -16,6 +16,7 @@ except ImportError:
 
 from . import __version__
 from .finder import DuplicateFinder, DuplicateManager
+from .hasher import AudioHasher
 
 # Initialize colorama for cross-platform color support
 init(autoreset=True)
@@ -190,6 +191,12 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
             is_best = file_path == best_file
             file_info["is_best"] = is_best
             file_info["recommended_action"] = "keep" if is_best else "delete"
+
+            # Extract album/artist tags
+            tags = AudioHasher.get_audio_tags(file_path)
+            file_info["album"] = tags["album"]
+            file_info["artist"] = tags["artist"]
+
             files_data.append(file_info)
 
         group = {
@@ -361,6 +368,12 @@ def format_album_output_json(
             # Get match percentage
             match_pct = _get_album_match_percentage(album, best_album, hasher)
 
+            # Extract first track's album/artist tags for display
+            # (shows actual track-level metadata, not aggregated album metadata)
+            track_tags: Dict[str, Any] = {"album": None, "artist": None}
+            if album.tracks:
+                track_tags = AudioHasher.get_audio_tags(album.tracks[0])
+
             album_data = {
                 "path": str(album.path),
                 "track_count": album.track_count,
@@ -377,6 +390,9 @@ def format_album_output_json(
                 "has_mixed_mb_ids": album.has_mixed_mb_ids,
                 "is_partial_match": album.is_partial_match,
                 "overlap_percentage": album.overlap_percentage,
+                # Track-level tags for GUI display
+                "album": track_tags["album"],
+                "artist": track_tags["artist"],
             }
             albums_data.append(album_data)
 
@@ -646,7 +662,14 @@ Examples:
     parser.add_argument(
         "--album-mode",
         action="store_true",
-        help="Find duplicate albums instead of individual files",
+        default=True,
+        help="Find duplicate albums instead of individual files (default)",
+    )
+
+    parser.add_argument(
+        "--track-mode",
+        action="store_true",
+        help="Find duplicate tracks instead of albums",
     )
 
     parser.add_argument(
@@ -1103,6 +1126,10 @@ def main() -> int:
     if not args.paths:
         print("Error: the following arguments are required: paths", file=sys.stderr)
         return 1
+
+    # Handle --track-mode flag (overrides default album mode)
+    if args.track_mode:
+        args.album_mode = False
 
     # Validate album-mode-specific options
     if args.delete_duplicate_albums and not args.album_mode:

@@ -36,8 +36,13 @@ def run_scan(
     cmd.extend(paths)
 
     # Add options
-    if options.get("album_mode"):
-        cmd.append("--album-mode")
+    # Set min-size to 0 to scan all files (including small test files)
+    cmd.append("--min-size")
+    cmd.append("0")
+
+    # Album mode is now the default in CLI, so use --track-mode to disable it
+    if not options.get("album_mode", True):
+        cmd.append("--track-mode")
 
     if options.get("algorithm") == "exact":
         cmd.append("--algorithm")
@@ -156,7 +161,8 @@ def run_scan(
             os.close(master_fd)
             process.wait()
 
-            if process.returncode != 0:
+            # Exit codes: 0 = no duplicates, 2 = duplicates found, others = error
+            if process.returncode not in (0, 2):
                 # Check stderr for error messages
                 stderr_msg = process.stderr.read() if process.stderr else ""
                 error_msg = stderr_msg or "\n".join(progress_output) or "Unknown error"
@@ -166,16 +172,21 @@ def run_scan(
             # Remove ANSI codes first
             clean_output = re.sub(r"\x1b\[[0-9;]*m", "", all_output)
 
-            # JSON is either [] or {...} at the end of the output
-            # Split by lines and find the last line that looks like JSON
-            json_output = ""
-            for line in reversed(clean_output.strip().split("\n")):
-                line = line.strip()
-                if line and line.startswith(("[", "{")):
-                    json_output = line
+            # Find the start of JSON (either [ or { at start of line)
+            # JSON can be multi-line, so we need to extract from first [ or { to the end
+            json_start = -1
+            lines = clean_output.split("\n")
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped and stripped[0] in "[{":
+                    json_start = i
                     break
 
-            if not json_output:
+            if json_start >= 0:
+                # Extract all lines from JSON start to end
+                json_lines = lines[json_start:]
+                json_output = "\n".join(json_lines).strip()
+            else:
                 # Fallback: if no JSON found, might be empty result
                 json_output = "[]"
 
@@ -186,8 +197,13 @@ def run_scan(
                 cmd,
                 capture_output=True,
                 text=True,
-                check=True,
+                check=False,  # Don't raise on non-zero exit
             )
+
+            # Exit codes: 0 = no duplicates, 2 = duplicates found, others = error
+            if result.returncode not in (0, 2):
+                raise RuntimeError(f"Scan failed: {result.stderr}")
+
             return result.stdout
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Scan failed: {e.stderr}") from e

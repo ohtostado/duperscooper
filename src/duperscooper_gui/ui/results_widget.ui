@@ -6,25 +6,94 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1000</width>
+    <height>700</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
    <item>
-    <widget class="QLabel" name="summaryLabel">
-     <property name="text">
-      <string>No results loaded. Run a scan or open a results file.</string>
+    <widget class="QFrame" name="summaryFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
+     <layout class="QVBoxLayout" name="summaryLayout">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="summaryLabel">
+        <property name="text">
+         <string>No results loaded. Run a scan or open a results file.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size: 14pt; font-weight: bold; padding: 8px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="statsLabel">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size: 11pt; color: #666; padding: 4px;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
     <widget class="QTreeWidget" name="resultsTree">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <property name="indentation">
+      <number>20</number>
+     </property>
+     <property name="uniformRowHeights">
+      <bool>false</bool>
+     </property>
+     <property name="itemsExpandable">
+      <bool>true</bool>
+     </property>
+     <property name="sortingEnabled">
+      <bool>false</bool>
+     </property>
      <property name="columnCount">
-      <number>6</number>
+      <number>8</number>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QTreeWidget::item { padding: 5px; }
+QTreeWidget::item:hover { background-color: #e3f2fd; }
+QTreeWidget::item:selected { background-color: #2196f3; color: white; }</string>
      </property>
      <column>
       <property name="text">
@@ -33,7 +102,17 @@
      </column>
      <column>
       <property name="text">
-       <string>Path</string>
+       <string>Path / Album</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Album</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Artist</string>
       </property>
      </column>
      <column>
@@ -43,7 +122,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Quality</string>
+       <string>Quality (avg)</string>
       </property>
      </column>
      <column>
@@ -53,72 +132,95 @@
      </column>
      <column>
       <property name="text">
-       <string>Action</string>
+       <string>Recommendation</string>
       </property>
      </column>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="actionsLayout">
-     <item>
-      <widget class="QLabel" name="selectionLabel">
-       <property name="text">
-        <string>0 items selected (0.0 MB)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="selectAllButton">
-       <property name="text">
-        <string>Select All</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="deselectAllButton">
-       <property name="text">
-        <string>Deselect All</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="selectRecommendedButton">
-       <property name="text">
-        <string>Select Recommended</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="previewButton">
-       <property name="text">
-        <string>Preview Deletion</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="deleteButton">
-       <property name="text">
-        <string>Delete Selected</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #d9534f; color: white; font-weight: bold;</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QFrame" name="actionsFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="actionsLayout">
+      <item>
+       <widget class="QLabel" name="selectionLabel">
+        <property name="text">
+         <string>0 items selected (0.0 MB)</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size: 11pt; font-weight: bold; padding: 4px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="selectAllButton">
+        <property name="text">
+         <string>Select All</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">padding: 6px 12px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="deselectAllButton">
+        <property name="text">
+         <string>Deselect All</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">padding: 6px 12px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="selectRecommendedButton">
+        <property name="text">
+         <string>Select Recommended</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #4caf50; color: white; font-weight: bold; padding: 6px 12px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="previewButton">
+        <property name="text">
+         <string>Preview Deletion</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #2196f3; color: white; padding: 6px 12px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="deleteButton">
+        <property name="text">
+         <string>Delete Selected</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #d32f2f; color: white; font-weight: bold; padding: 6px 12px;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
