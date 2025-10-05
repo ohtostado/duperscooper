@@ -429,30 +429,17 @@ class ResultsViewer(QWidget):
         QMessageBox.information(self, "Deletion Preview", preview_text)
 
     def delete_selected(self):
-        """Request deletion of selected items."""
+        """Stage selected items for deletion (no confirmation here)."""
         if not self.results:
             return
 
         selected_paths = self._get_selected_paths()
         if not selected_paths:
-            QMessageBox.warning(self, "No Selection", "No items selected for deletion.")
+            QMessageBox.warning(self, "No Selection", "No items selected for staging.")
             return
 
-        # Confirm deletion
-        item_type = "files" if self.results.mode == "track" else "albums"
-        reply = QMessageBox.question(
-            self,
-            "Confirm Deletion",
-            f"Stage {len(selected_paths)} {item_type} for deletion?\n\n"
-            f"Potential savings: {self.results.potential_savings_mb:.1f} MB\n\n"
-            f"Items will be moved to staging and can be restored.",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-
-        if reply == QMessageBox.Yes:
-            # Emit signal with paths to delete
-            self.delete_requested.emit(selected_paths)
+        # Emit signal with paths to stage (no confirmation dialog)
+        self.delete_requested.emit(selected_paths)
 
     def _get_selected_paths(self) -> list:
         """Get list of selected paths."""

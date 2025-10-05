@@ -40,12 +40,28 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="emptyButton">
+      <widget class="QPushButton" name="deleteAllButton">
        <property name="text">
-        <string>🗑️ Empty Deleted...</string>
+        <string>🗑️ Delete All Staged</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
        </property>
        <property name="toolTip">
-        <string>Permanently delete old batches</string>
+        <string>Permanently delete all staged batches</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #d32f2f; color: white; font-weight: bold; padding: 6px 12px;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="emptyButton">
+       <property name="text">
+        <string>🗑️ Empty Old Batches...</string>
+       </property>
+       <property name="toolTip">
+        <string>Permanently delete old batches with retention policies</string>
        </property>
       </widget>
      </item>
