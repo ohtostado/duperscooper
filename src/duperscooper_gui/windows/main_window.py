@@ -149,8 +149,17 @@ class MainWindow(QMainWindow):
 
         # Update log (only append non-empty messages, skip ANSI escape codes)
         if message and not message.startswith("\x1b"):
-            # Clean up progress bar characters for display
+            # Clean up and format messages for better readability
             clean_msg = message.replace("█", "#").replace("▌", "-")
+
+            # Add visual indicators
+            if "PROGRESS:" in clean_msg:
+                clean_msg = clean_msg.replace("PROGRESS:", "▶").strip()
+            elif "ERROR:" in clean_msg.upper():
+                clean_msg = f"❌ {clean_msg}"
+            elif "Found" in clean_msg and "duplicate" in clean_msg:
+                clean_msg = f"✓ {clean_msg}"
+
             self.ui.scanLogText.append(clean_msg)
             # Scroll to bottom
             self.ui.scanLogText.verticalScrollBar().setValue(
@@ -171,12 +180,13 @@ class MainWindow(QMainWindow):
             self.results_viewer.load_results(self.current_results)
 
             if self.current_results.total_groups == 0:
-                self.ui.scanLogText.append("No duplicates found.")
+                self.ui.scanLogText.append("\n✓ Scan complete - No duplicates found.")
                 self.ui.statusbar.showMessage("Scan complete - no duplicates found")
             else:
                 self.ui.scanLogText.append(
-                    f"Found {self.current_results.total_groups} duplicate groups "
-                    f"with {self.current_results.total_duplicates} duplicates."
+                    f"\n✓ Scan complete - Found {self.current_results.total_groups} "
+                    f"duplicate groups with {self.current_results.total_duplicates} "
+                    f"duplicates."
                 )
                 self.ui.statusbar.showMessage(
                     f"Scan complete - found {self.current_results.total_groups} "
@@ -186,24 +196,18 @@ class MainWindow(QMainWindow):
                 self.ui.tabWidget.setCurrentIndex(1)
 
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Results Load Error",
-                f"Failed to load scan results:\n\n{e}",
-            )
-            self.ui.scanLogText.append(f"Error loading results: {e}")
+            # Log error to scan log instead of showing popup
+            self.ui.scanLogText.append(f"\n❌ Error loading results: {e}")
+            self.ui.statusbar.showMessage("Error loading scan results")
 
     def on_scan_error(self, error_message: str) -> None:
         """Handle scan errors."""
         self.ui.scanProgressBar.setValue(0)
         self.ui.startScanButton.setEnabled(True)
-        self.ui.statusbar.showMessage("Scan failed!")
+        self.ui.statusbar.showMessage("Scan failed - see log for details")
 
-        QMessageBox.critical(
-            self,
-            "Scan Error",
-            f"An error occurred during scanning:\n\n{error_message}",
-        )
+        # Log error to scan log instead of showing popup
+        self.ui.scanLogText.append(f"\n❌ Scan Error:\n{error_message}")
 
     def open_results(self) -> None:
         """Open scan results from file."""
@@ -220,11 +224,11 @@ class MainWindow(QMainWindow):
                 self.ui.tabWidget.setCurrentIndex(1)
 
             except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Load Error",
-                    f"Failed to load results file:\n\n{e}",
+                # Log error to scan log instead of showing popup
+                self.ui.scanLogText.append(
+                    f"\n❌ Failed to load results file:\n{filename}\nError: {e}"
                 )
+                self.ui.statusbar.showMessage("Failed to load results file")
 
     def save_results(self) -> None:
         """Save scan results to file."""
