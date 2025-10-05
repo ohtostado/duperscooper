@@ -85,6 +85,7 @@ class StagingViewer(QWidget):
 
     def on_batches_loaded(self, batches: List[Dict]) -> None:
         """Handle batches loaded successfully."""
+        print(f"DEBUG: Loaded {len(batches)} batches")  # Debug
         self.batches = batches
         self.populate_table()
 
@@ -94,6 +95,7 @@ class StagingViewer(QWidget):
 
     def on_load_error(self, error_message: str) -> None:
         """Handle batch loading error."""
+        print(f"ERROR loading batches: {error_message}")  # Debug
         self.ui.summaryLabel.setText(f"Error loading batches: {error_message}")
 
         # Re-enable refresh button
@@ -102,10 +104,12 @@ class StagingViewer(QWidget):
 
     def populate_table(self) -> None:
         """Populate table with batch data."""
+        print(f"DEBUG: populate_table called with {len(self.batches)} batches")  # Debug
         # Clear existing rows
         self.ui.batchTable.setRowCount(0)
 
         if not self.batches:
+            print("DEBUG: No batches, showing 'No staged batches' message")  # Debug
             self.ui.summaryLabel.setText("No staged batches")
             return
 

@@ -368,7 +368,8 @@ class MainWindow(QMainWindow):
             # Show restoration banner
             self.results_viewer.show_restoration_banner(batch_id, staged_count)
 
-            # Refresh staging tab to show new batch
+            # Switch to staging tab and refresh
+            self.ui.tabWidget.setCurrentIndex(2)  # Staging tab is index 2
             self.staging_viewer.refresh_batches()
 
         else:
