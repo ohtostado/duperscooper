@@ -2,7 +2,6 @@
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List, Optional
 
 
@@ -157,7 +156,9 @@ class ScanResults:
                         AlbumDuplicate(
                             path=a["path"],
                             track_count=a["track_count"],
-                            total_size_bytes=a.get("total_size_bytes", 0),
+                            # CLI outputs "total_size", model uses "total_size_bytes"
+                            total_size_bytes=a.get("total_size_bytes")
+                            or a.get("total_size", 0),
                             quality_info=a["quality_info"],
                             quality_score=a["quality_score"],
                             match_percentage=a["match_percentage"],
@@ -167,9 +168,7 @@ class ScanResults:
                             musicbrainz_albumid=a.get("musicbrainz_albumid"),
                             album_name=a.get("album_name"),
                             artist_name=a.get("artist_name"),
-                            selected_for_deletion=(
-                                a["recommended_action"] == "delete"
-                            ),
+                            selected_for_deletion=(a["recommended_action"] == "delete"),
                         )
                         for a in group["albums"]
                     ]
@@ -187,7 +186,7 @@ class ScanResults:
     @classmethod
     def from_file(cls, filepath: str) -> "ScanResults":
         """Load results from JSON file."""
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             return cls.from_json(f.read())
 
     @property
@@ -202,9 +201,7 @@ class ScanResults:
     def total_duplicates(self) -> int:
         """Total number of duplicate items (excluding best)."""
         if self.mode == "track":
-            return sum(
-                len(g.files) - 1 for g in self.track_groups
-            )  # -1 for best file
+            return sum(len(g.files) - 1 for g in self.track_groups)  # -1 for best file
         else:
             return sum(len(g.albums) - 1 for g in self.album_groups)
 

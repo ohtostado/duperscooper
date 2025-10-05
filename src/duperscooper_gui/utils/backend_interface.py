@@ -36,6 +36,10 @@ def run_scan(
     cmd.extend(paths)
 
     # Add options
+    # Set min-size to 0 to scan all files (including small test files)
+    cmd.append("--min-size")
+    cmd.append("0")
+
     if options.get("album_mode"):
         cmd.append("--album-mode")
 

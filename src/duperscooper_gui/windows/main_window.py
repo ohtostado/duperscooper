@@ -159,7 +159,6 @@ class MainWindow(QMainWindow):
 
     def on_scan_finished(self, json_output: str) -> None:
         """Handle scan completion."""
-        import json
 
         self.ui.scanProgressBar.setValue(100)
         self.ui.startScanButton.setEnabled(True)
@@ -230,9 +229,7 @@ class MainWindow(QMainWindow):
     def save_results(self) -> None:
         """Save scan results to file."""
         if not self.current_results:
-            QMessageBox.warning(
-                self, "No Results", "No scan results to save."
-            )
+            QMessageBox.warning(self, "No Results", "No scan results to save.")
             return
 
         filename, _ = QFileDialog.getSaveFileName(
