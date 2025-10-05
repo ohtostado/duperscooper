@@ -4,18 +4,16 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QBrush, QColor
+from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QMessageBox,
+    QStyle,
     QTreeWidgetItem,
     QWidget,
 )
-from PySide6.QtUiTools import QUiLoader
 
 from ..models.results_model import (
-    AlbumDuplicate,
-    AlbumDuplicateGroup,
-    DuplicateFile,
-    DuplicateGroup,
     ScanResults,
 )
 
@@ -35,6 +33,11 @@ class ResultsViewer(QWidget):
 
         # Store results
         self.results: Optional[ScanResults] = None
+
+        # Get standard icons
+        self._folder_icon = self.style().standardIcon(QStyle.SP_DirIcon)
+        self._file_icon = self.style().standardIcon(QStyle.SP_FileIcon)
+        self._audio_icon = self.style().standardIcon(QStyle.SP_MediaVolume)
 
         # Connect signals
         self._connect_signals()
@@ -84,6 +87,13 @@ class ResultsViewer(QWidget):
             )
             group_item.setExpanded(True)
 
+            # Style group header
+            font = group_item.font(1)
+            font.setBold(True)
+            font.setPointSize(font.pointSize() + 1)
+            group_item.setFont(1, font)
+            group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
+
             # Add files
             for file in group.files:
                 file_item = QTreeWidgetItem(
@@ -98,6 +108,9 @@ class ResultsViewer(QWidget):
                     ],
                 )
 
+                # Add file icon
+                file_item.setIcon(1, self._audio_icon)
+
                 # Add checkbox
                 file_item.setFlags(file_item.flags() | Qt.ItemIsUserCheckable)
                 file_item.setCheckState(
@@ -108,12 +121,29 @@ class ResultsViewer(QWidget):
                 # Store file reference
                 file_item.setData(0, Qt.UserRole, file)
 
-                # Highlight best file
+                # Color code based on quality and status
                 if file.is_best:
+                    # Best file: bold green
                     for col in range(6):
                         font = file_item.font(col)
                         font.setBold(True)
                         file_item.setFont(col, font)
+                        file_item.setForeground(col, QBrush(QColor("#2e7d32")))
+                else:
+                    # Color code similarity
+                    sim_color = self._get_similarity_color(file.similarity_to_best)
+                    file_item.setForeground(4, QBrush(sim_color))
+
+                # Add tooltip with detailed info
+                tooltip = (
+                    f"Path: {file.path}\n"
+                    f"Size: {file.size_mb:.2f} MB ({file.size_bytes:,} bytes)\n"
+                    f"Quality: {file.audio_info}\n"
+                    f"Quality Score: {file.quality_score:.1f}\n"
+                    f"Similarity to Best: {file.similarity_to_best:.2f}%\n"
+                    f"Recommended: {file.recommended_action.title()}"
+                )
+                file_item.setToolTip(1, tooltip)
 
         # Resize columns
         for i in range(6):
@@ -146,6 +176,13 @@ class ResultsViewer(QWidget):
             )
             group_item.setExpanded(True)
 
+            # Style group header
+            font = group_item.font(1)
+            font.setBold(True)
+            font.setPointSize(font.pointSize() + 1)
+            group_item.setFont(1, font)
+            group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
+
             # Add albums
             for album in group.albums:
                 album_item = QTreeWidgetItem(
@@ -160,6 +197,9 @@ class ResultsViewer(QWidget):
                     ],
                 )
 
+                # Add folder icon
+                album_item.setIcon(1, self._folder_icon)
+
                 # Add checkbox
                 album_item.setFlags(album_item.flags() | Qt.ItemIsUserCheckable)
                 album_item.setCheckState(
@@ -170,16 +210,52 @@ class ResultsViewer(QWidget):
                 # Store album reference
                 album_item.setData(0, Qt.UserRole, album)
 
-                # Highlight best album
+                # Color code based on quality and status
                 if album.is_best:
+                    # Best album: bold green
                     for col in range(6):
                         font = album_item.font(col)
                         font.setBold(True)
                         album_item.setFont(col, font)
+                        album_item.setForeground(col, QBrush(QColor("#2e7d32")))
+                else:
+                    # Color code similarity
+                    sim_color = self._get_similarity_color(album.match_percentage)
+                    album_item.setForeground(4, QBrush(sim_color))
+
+                # Add tooltip with detailed info
+                tooltip = (
+                    f"Path: {album.path}\n"
+                    f"Tracks: {album.track_count}\n"
+                    f"Size: {album.size_mb:.2f} MB ({album.total_size_bytes:,} bytes)\n"
+                    f"Quality: {album.quality_info}\n"
+                    f"Quality Score: {album.quality_score:.1f}\n"
+                    f"Match: {album.match_percentage:.2f}%\n"
+                    f"Match Method: {album.match_method}\n"
+                )
+                if album.album_name:
+                    tooltip += f"Album: {album.album_name}\n"
+                if album.artist_name:
+                    tooltip += f"Artist: {album.artist_name}\n"
+                if album.musicbrainz_albumid:
+                    tooltip += f"MusicBrainz ID: {album.musicbrainz_albumid}\n"
+                tooltip += f"Recommended: {album.recommended_action.title()}"
+                album_item.setToolTip(1, tooltip)
 
         # Resize columns
         for i in range(6):
             self.ui.resultsTree.resizeColumnToContents(i)
+
+    def _get_similarity_color(self, similarity: float) -> QColor:
+        """Get color based on similarity percentage."""
+        if similarity >= 99.0:
+            return QColor("#1b5e20")  # Dark green - very similar
+        elif similarity >= 97.0:
+            return QColor("#388e3c")  # Green - similar
+        elif similarity >= 95.0:
+            return QColor("#f57c00")  # Orange - moderately similar
+        else:
+            return QColor("#c62828")  # Red - less similar
 
     def _update_summary(self):
         """Update summary label."""
@@ -187,22 +263,30 @@ class ResultsViewer(QWidget):
             self.ui.summaryLabel.setText(
                 "No results loaded. Run a scan or open a results file."
             )
+            self.ui.statsLabel.setText("")
             return
 
         if self.results.mode == "track":
             summary = (
-                f"{self.results.total_groups} duplicate groups found • "
-                f"{self.results.total_duplicates} duplicate files • "
-                f"{self.results.total_size_mb:.1f} MB total"
+                f"🔍 {self.results.total_groups} duplicate groups found • "
+                f"📁 {self.results.total_duplicates} duplicate files"
+            )
+            stats = (
+                f"Total size: {self.results.total_size_mb:.1f} MB • "
+                f"Potential savings: {self.results.potential_savings_mb:.1f} MB"
             )
         else:
             summary = (
-                f"{self.results.total_groups} duplicate album groups found • "
-                f"{self.results.total_duplicates} duplicate albums • "
-                f"{self.results.total_size_mb:.1f} MB total"
+                f"🔍 {self.results.total_groups} duplicate album groups found • "
+                f"💿 {self.results.total_duplicates} duplicate albums"
+            )
+            stats = (
+                f"Total size: {self.results.total_size_mb:.1f} MB • "
+                f"Potential savings: {self.results.potential_savings_mb:.1f} MB"
             )
 
         self.ui.summaryLabel.setText(summary)
+        self.ui.statsLabel.setText(stats)
 
     def _update_selection_label(self):
         """Update selection status label."""
@@ -328,9 +412,7 @@ class ResultsViewer(QWidget):
 
         selected_paths = self._get_selected_paths()
         if not selected_paths:
-            QMessageBox.warning(
-                self, "No Selection", "No items selected for deletion."
-            )
+            QMessageBox.warning(self, "No Selection", "No items selected for deletion.")
             return
 
         # Confirm deletion
