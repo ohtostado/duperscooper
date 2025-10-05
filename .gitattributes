@@ -1,0 +1,7 @@
+# Audio files are binary
+*.flac binary
+*.mp3 binary
+*.m4a binary
+*.wav binary
+*.ogg binary
+*.opus binary
