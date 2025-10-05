@@ -88,7 +88,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>6</number>
+      <number>8</number>
      </property>
      <property name="styleSheet">
       <string notr="true">QTreeWidget::item { padding: 5px; }
@@ -107,12 +107,22 @@ QTreeWidget::item:selected { background-color: #2196f3; color: white; }</string>
      </column>
      <column>
       <property name="text">
+       <string>Album</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Artist</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>Size</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>Quality</string>
+       <string>Quality (avg)</string>
       </property>
      </column>
      <column>

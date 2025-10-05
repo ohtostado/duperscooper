@@ -382,6 +382,44 @@ class AudioHasher:
             }
 
     @staticmethod
+    def get_audio_tags(file_path: Path) -> Dict[str, Optional[str]]:
+        """
+        Extract album and artist tags from audio file using ffprobe.
+
+        Returns:
+            Dictionary with 'album' and 'artist' keys (None if not found)
+        """
+        try:
+            result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "quiet",
+                    "-print_format",
+                    "json",
+                    "-show_format",
+                    str(file_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+
+            import json as json_module
+
+            data = json_module.loads(result.stdout)
+            tags = data.get("format", {}).get("tags", {})
+
+            # Handle both lowercase and uppercase tag names
+            album = tags.get("album") or tags.get("ALBUM")
+            artist = tags.get("artist") or tags.get("ARTIST")
+
+            return {"album": album, "artist": artist}
+        except Exception:
+            return {"album": None, "artist": None}
+
+    @staticmethod
     def calculate_quality_score(
         metadata: Dict[str, Optional[Union[str, int, float]]]
     ) -> float:

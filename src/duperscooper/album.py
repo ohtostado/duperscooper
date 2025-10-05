@@ -266,7 +266,7 @@ class AlbumScanner:
         # Format quality info
         try:
             first_metadata = self.hasher.get_audio_metadata(tracks[0])
-            quality_info = self.hasher.format_audio_info(first_metadata) + " (avg)"
+            quality_info = self.hasher.format_audio_info(first_metadata)
         except Exception:
             quality_info = "Unknown"
 

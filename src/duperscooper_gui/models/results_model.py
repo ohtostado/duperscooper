@@ -17,6 +17,8 @@ class DuplicateFile:
     is_best: bool
     recommended_action: str  # "keep" or "delete"
     selected_for_deletion: bool = False  # User selection
+    album: Optional[str] = None  # Album name from metadata
+    artist: Optional[str] = None  # Artist name from metadata
 
     @property
     def size_mb(self) -> float:
@@ -137,6 +139,8 @@ class ScanResults:
                             selected_for_deletion=(
                                 f["recommended_action"] == "delete"
                             ),  # Pre-select
+                            album=f.get("album"),
+                            artist=f.get("artist"),
                         )
                         for f in group["files"]
                     ]

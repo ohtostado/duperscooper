@@ -222,7 +222,7 @@
         <item>
          <widget class="QLabel" name="resultsLabel">
           <property name="text">
-           <string>Results viewer coming soon...</string>
+           <string/>
           </property>
          </widget>
         </item>

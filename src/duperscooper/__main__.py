@@ -190,6 +190,12 @@ def format_output_json(duplicates: Dict[str, List[tuple]]) -> None:
             is_best = file_path == best_file
             file_info["is_best"] = is_best
             file_info["recommended_action"] = "keep" if is_best else "delete"
+
+            # Extract album/artist tags
+            tags = AudioHasher.get_audio_tags(file_path)
+            file_info["album"] = tags["album"]
+            file_info["artist"] = tags["artist"]
+
             files_data.append(file_info)
 
         group = {

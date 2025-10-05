@@ -79,6 +79,8 @@ class ResultsViewer(QWidget):
                 [
                     "",  # Checkbox column
                     f"Group {group.group_id} ({len(group.files)} files)",
+                    "",  # Album (empty for group header)
+                    "",  # Artist (empty for group header)
                     f"{group.total_size_mb:.1f} MB",
                     "",
                     "",
@@ -93,6 +95,7 @@ class ResultsViewer(QWidget):
             font.setPointSize(font.pointSize() + 1)
             group_item.setFont(1, font)
             group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
+            group_item.setForeground(1, QBrush(QColor("#333333")))
 
             # Add files
             for file in group.files:
@@ -101,6 +104,8 @@ class ResultsViewer(QWidget):
                     [
                         "",  # Checkbox
                         file.path,
+                        file.album or "",  # Album from metadata
+                        file.artist or "",  # Artist from metadata
                         f"{file.size_mb:.1f} MB",
                         file.audio_info,
                         f"{file.similarity_to_best:.1f}%",
@@ -124,15 +129,15 @@ class ResultsViewer(QWidget):
                 # Color code based on quality and status
                 if file.is_best:
                     # Best file: bold green
-                    for col in range(6):
+                    for col in range(8):
                         font = file_item.font(col)
                         font.setBold(True)
                         file_item.setFont(col, font)
                         file_item.setForeground(col, QBrush(QColor("#2e7d32")))
                 else:
-                    # Color code similarity
+                    # Color code similarity (now column 6 instead of 4)
                     sim_color = self._get_similarity_color(file.similarity_to_best)
-                    file_item.setForeground(4, QBrush(sim_color))
+                    file_item.setForeground(6, QBrush(sim_color))
 
                 # Add tooltip with detailed info
                 tooltip = (
@@ -141,12 +146,16 @@ class ResultsViewer(QWidget):
                     f"Quality: {file.audio_info}\n"
                     f"Quality Score: {file.quality_score:.1f}\n"
                     f"Similarity to Best: {file.similarity_to_best:.2f}%\n"
-                    f"Recommended: {file.recommended_action.title()}"
                 )
+                if file.album:
+                    tooltip += f"Album: {file.album}\n"
+                if file.artist:
+                    tooltip += f"Artist: {file.artist}\n"
+                tooltip += f"Recommended: {file.recommended_action.title()}"
                 file_item.setToolTip(1, tooltip)
 
         # Resize columns
-        for i in range(6):
+        for i in range(8):
             self.ui.resultsTree.resizeColumnToContents(i)
 
     def _load_album_results(self):
@@ -168,6 +177,8 @@ class ResultsViewer(QWidget):
                 [
                     "",
                     f"{group_header} ({len(group.albums)} albums)",
+                    "",  # Album (empty for group header)
+                    "",  # Artist (empty for group header)
                     f"{group.total_size_mb:.1f} MB",
                     "",
                     "",
@@ -182,6 +193,7 @@ class ResultsViewer(QWidget):
             font.setPointSize(font.pointSize() + 1)
             group_item.setFont(1, font)
             group_item.setBackground(1, QBrush(QColor("#f5f5f5")))
+            group_item.setForeground(1, QBrush(QColor("#333333")))
 
             # Add albums
             for album in group.albums:
@@ -190,6 +202,8 @@ class ResultsViewer(QWidget):
                     [
                         "",
                         album.path,
+                        album.album_name or "",  # Album from metadata
+                        album.artist_name or "",  # Artist from metadata
                         f"{album.size_mb:.1f} MB",
                         album.quality_info,
                         f"{album.match_percentage:.1f}%",
@@ -213,15 +227,15 @@ class ResultsViewer(QWidget):
                 # Color code based on quality and status
                 if album.is_best:
                     # Best album: bold green
-                    for col in range(6):
+                    for col in range(8):
                         font = album_item.font(col)
                         font.setBold(True)
                         album_item.setFont(col, font)
                         album_item.setForeground(col, QBrush(QColor("#2e7d32")))
                 else:
-                    # Color code similarity
+                    # Color code similarity (now column 6 instead of 4)
                     sim_color = self._get_similarity_color(album.match_percentage)
-                    album_item.setForeground(4, QBrush(sim_color))
+                    album_item.setForeground(6, QBrush(sim_color))
 
                 # Add tooltip with detailed info
                 tooltip = (
@@ -243,7 +257,7 @@ class ResultsViewer(QWidget):
                 album_item.setToolTip(1, tooltip)
 
         # Resize columns
-        for i in range(6):
+        for i in range(8):
             self.ui.resultsTree.resizeColumnToContents(i)
 
     def _get_similarity_color(self, similarity: float) -> QColor:
