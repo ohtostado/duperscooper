@@ -385,7 +385,7 @@ def stage_items(
     paths: List[str], mode: str, store_fingerprints: bool = False
 ) -> Dict[str, any]:
     """
-    Stage files/albums for deletion using CLI.
+    Stage files/albums for deletion using StagingManager directly.
 
     Args:
         paths: List of file/album paths to stage
@@ -398,16 +398,98 @@ def stage_items(
             - batch_id: str (UUID timestamp)
             - message: str
             - staged_count: int
-
-    Raises:
-        RuntimeError: If staging fails
     """
-    # Build command - use --apply-rules with eliminate-duplicates strategy
-    # This requires a JSON file as input
-    import json
-    import tempfile
+    from pathlib import Path
+
+    from duperscooper.hasher import AudioHasher
+    from duperscooper.staging import StagingManager
 
     print(f"DEBUG stage_items: paths={paths}, mode={mode}")  # Debug
+
+    if not paths:
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": "No paths provided for staging",
+            "staged_count": 0,
+        }
+
+    try:
+        # Use first path to determine staging location
+        first_path = Path(paths[0])
+        staging_mgr = StagingManager(
+            first_path, command="GUI deletion", store_fingerprints=store_fingerprints
+        )
+
+        if mode == "album":
+            # Stage albums - need to find tracks in each album directory
+            hasher = AudioHasher()
+
+            for album_path_str in paths:
+                album_path = Path(album_path_str)
+
+                # Find all audio tracks in album directory
+                tracks = []
+                total_size = 0
+                if album_path.is_dir():
+                    for file_path in sorted(album_path.iterdir()):
+                        if file_path.is_file() and hasher.is_audio_file(file_path):
+                            tracks.append(str(file_path))
+                            total_size += file_path.stat().st_size
+
+                # Create album-like object
+                from types import SimpleNamespace
+
+                album_obj = SimpleNamespace(
+                    path=album_path, tracks=tracks, total_size=total_size
+                )
+
+                # Stage the album
+                staging_mgr.stage_album(album_obj, reason="GUI deletion")
+
+        else:
+            # Track mode not implemented yet
+            return {
+                "success": False,
+                "batch_id": None,
+                "message": "Track mode staging not yet implemented in GUI",
+                "staged_count": 0,
+            }
+
+        # Finalize staging
+        manifest = staging_mgr.finalize()
+        batch_id = manifest["deletion_batch"]["id"]
+        staged_count = manifest["deletion_batch"]["total_items_deleted"]
+
+        return {
+            "success": True,
+            "batch_id": batch_id,
+            "message": f"Successfully staged {staged_count} items to {batch_id}",
+            "staged_count": staged_count,
+        }
+
+    except Exception as e:
+        import traceback
+
+        print(f"DEBUG: Exception in stage_items:\n{traceback.format_exc()}")  # Debug
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": f"Staging failed: {e}",
+            "staged_count": 0,
+        }
+
+
+# Old CLI-based implementation - keeping for reference but not used
+def _stage_items_via_cli(
+    paths: List[str], mode: str, store_fingerprints: bool = False
+) -> Dict[str, any]:
+    """
+    DEPRECATED: Old implementation that used CLI --apply-rules.
+    Replaced with direct StagingManager calls.
+    """
+    import json
+    import tempfile
 
     if not paths:
         return {
