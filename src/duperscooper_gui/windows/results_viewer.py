@@ -1,7 +1,7 @@
 """Results viewer widget for displaying duplicate groups."""
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QBrush
@@ -23,6 +23,8 @@ class ResultsViewer(QWidget):
     """Widget for viewing and managing scan results."""
 
     delete_requested = Signal(list)  # Emits list of paths to delete
+    restore_requested = Signal(str, str)  # Emits (batch_id, restore_to)
+    copy_batch_requested = Signal(str)  # Emits batch_id
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -34,6 +36,10 @@ class ResultsViewer(QWidget):
 
         # Store results
         self.results: Optional[ScanResults] = None
+
+        # Store last deletion batch info for restoration
+        self.last_batch_id: Optional[str] = None
+        self.last_batch_count: int = 0
 
         # Get standard icons
         self._folder_icon = self.style().standardIcon(QStyle.SP_DirIcon)
@@ -51,6 +57,11 @@ class ResultsViewer(QWidget):
         self.ui.previewButton.clicked.connect(self.preview_deletion)
         self.ui.deleteButton.clicked.connect(self.delete_selected)
         self.ui.resultsTree.itemChanged.connect(self.on_item_changed)
+
+        # Restoration banner signals
+        self.ui.restoreButton.clicked.connect(self.on_restore_clicked)
+        self.ui.copyBatchButton.clicked.connect(self.on_copy_batch_clicked)
+        self.ui.closeBannerButton.clicked.connect(self.hide_restoration_banner)
 
     def load_results(self, results: ScanResults):
         """Load and display scan results."""
@@ -461,3 +472,167 @@ class ResultsViewer(QWidget):
                         paths.append(album.path)
 
         return paths
+
+    def remove_deleted_items(self, deleted_paths: List[str]):
+        """
+        Remove items from tree view after successful deletion.
+
+        Args:
+            deleted_paths: List of paths that were deleted
+        """
+        if not self.results:
+            return
+
+        deleted_set = set(deleted_paths)
+
+        # Remove from data model
+        if self.results.mode == "track":
+            for group in self.results.track_groups:
+                group.files = [f for f in group.files if f.path not in deleted_set]
+            # Remove empty groups
+            self.results.track_groups = [
+                g for g in self.results.track_groups if g.files
+            ]
+        else:
+            for group in self.results.album_groups:
+                group.albums = [a for a in group.albums if a.path not in deleted_set]
+            # Remove empty groups
+            self.results.album_groups = [
+                g for g in self.results.album_groups if g.albums
+            ]
+
+        # Reload the tree view with updated data
+        if self.results.mode == "track":
+            self._load_track_results()
+        else:
+            self._load_album_results()
+
+        # Update summary
+        self._update_summary()
+
+    def show_restoration_banner(self, batch_id: str, count: int):
+        """
+        Show restoration banner with batch info.
+
+        Args:
+            batch_id: Batch ID for restoration
+            count: Number of items in batch
+        """
+        self.last_batch_id = batch_id
+        self.last_batch_count = count
+
+        # Update banner text
+        self.ui.restorationLabel.setText(f"✓ Staged {count} items to {batch_id}")
+
+        # Show banner
+        self.ui.restorationBanner.setVisible(True)
+
+    def hide_restoration_banner(self):
+        """Hide restoration banner."""
+        self.ui.restorationBanner.setVisible(False)
+        self.last_batch_id = None
+        self.last_batch_count = 0
+
+    def on_restore_clicked(self):
+        """Handle restore button click."""
+        if not self.last_batch_id:
+            return
+
+        # Show restore dialog with options
+        from PySide6.QtWidgets import (
+            QDialog,
+            QDialogButtonBox,
+            QFileDialog,
+            QLabel,
+            QPushButton,
+            QRadioButton,
+            QVBoxLayout,
+        )
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Restore Items")
+        dialog.setMinimumWidth(400)
+
+        layout = QVBoxLayout()
+
+        # Title
+        title = QLabel(
+            f"Restore {self.last_batch_count} items from {self.last_batch_id}?"
+        )
+        title.setStyleSheet("font-weight: bold; font-size: 12pt;")
+        layout.addWidget(title)
+
+        # Options
+        original_radio = QRadioButton("Restore to original location")
+        original_radio.setChecked(True)
+        layout.addWidget(original_radio)
+
+        custom_radio = QRadioButton("Restore to custom location:")
+        layout.addWidget(custom_radio)
+
+        # Custom location selector
+        custom_path = QLabel("(Select custom location)")
+        custom_path.setEnabled(False)
+        layout.addWidget(custom_path)
+
+        browse_btn = QPushButton("Browse...")
+        browse_btn.setEnabled(False)
+        layout.addWidget(browse_btn)
+
+        # Enable custom path when radio selected
+        def on_custom_toggled(checked):
+            custom_path.setEnabled(checked)
+            browse_btn.setEnabled(checked)
+
+        custom_radio.toggled.connect(on_custom_toggled)
+
+        # Browse button
+        def on_browse():
+            directory = QFileDialog.getExistingDirectory(
+                dialog, "Select Restore Location"
+            )
+            if directory:
+                custom_path.setText(directory)
+
+        browse_btn.clicked.connect(on_browse)
+
+        # Buttons
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        dialog.setLayout(layout)
+
+        if dialog.exec() == QDialog.Accepted:
+            # Determine restore location
+            restore_to = None
+            if custom_radio.isChecked():
+                restore_to = custom_path.text()
+                if restore_to == "(Select custom location)":
+                    QMessageBox.warning(
+                        self,
+                        "No Location",
+                        "Please select a custom restore location.",
+                    )
+                    return
+
+            # Emit restore signal
+            self.restore_requested.emit(self.last_batch_id, restore_to or "")
+
+    def on_copy_batch_clicked(self):
+        """Handle copy batch ID button click."""
+        if not self.last_batch_id:
+            return
+
+        from PySide6.QtWidgets import QApplication
+
+        # Copy to clipboard
+        QApplication.clipboard().setText(self.last_batch_id)
+
+        # Emit signal
+        self.copy_batch_requested.emit(self.last_batch_id)
+
+    def has_staged_deletions(self) -> bool:
+        """Check if there are staged deletions (restoration banner visible)."""
+        return self.ui.restorationBanner.isVisible()
