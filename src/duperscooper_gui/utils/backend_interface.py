@@ -437,11 +437,19 @@ def stage_items(
                             tracks.append(str(file_path))
                             total_size += file_path.stat().st_size
 
-                # Create album-like object
+                # Create album-like object with all required fields
                 from types import SimpleNamespace
 
                 album_obj = SimpleNamespace(
-                    path=album_path, tracks=tracks, total_size=total_size
+                    path=album_path,
+                    tracks=tracks,
+                    total_size=total_size,
+                    track_count=len(tracks),
+                    album_name=None,  # Not available in GUI model
+                    artist_name=None,  # Not available in GUI model
+                    quality_info="",  # Not available here
+                    avg_quality_score=0,  # Not available here
+                    musicbrainz_albumid=None,  # Not available in GUI model
                 )
 
                 # Stage the album
