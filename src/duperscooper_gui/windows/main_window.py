@@ -67,6 +67,46 @@ class DeletionThread(QThread):
             self.error.emit(str(e))
 
 
+class RestorationThread(QThread):
+    """Background thread for restoring deletions."""
+
+    progress = Signal(str)  # Emits progress messages
+    finished = Signal(dict)  # Emits result dict with restored_paths
+    error = Signal(str)  # Emits error messages
+
+    def __init__(self, batch_id: str, restore_to: str = ""):
+        super().__init__()
+        self.batch_id = batch_id
+        self.restore_to = restore_to
+
+    def run(self) -> None:
+        """Run restoration in background thread."""
+        try:
+            from ..utils.backend_interface import restore_batch
+
+            self.progress.emit(f"▶ Restoring items from {self.batch_id}...")
+            result_output = restore_batch(
+                self.batch_id, self.restore_to if self.restore_to else None
+            )
+
+            # Parse restored paths from output
+            # Output format: "Restored N items from batch_..."
+            restored_paths = []
+            # TODO: Parse actual paths from manifest if needed
+            # For now, we'll rely on backend success
+
+            self.finished.emit(
+                {
+                    "success": True,
+                    "batch_id": self.batch_id,
+                    "message": result_output,
+                    "restored_paths": restored_paths,
+                }
+            )
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class MainWindow(QMainWindow):
     """Main application window."""
 
@@ -97,6 +137,8 @@ class MainWindow(QMainWindow):
         # Use the existing layout from the UI file instead of creating a new one
         self.ui.resultsTab.layout().addWidget(self.results_viewer.ui)
         self.results_viewer.delete_requested.connect(self.on_delete_requested)
+        self.results_viewer.restore_requested.connect(self.on_restore_requested)
+        self.results_viewer.copy_batch_requested.connect(self.on_copy_batch_requested)
 
         # Track current results
         self.current_results: Optional[ScanResults] = None
@@ -305,15 +347,18 @@ class MainWindow(QMainWindow):
             self.ui.scanLogText.append(
                 f"✓ {result['message']}\n"
                 f"  Batch ID: {batch_id}\n"
-                f"  Use 'duperscooper --restore {batch_id}' to restore"
+                f"  Click 'Restore' button or use 'duperscooper --restore {batch_id}'"
             )
             self.ui.statusbar.showMessage(
-                f"Successfully staged {staged_count} items - see log for batch ID"
+                f"Successfully staged {staged_count} items - see restoration banner"
             )
 
             # Remove deleted items from results viewer
             deleted_paths = list(self.deletion_thread.paths)
             self.results_viewer.remove_deleted_items(deleted_paths)
+
+            # Show restoration banner
+            self.results_viewer.show_restoration_banner(batch_id, staged_count)
 
         else:
             # Error
@@ -324,6 +369,60 @@ class MainWindow(QMainWindow):
         """Handle deletion errors."""
         self.ui.scanLogText.append(f"❌ Deletion Error:\n{error_message}")
         self.ui.statusbar.showMessage("Deletion failed - see log")
+
+    def on_restore_requested(self, batch_id: str, restore_to: str):
+        """Handle restoration request from results viewer."""
+        if not batch_id:
+            return
+
+        # Start restoration in background thread
+        self.restoration_thread = RestorationThread(batch_id, restore_to)
+        self.restoration_thread.progress.connect(self.on_restoration_progress)
+        self.restoration_thread.finished.connect(self.on_restoration_finished)
+        self.restoration_thread.error.connect(self.on_restoration_error)
+        self.restoration_thread.start()
+
+        # Update UI
+        self.ui.statusbar.showMessage(f"Restoring items from {batch_id}...")
+
+    def on_restoration_progress(self, message: str):
+        """Handle restoration progress messages."""
+        self.ui.scanLogText.append(message)
+
+    def on_restoration_finished(self, result: dict):
+        """Handle restoration completion."""
+        if result["success"]:
+            # Success!
+            message = result["message"]
+
+            # Log success
+            self.ui.scanLogText.append(f"✓ {message}")
+            self.ui.statusbar.showMessage("Restoration complete")
+
+            # Remove restored items from results viewer
+            # (Same logic as deletion - remove from tree)
+            restored_paths = result.get("restored_paths", [])
+            if restored_paths:
+                self.results_viewer.remove_deleted_items(restored_paths)
+
+            # Hide restoration banner (items are restored)
+            self.results_viewer.hide_restoration_banner()
+
+        else:
+            # Error
+            self.ui.scanLogText.append(f"❌ {result.get('message', 'Unknown error')}")
+            self.ui.statusbar.showMessage("Restoration failed - see log")
+
+    def on_restoration_error(self, error_message: str):
+        """Handle restoration errors."""
+        self.ui.scanLogText.append(f"❌ Restoration Error:\n{error_message}")
+        self.ui.statusbar.showMessage("Restoration failed - see log")
+
+    def on_copy_batch_requested(self, batch_id: str):
+        """Handle batch ID copy request."""
+        # Visual confirmation in scan log
+        self.ui.scanLogText.append(f"📋 Copied batch ID to clipboard: {batch_id}")
+        self.ui.statusbar.showMessage("Batch ID copied to clipboard", 3000)
 
     def show_about(self) -> None:
         """Show about dialog."""
