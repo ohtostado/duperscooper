@@ -415,8 +415,26 @@ def stage_items(
         }
 
     try:
-        # Use first path to determine staging location
-        first_path = Path(paths[0])
+        # Filter out any staging directories from paths
+        # (old staging folders might appear as "duplicates" in results)
+        valid_paths = [
+            p
+            for p in paths
+            if ".deletedByDuperscooper" not in p and ".restored" not in p
+        ]
+
+        if not valid_paths:
+            return {
+                "success": False,
+                "batch_id": None,
+                "message": "No valid paths to stage (all are staging directories)",
+                "staged_count": 0,
+            }
+
+        print(f"DEBUG: Filtered {len(paths)} paths to {len(valid_paths)} valid paths")
+
+        # Use first valid path to determine staging location
+        first_path = Path(valid_paths[0])
         staging_mgr = StagingManager(
             first_path, command="GUI deletion", store_fingerprints=store_fingerprints
         )
@@ -425,7 +443,7 @@ def stage_items(
             # Stage albums - need to find tracks in each album directory
             hasher = AudioHasher()
 
-            for album_path_str in paths:
+            for album_path_str in valid_paths:
                 album_path = Path(album_path_str)
 
                 # Find all audio tracks in album directory
