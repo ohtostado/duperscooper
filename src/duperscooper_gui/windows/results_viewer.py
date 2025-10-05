@@ -471,6 +471,7 @@ class ResultsViewer(QWidget):
                     if album.selected_for_deletion:
                         paths.append(album.path)
 
+        print(f"DEBUG _get_selected_paths: {len(paths)} paths selected")  # Debug
         return paths
 
     def remove_deleted_items(self, deleted_paths: List[str]):

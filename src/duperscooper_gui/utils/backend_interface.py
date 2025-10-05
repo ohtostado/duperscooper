@@ -407,6 +407,16 @@ def stage_items(
     import json
     import tempfile
 
+    print(f"DEBUG stage_items: paths={paths}, mode={mode}")  # Debug
+
+    if not paths:
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": "No paths provided for staging",
+            "staged_count": 0,
+        }
+
     # Create temporary JSON file with paths marked for deletion
     if mode == "track":
         # Create track mode JSON
