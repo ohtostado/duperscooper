@@ -71,14 +71,14 @@ def run_scan(
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
 
-            # Create a pseudo-terminal
+            # Create a pseudo-terminal for stdout
+            # Progress and JSON both go to stdout, need PTY there
             master_fd, slave_fd = pty.openpty()
 
             process = subprocess.Popen(
                 cmd,
-                stdin=slave_fd,
-                stdout=subprocess.PIPE,
-                stderr=slave_fd,
+                stdout=slave_fd,
+                stderr=subprocess.PIPE,
                 text=True,
                 env=env,
                 close_fds=True,
@@ -86,20 +86,22 @@ def run_scan(
 
             os.close(slave_fd)  # Close slave in parent process
 
-            stderr_output = []
-            json_output = ""
+            progress_output = []
+            all_output = ""
             current_line = ""
 
-            # Read from PTY master to get stderr with real-time \r updates
+            # Read from PTY master to get stdout with real-time \r updates
             while True:
                 # Check if data is available
-                readable, _, _ = select.select([master_fd, process.stdout], [], [], 0.1)
+                readable, _, _ = select.select([master_fd], [], [], 0.1)
 
                 if master_fd in readable:
                     try:
                         data = os.read(master_fd, 1024).decode("utf-8", errors="ignore")
                         if not data:
                             break
+
+                        all_output += data
 
                         for char in data:
                             if char == "\r":
@@ -109,7 +111,7 @@ def run_scan(
                                     clean_line = re.sub(
                                         r"\x1b\[[0-9;]*m", "", current_line
                                     )
-                                    stderr_output.append(clean_line)
+                                    progress_output.append(clean_line)
                                     percentage = _parse_progress(clean_line)
                                     if percentage >= 0:
                                         progress_callback(clean_line, percentage)
@@ -120,7 +122,7 @@ def run_scan(
                                     clean_line = re.sub(
                                         r"\x1b\[[0-9;]*m", "", current_line
                                     )
-                                    stderr_output.append(clean_line)
+                                    progress_output.append(clean_line)
                                     percentage = _parse_progress(clean_line)
                                     if percentage >= 0:
                                         progress_callback(clean_line, percentage)
@@ -130,43 +132,39 @@ def run_scan(
                     except OSError:
                         break
 
-                if process.stdout in readable:
-                    chunk = process.stdout.read(1024)
-                    if chunk:
-                        json_output += chunk
-
                 # Check if process has finished
                 if process.poll() is not None:
                     # Read any remaining data
                     try:
-                        remaining = os.read(master_fd, 1024).decode(
-                            "utf-8", errors="ignore"
-                        )
-                        for char in remaining:
-                            if char in ("\r", "\n"):
-                                if current_line.strip():
-                                    clean_line = re.sub(
-                                        r"\x1b\[[0-9;]*m", "", current_line
-                                    )
-                                    stderr_output.append(clean_line)
-                                current_line = ""
-                            else:
-                                current_line += char
+                        while True:
+                            remaining = os.read(master_fd, 1024).decode(
+                                "utf-8", errors="ignore"
+                            )
+                            if not remaining:
+                                break
+                            all_output += remaining
                     except OSError:
                         pass
-
-                    if process.stdout:
-                        json_output += process.stdout.read()
                     break
 
             os.close(master_fd)
             process.wait()
 
             if process.returncode != 0:
-                error_msg = (
-                    "\n".join(stderr_output) if stderr_output else "Unknown error"
-                )
+                # Check stderr for error messages
+                stderr_msg = process.stderr.read() if process.stderr else ""
+                error_msg = stderr_msg or "\n".join(progress_output) or "Unknown error"
                 raise RuntimeError(f"Scan failed: {error_msg}")
+
+            # Extract JSON from the output (it's at the end after all progress messages)
+            # JSON is either [] or {...} at the end of the output
+            json_output = all_output.strip().split("\n")[-1]
+            if not json_output.startswith(("[", "{")):
+                # Fallback: find the last line that looks like JSON
+                for line in reversed(all_output.strip().split("\n")):
+                    if line.startswith(("[", "{")):
+                        json_output = line
+                        break
 
             return json_output
         else:
