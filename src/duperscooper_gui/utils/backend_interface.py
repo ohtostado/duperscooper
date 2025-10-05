@@ -283,7 +283,7 @@ def apply_rules(
 
 def list_deleted() -> List[Dict]:
     """
-    List staged deletion batches using StagingManager directly.
+    List staged deletion batches by recursively searching for manifests.
 
     Returns:
         List of batch info dicts with:
@@ -295,21 +295,47 @@ def list_deleted() -> List[Dict]:
         - staging_path: Path to staging directory
         - mode: "track" or "album" (inferred from total_items vs total_tracks)
     """
+    import json
+    from pathlib import Path
+
     try:
-        from duperscooper.staging import StagingManager
+        batches = []
 
-        batches = StagingManager.list_batches()
+        # Search for all .deletedByDuperscooper directories recursively
+        # Start from current directory
+        cwd = Path.cwd()
 
-        # Add mode field (infer from items vs tracks)
-        for batch in batches:
-            items = batch.get("total_items_deleted", 0)
-            tracks = batch.get("total_tracks_deleted", 0)
+        print(f"DEBUG list_deleted: Searching from {cwd}")  # Debug
 
-            # If items == tracks, it's track mode, otherwise album mode
-            batch["mode"] = "track" if items == tracks else "album"
+        # Find all manifest.json files under any .deletedByDuperscooper folder
+        manifest_paths = list(cwd.rglob(".deletedByDuperscooper/*/manifest.json"))
+        print(f"DEBUG: Found {len(manifest_paths)} manifest files")  # Debug
 
+        for manifest_path in manifest_paths:
+            try:
+                with open(manifest_path) as f:
+                    manifest = json.load(f)
+
+                batch_info = manifest["deletion_batch"]
+                batch_info["staging_path"] = str(manifest_path.parent)
+
+                # Add mode field (infer from items vs tracks)
+                items = batch_info.get("total_items_deleted", 0)
+                tracks = batch_info.get("total_tracks_deleted", 0)
+                batch_info["mode"] = "track" if items == tracks else "album"
+
+                print(f"DEBUG: Found batch {batch_info.get('id')}")  # Debug
+                batches.append(batch_info)
+            except (json.JSONDecodeError, KeyError) as e:
+                print(f"DEBUG: Invalid manifest {manifest_path}: {e}")  # Debug
+                continue
+
+        print(f"DEBUG: Returning {len(batches)} batches")  # Debug
         return batches
     except Exception as e:
+        import traceback
+
+        print(f"DEBUG: Exception in list_deleted:\n{traceback.format_exc()}")  # Debug
         raise RuntimeError(f"List deleted failed: {e}") from e
 
 
