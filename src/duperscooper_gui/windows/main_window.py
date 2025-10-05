@@ -1,7 +1,7 @@
 """Main window for duperscooper GUI."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtUiTools import QUiLoader
@@ -9,7 +9,11 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMainWindow,
     QMessageBox,
+    QVBoxLayout,
 )
+
+from ..models.results_model import ScanResults
+from .results_viewer import ResultsViewer
 
 
 class ScanThread(QThread):
@@ -63,6 +67,15 @@ class MainWindow(QMainWindow):
 
         # Track scan paths
         self.scan_paths: List[str] = []
+
+        # Create results viewer and add to results tab
+        self.results_viewer = ResultsViewer(self)
+        results_layout = QVBoxLayout(self.ui.resultsTab)
+        results_layout.addWidget(self.results_viewer.ui)
+        self.results_viewer.delete_requested.connect(self.on_delete_requested)
+
+        # Track current results
+        self.current_results: Optional[ScanResults] = None
 
         # Status message
         self.ui.statusbar.showMessage("Ready")
@@ -154,29 +167,26 @@ class MainWindow(QMainWindow):
 
         self.ui.scanLogText.append("\n=== Scan Complete ===")
 
-        # Parse JSON to check for duplicates
+        # Load results
         try:
-            data = json.loads(json_output)
-            duplicate_count = (
-                len(data) if isinstance(data, list) else data.get("total_groups", 0)
+            self.current_results = ScanResults.from_json(json_output)
+            self.results_viewer.load_results(self.current_results)
+
+            self.ui.scanLogText.append(
+                f"Found {self.current_results.total_groups} duplicate groups "
+                f"with {self.current_results.total_duplicates} duplicates."
             )
 
-            if duplicate_count == 0:
-                self.ui.scanLogText.append("No duplicates found.")
-                self.ui.statusbar.showMessage("Scan complete - no duplicates found")
-            else:
-                self.ui.scanLogText.append(
-                    f"Found {duplicate_count} duplicate group(s)."
-                )
-                self.ui.statusbar.showMessage(
-                    f"Scan complete - found {duplicate_count} duplicate group(s)"
-                )
-                # Switch to results tab only if duplicates found
-                self.ui.tabWidget.setCurrentIndex(1)
-                # TODO: Load results into results viewer
-        except json.JSONDecodeError:
-            self.ui.scanLogText.append("Scan complete. JSON output ready.")
-            self.ui.statusbar.showMessage("Scan complete!")
+            # Switch to results tab
+            self.ui.tabWidget.setCurrentIndex(1)
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Results Load Error",
+                f"Failed to load scan results:\n\n{e}",
+            )
+            self.ui.scanLogText.append(f"Error loading results: {e}")
 
     def on_scan_error(self, error_message: str) -> None:
         """Handle scan errors."""
@@ -193,20 +203,52 @@ class MainWindow(QMainWindow):
     def open_results(self) -> None:
         """Open scan results from file."""
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Open Scan Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+            self, "Open Scan Results", "", "JSON Files (*.json)"
         )
         if filename:
-            self.ui.statusbar.showMessage(f"Loaded: {filename}")
-            # TODO: Load and display results
+            try:
+                self.current_results = ScanResults.from_file(filename)
+                self.results_viewer.load_results(self.current_results)
+                self.ui.statusbar.showMessage(f"Loaded: {filename}")
+
+                # Switch to results tab
+                self.ui.tabWidget.setCurrentIndex(1)
+
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Load Error",
+                    f"Failed to load results file:\n\n{e}",
+                )
 
     def save_results(self) -> None:
         """Save scan results to file."""
+        if not self.current_results:
+            QMessageBox.warning(
+                self, "No Results", "No scan results to save."
+            )
+            return
+
         filename, _ = QFileDialog.getSaveFileName(
-            self, "Save Scan Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+            self, "Save Scan Results", "", "JSON Files (*.json)"
         )
         if filename:
+            # TODO: Implement save functionality
             self.ui.statusbar.showMessage(f"Saved: {filename}")
-            # TODO: Save current results
+
+    def on_delete_requested(self, paths: List[str]):
+        """Handle deletion request from results viewer."""
+        if not paths:
+            return
+
+        # TODO: Implement deletion via backend interface
+        # For now, just show confirmation
+        QMessageBox.information(
+            self,
+            "Deletion Staged",
+            f"{len(paths)} items will be staged for deletion.\n\n"
+            f"Backend integration coming soon!",
+        )
 
     def show_about(self) -> None:
         """Show about dialog."""
