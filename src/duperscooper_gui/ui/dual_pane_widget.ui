@@ -165,6 +165,9 @@
        </item>
        <item>
         <widget class="QTreeWidget" name="resultsTree">
+         <property name="styleSheet">
+          <string notr="true">font-size: 10pt;</string>
+         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::MultiSelection</enum>
          </property>
@@ -287,6 +290,9 @@
        </item>
        <item>
         <widget class="QTreeWidget" name="stagingTree">
+         <property name="styleSheet">
+          <string notr="true">font-size: 10pt;</string>
+         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::MultiSelection</enum>
          </property>
@@ -402,6 +408,9 @@
    </item>
    <item>
     <widget class="QLabel" name="statusLabel">
+     <property name="styleSheet">
+      <string notr="true">font-size: 10pt;</string>
+     </property>
      <property name="text">
       <string>Ready to scan</string>
      </property>
