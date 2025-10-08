@@ -474,7 +474,7 @@ class DualPaneViewer(QWidget):
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
-                position = metadata["position"]
+                original_index = metadata["original_index"]
 
                 # Get original data to restore similarity and best status
                 original_data = self.staging_data.get(path, {})
@@ -499,7 +499,7 @@ class DualPaneViewer(QWidget):
                 )
 
                 # Insert at original position in group
-                group_item.insertChild(position, results_item)
+                group_item.insertChild(original_index, results_item)
 
                 # Always leave unchecked when unstaging
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
