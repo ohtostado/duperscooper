@@ -32,6 +32,10 @@ algorithm = "perceptual"  # "perceptual" or "exact"
 similarity_threshold = 98.0
 workers = 8  # Number of parallel worker threads
 
+# Default paths to load when GUI starts
+# Example: default_paths = ["/home/user/Music", "/media/music"]
+default_paths = []
+
 [ui]
 # UI preferences
 window_width = 1000

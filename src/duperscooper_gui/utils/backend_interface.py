@@ -283,32 +283,60 @@ def apply_rules(
 
 def list_deleted() -> List[Dict]:
     """
-    List staged deletion batches.
+    List staged deletion batches by recursively searching for manifests.
 
     Returns:
-        List of batch info dicts
+        List of batch info dicts with:
+        - id: Batch ID (e.g., "batch_2025-10-05_14-30-22")
+        - timestamp: ISO timestamp
+        - total_items_deleted: Number of items
+        - total_tracks_deleted: Number of tracks
+        - space_freed_bytes: Total size in bytes
+        - staging_path: Path to staging directory
+        - mode: "track" or "album" (inferred from total_items vs total_tracks)
     """
-    cmd = [sys.executable, "-m", "duperscooper", "--list-deleted"]
+    import json
+    from pathlib import Path
 
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        # Parse output (simple text format for now)
-        # TODO: Request JSON output format for staging commands
         batches = []
-        lines = result.stdout.strip().split("\n")
-        for line in lines:
-            if line.strip():
-                batches.append({"info": line})
 
+        # Search for all .deletedByDuperscooper directories recursively
+        # Start from current directory
+        cwd = Path.cwd()
+
+        print(f"DEBUG list_deleted: Searching from {cwd}")  # Debug
+
+        # Find all manifest.json files under any .deletedByDuperscooper folder
+        manifest_paths = list(cwd.rglob(".deletedByDuperscooper/*/manifest.json"))
+        print(f"DEBUG: Found {len(manifest_paths)} manifest files")  # Debug
+
+        for manifest_path in manifest_paths:
+            try:
+                with open(manifest_path) as f:
+                    manifest = json.load(f)
+
+                batch_info = manifest["deletion_batch"]
+                batch_info["staging_path"] = str(manifest_path.parent)
+
+                # Add mode field (infer from items vs tracks)
+                items = batch_info.get("total_items_deleted", 0)
+                tracks = batch_info.get("total_tracks_deleted", 0)
+                batch_info["mode"] = "track" if items == tracks else "album"
+
+                print(f"DEBUG: Found batch {batch_info.get('id')}")  # Debug
+                batches.append(batch_info)
+            except (json.JSONDecodeError, KeyError) as e:
+                print(f"DEBUG: Invalid manifest {manifest_path}: {e}")  # Debug
+                continue
+
+        print(f"DEBUG: Returning {len(batches)} batches")  # Debug
         return batches
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"List deleted failed: {e.stderr}") from e
+    except Exception as e:
+        import traceback
+
+        print(f"DEBUG: Exception in list_deleted:\n{traceback.format_exc()}")  # Debug
+        raise RuntimeError(f"List deleted failed: {e}") from e
 
 
 def restore_batch(batch_id: str, restore_to: str = None) -> str:
@@ -383,7 +411,7 @@ def stage_items(
     paths: List[str], mode: str, store_fingerprints: bool = False
 ) -> Dict[str, any]:
     """
-    Stage files/albums for deletion using CLI.
+    Stage files/albums for deletion using StagingManager directly.
 
     Args:
         paths: List of file/album paths to stage
@@ -396,61 +424,181 @@ def stage_items(
             - batch_id: str (UUID timestamp)
             - message: str
             - staged_count: int
-
-    Raises:
-        RuntimeError: If staging fails
     """
-    # Build command - use --apply-rules with eliminate-duplicates strategy
-    # This requires a JSON file as input
+    from pathlib import Path
+
+    from duperscooper.hasher import AudioHasher
+    from duperscooper.staging import StagingManager
+
+    print(f"DEBUG stage_items: paths={paths}, mode={mode}")  # Debug
+
+    if not paths:
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": "No paths provided for staging",
+            "staged_count": 0,
+        }
+
+    try:
+        # Filter out any staging directories from paths
+        # (old staging folders might appear as "duplicates" in results)
+        valid_paths = [
+            p
+            for p in paths
+            if ".deletedByDuperscooper" not in p and ".restored" not in p
+        ]
+
+        if not valid_paths:
+            return {
+                "success": False,
+                "batch_id": None,
+                "message": "No valid paths to stage (all are staging directories)",
+                "staged_count": 0,
+            }
+
+        print(f"DEBUG: Filtered {len(paths)} paths to {len(valid_paths)} valid paths")
+
+        # Use first valid path to determine staging location
+        first_path = Path(valid_paths[0])
+        staging_mgr = StagingManager(
+            first_path, command="GUI deletion", store_fingerprints=store_fingerprints
+        )
+
+        if mode == "album":
+            # Stage albums - need to find tracks in each album directory
+            hasher = AudioHasher()
+
+            for album_path_str in valid_paths:
+                album_path = Path(album_path_str)
+
+                # Find all audio tracks in album directory
+                tracks = []
+                total_size = 0
+                if album_path.is_dir():
+                    for file_path in sorted(album_path.iterdir()):
+                        if file_path.is_file() and hasher.is_audio_file(file_path):
+                            tracks.append(str(file_path))
+                            total_size += file_path.stat().st_size
+
+                # Create album-like object with all required fields
+                from types import SimpleNamespace
+
+                album_obj = SimpleNamespace(
+                    path=album_path,
+                    tracks=tracks,
+                    total_size=total_size,
+                    track_count=len(tracks),
+                    album_name=None,  # Not available in GUI model
+                    artist_name=None,  # Not available in GUI model
+                    quality_info="",  # Not available here
+                    avg_quality_score=0,  # Not available here
+                    musicbrainz_albumid=None,  # Not available in GUI model
+                )
+
+                # Stage the album
+                staging_mgr.stage_album(album_obj, reason="GUI deletion")
+
+        else:
+            # Track mode not implemented yet
+            return {
+                "success": False,
+                "batch_id": None,
+                "message": "Track mode staging not yet implemented in GUI",
+                "staged_count": 0,
+            }
+
+        # Finalize staging
+        manifest = staging_mgr.finalize()
+        batch_id = manifest["deletion_batch"]["id"]
+        staged_count = manifest["deletion_batch"]["total_items_deleted"]
+
+        return {
+            "success": True,
+            "batch_id": batch_id,
+            "message": f"Successfully staged {staged_count} items to {batch_id}",
+            "staged_count": staged_count,
+        }
+
+    except Exception as e:
+        import traceback
+
+        print(f"DEBUG: Exception in stage_items:\n{traceback.format_exc()}")  # Debug
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": f"Staging failed: {e}",
+            "staged_count": 0,
+        }
+
+
+# Old CLI-based implementation - keeping for reference but not used
+def _stage_items_via_cli(
+    paths: List[str], mode: str, store_fingerprints: bool = False
+) -> Dict[str, any]:
+    """
+    DEPRECATED: Old implementation that used CLI --apply-rules.
+    Replaced with direct StagingManager calls.
+    """
     import json
     import tempfile
 
+    if not paths:
+        return {
+            "success": False,
+            "batch_id": None,
+            "message": "No paths provided for staging",
+            "staged_count": 0,
+        }
+
     # Create temporary JSON file with paths marked for deletion
+    # NOTE: CLI expects a LIST at top level, not a dict
     if mode == "track":
-        # Create track mode JSON
-        json_data = {
-            "mode": "track",
-            "duplicate_groups": [
-                {
-                    "group_id": 1,
-                    "hash": "temp",
-                    "files": [
-                        {
-                            "path": path,
-                            "recommended_action": "delete",
-                            "is_best": False,
-                        }
-                        for path in paths
-                    ],
-                }
-            ],
-        }
+        # Create track mode JSON - list of groups
+        json_data = [
+            {
+                "hash": "staged_deletion",
+                "files": [
+                    {
+                        "path": path,
+                        "recommended_action": "delete",
+                        "is_best": False,
+                        "quality_score": 0,
+                        "similarity_to_best": 0,
+                    }
+                    for path in paths
+                ],
+            }
+        ]
     else:
-        # Create album mode JSON
-        json_data = {
-            "mode": "album",
-            "duplicate_groups": [
-                {
-                    "group_id": 1,
-                    "matched_album": "temp",
-                    "matched_artist": "temp",
-                    "albums": [
-                        {
-                            "path": path,
-                            "recommended_action": "delete",
-                            "is_best": False,
-                        }
-                        for path in paths
-                    ],
-                }
-            ],
-        }
+        # Create album mode JSON - list of groups
+        json_data = [
+            {
+                "matched_album": "Staged Deletion",
+                "matched_artist": "Various",
+                "albums": [
+                    {
+                        "path": path,
+                        "recommended_action": "delete",
+                        "is_best": False,
+                        "quality_score": 0,
+                        "track_count": 0,
+                        "total_size_bytes": 0,
+                    }
+                    for path in paths
+                ],
+            }
+        ]
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".json", delete=False
     ) as temp_file:
         json.dump(json_data, temp_file)
         temp_path = temp_file.name
+
+    # Debug: print the JSON content
+    print(f"DEBUG: Temp JSON file: {temp_path}")  # Debug
+    print(f"DEBUG: JSON content:\n{json.dumps(json_data, indent=2)}")  # Debug
 
     try:
         cmd = [
@@ -468,12 +616,18 @@ def stage_items(
         if store_fingerprints:
             cmd.append("--store-fingerprints")
 
+        print(f"DEBUG: Running command: {' '.join(cmd)}")  # Debug
+
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             check=False,  # Don't raise on non-zero exit
         )
+
+        print(f"DEBUG: Command exit code: {result.returncode}")  # Debug
+        print(f"DEBUG: stdout:\n{result.stdout}")  # Debug
+        print(f"DEBUG: stderr:\n{result.stderr}")  # Debug
 
         # Parse output for batch ID
         # Look for "Staged N items to batch_YYYY-MM-DD_HH-MM-SS"

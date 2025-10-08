@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DualPaneWidget</class>
+ <widget class="QWidget" name="DualPaneWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Scan &amp; Stage</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <!-- Top Pane: Scan Paths -->
+    <widget class="QGroupBox" name="pathsGroup">
+     <property name="title">
+      <string>Scan Paths</string>
+     </property>
+     <property name="minimumHeight">
+      <number>150</number>
+     </property>
+     <property name="maximumHeight">
+      <number>200</number>
+     </property>
+     <layout class="QVBoxLayout" name="pathsLayout">
+      <item>
+       <widget class="QListWidget" name="pathsList">
+        <property name="toolTip">
+         <string>Paths to scan for duplicates</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="pathsButtonLayout">
+        <item>
+         <widget class="QPushButton" name="addPathButton">
+          <property name="text">
+           <string>➕ Add Path</string>
+          </property>
+          <property name="toolTip">
+           <string>Add a path to scan</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removePathButton">
+          <property name="text">
+           <string>➖ Remove Selected</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Remove selected path</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer1">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="modeLabel">
+          <property name="text">
+           <string>Mode:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="modeCombo">
+          <property name="toolTip">
+           <string>Scan for duplicate tracks or albums</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>Track Mode</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Album Mode</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="startScanButton">
+          <property name="text">
+           <string>▶ Start Scan</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Start scanning for duplicates</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #4CAF50; color: white;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="stopScanButton">
+          <property name="text">
+           <string>⏹ Stop Scan</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Stop the current scan</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #f44336; color: white;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <!-- Bottom: Split pane with Results (left) and Staging (right) -->
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="resultsWidget">
+      <layout class="QVBoxLayout" name="resultsLayout">
+       <item>
+        <widget class="QLabel" name="resultsLabel">
+         <property name="text">
+          <string>Scan Results</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="resultsTree">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <column>
+          <property name="text">
+           <string>☑</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Path / Album</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Size</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Quality</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Similarity</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="resultsSummary">
+         <property name="text">
+          <string>No duplicates found yet</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="stagingWidget">
+      <layout class="QVBoxLayout" name="stagingLayout">
+       <item>
+        <widget class="QLabel" name="stagingLabel">
+         <property name="text">
+          <string>Staged for Deletion</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="stagingTree">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <column>
+          <property name="text">
+           <string>☑</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Path / Album</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Size</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Quality</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="stagingSummary">
+         <property name="text">
+          <string>No items staged</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteAllButton">
+         <property name="text">
+          <string>🗑️ Delete All Staged</string>
+         </property>
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Delete all staged items (move to .deletedByDuperscooper)</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #d32f2f; color: white; padding: 8px 16px;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <!-- Bottom button bar -->
+    <layout class="QHBoxLayout" name="buttonBarLayout">
+     <item>
+      <widget class="QPushButton" name="selectAllButton">
+       <property name="text">
+        <string>☑ Select All</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Select all items in results pane</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deselectAllButton">
+       <property name="text">
+        <string>☐ Deselect All</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Deselect all items in results pane</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="selectRecommendedButton">
+       <property name="text">
+        <string>Select Recommended</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Select items recommended for deletion (lower quality duplicates)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stageButton">
+       <property name="text">
+        <string>Stage Selected &gt;&gt;</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Move selected items from results to staging pane</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"></string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="unstageButton">
+       <property name="text">
+        <string>&lt;&lt; Unstage Selected</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Move selected items from staging back to results pane</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"></string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clearStagingButton">
+       <property name="text">
+        <string>❌ Unstage All</string>
+       </property>
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Clear all items from staging (move back to results)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusLabel">
+     <property name="text">
+      <string>Ready to scan</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
