@@ -63,13 +63,14 @@ class StagingViewer(QWidget):
         self.batches: List[Dict] = []
 
         # Connect signals
-        self.ui.refreshButton.clicked.connect(self.refresh_batches)
-        self.ui.restoreButton.clicked.connect(self.on_restore_clicked)
+        self.ui.refreshButton.clicked.connect(self.refresh_queue)
+        self.ui.removeButton.clicked.connect(self.on_remove_clicked)
+        self.ui.deleteAllButton.clicked.connect(self.on_delete_all_clicked)
         self.ui.emptyButton.clicked.connect(self.on_empty_clicked)
         self.ui.batchTable.itemSelectionChanged.connect(self.on_selection_changed)
 
         # Load initial data
-        self.refresh_batches()
+        self.refresh_queue()
 
     def refresh_batches(self) -> None:
         """Refresh the list of staged batches."""
@@ -103,53 +104,53 @@ class StagingViewer(QWidget):
         self.ui.refreshButton.setText("🔄 Refresh")
 
     def populate_table(self) -> None:
-        """Populate table with batch data."""
+        """Populate table with completed batch data.
+
+        Already in .deletedByDuperscooper.
+        """
         print(f"DEBUG: populate_table called with {len(self.batches)} batches")  # Debug
         # Clear existing rows
         self.ui.batchTable.setRowCount(0)
 
         if not self.batches:
-            print("DEBUG: No batches, showing 'No staged batches' message")  # Debug
-            self.ui.summaryLabel.setText("No staged batches")
+            print(
+                "DEBUG: No batches, showing 'No completed deletions' message"
+            )  # Debug
+            self.ui.summaryLabel.setText("No completed deletions")
             return
 
-        # Add rows
+        # Add rows - using new 4-column format
         for batch in self.batches:
             row = self.ui.batchTable.rowCount()
             self.ui.batchTable.insertRow(row)
 
-            # Batch ID (remove "batch_" prefix for display)
+            # Type (mode)
+            mode = batch.get("mode", "unknown")
+            self.ui.batchTable.setItem(row, 0, QTableWidgetItem(mode.title()))
+
+            # Path (staging location)
+            staging_path = batch.get("staging_path", "")
             batch_id = batch.get("id", "")
-            display_id = batch_id.replace("batch_", "")
-            id_item = QTableWidgetItem(display_id)
-            id_item.setData(Qt.ItemDataRole.UserRole, batch_id)  # Store full ID
-            self.ui.batchTable.setItem(row, 0, id_item)
-
-            # Date (parse timestamp)
-            timestamp_str = batch.get("timestamp", "")
-            try:
-                dt = datetime.fromisoformat(timestamp_str)
-                date_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-            except (ValueError, TypeError):
-                date_str = timestamp_str
-            self.ui.batchTable.setItem(row, 1, QTableWidgetItem(date_str))
-
-            # Items
-            items = batch.get("total_items_deleted", 0)
-            self.ui.batchTable.setItem(row, 2, QTableWidgetItem(str(items)))
+            display_path = f"Batch {batch_id.replace('batch_', '')} - {staging_path}"
+            path_item = QTableWidgetItem(display_path)
+            path_item.setData(Qt.ItemDataRole.UserRole, batch_id)  # Store batch ID
+            self.ui.batchTable.setItem(row, 1, path_item)
 
             # Size
             size_bytes = batch.get("space_freed_bytes", 0)
             size_str = self.format_size(size_bytes)
-            self.ui.batchTable.setItem(row, 3, QTableWidgetItem(size_str))
+            self.ui.batchTable.setItem(row, 2, QTableWidgetItem(size_str))
 
-            # Mode
-            mode = batch.get("mode", "unknown")
-            self.ui.batchTable.setItem(row, 4, QTableWidgetItem(mode))
-
-            # Location
-            staging_path = batch.get("staging_path", "")
-            self.ui.batchTable.setItem(row, 5, QTableWidgetItem(staging_path))
+            # Quality Info (show date + item count)
+            timestamp_str = batch.get("timestamp", "")
+            try:
+                dt = datetime.fromisoformat(timestamp_str)
+                date_str = dt.strftime("%Y-%m-%d %H:%M")
+            except (ValueError, TypeError):
+                date_str = timestamp_str
+            items = batch.get("total_items_deleted", 0)
+            info_str = f"{date_str} - {items} items"
+            self.ui.batchTable.setItem(row, 3, QTableWidgetItem(info_str))
 
         # Update summary
         total_items = sum(b.get("total_items_deleted", 0) for b in self.batches)
@@ -157,16 +158,129 @@ class StagingViewer(QWidget):
         size_str = self.format_size(total_size)
 
         self.ui.summaryLabel.setText(
-            f"{len(self.batches)} batch(es), {total_items} item(s), {size_str} total"
+            f"{len(self.batches)} completed deletion(s), "
+            f"{total_items} item(s), {size_str} total"
         )
+
+        # Delete All button is for queue items, not completed batches
+        self.ui.deleteAllButton.setEnabled(False)
+
+        # Resize columns to content
+        self.ui.batchTable.resizeColumnsToContents()
+
+    def refresh_queue(self) -> None:
+        """Refresh the staging queue display (items not yet moved)."""
+        from ..models.staging_queue import StagingQueue
+
+        queue = StagingQueue()
+        items = queue.get_all()
+
+        # Clear existing rows
+        self.ui.batchTable.setRowCount(0)
+
+        if not items:
+            self.ui.summaryLabel.setText("No items staged for deletion")
+            self.ui.deleteAllButton.setEnabled(False)
+            return
+
+        # Group items by mode for display
+        track_items = [item for item in items if item.mode == "track"]
+        album_items = [item for item in items if item.mode == "album"]
+
+        # Add track items
+        for item in track_items:
+            row = self.ui.batchTable.rowCount()
+            self.ui.batchTable.insertRow(row)
+
+            # Type
+            self.ui.batchTable.setItem(row, 0, QTableWidgetItem("Track"))
+
+            # Path
+            path_item = QTableWidgetItem(item.path)
+            path_item.setData(Qt.ItemDataRole.UserRole, item.path)
+            self.ui.batchTable.setItem(row, 1, path_item)
+
+            # Size
+            size_str = self.format_size(item.size_bytes)
+            self.ui.batchTable.setItem(row, 2, QTableWidgetItem(size_str))
+
+            # Quality info
+            self.ui.batchTable.setItem(row, 3, QTableWidgetItem(item.quality_info))
+
+        # Add album items
+        for item in album_items:
+            row = self.ui.batchTable.rowCount()
+            self.ui.batchTable.insertRow(row)
+
+            # Type
+            self.ui.batchTable.setItem(row, 0, QTableWidgetItem("Album"))
+
+            # Path (with album/artist if available)
+            display_path = item.path
+            if item.album_name and item.artist_name:
+                display_path = f"{item.artist_name} - {item.album_name}"
+            elif item.album_name:
+                display_path = item.album_name
+            path_item = QTableWidgetItem(display_path)
+            path_item.setData(Qt.ItemDataRole.UserRole, item.path)
+            self.ui.batchTable.setItem(row, 1, path_item)
+
+            # Size
+            size_str = self.format_size(item.size_bytes)
+            self.ui.batchTable.setItem(row, 2, QTableWidgetItem(size_str))
+
+            # Quality info
+            self.ui.batchTable.setItem(row, 3, QTableWidgetItem(item.quality_info))
+
+        # Update summary
+        total_size = sum(item.size_bytes for item in items)
+        size_str = self.format_size(total_size)
+
+        self.ui.summaryLabel.setText(f"{len(items)} item(s) staged, {size_str} total")
+
+        # Enable Delete All button
+        self.ui.deleteAllButton.setEnabled(len(items) > 0)
 
         # Resize columns to content
         self.ui.batchTable.resizeColumnsToContents()
 
     def on_selection_changed(self) -> None:
         """Handle table selection change."""
-        selected = len(self.ui.batchTable.selectedItems()) > 0
-        self.ui.restoreButton.setEnabled(selected)
+        selected_rows = len(self.ui.batchTable.selectionModel().selectedRows())
+        self.ui.removeButton.setEnabled(selected_rows > 0)
+
+    def on_remove_clicked(self) -> None:
+        """Handle remove button click (remove selected items from queue)."""
+        from ..models.staging_queue import StagingQueue
+
+        # Get selected rows
+        selected_rows = self.ui.batchTable.selectionModel().selectedRows()
+        if not selected_rows:
+            return
+
+        # Get paths from selected rows
+        paths_to_remove = []
+        for index in selected_rows:
+            row = index.row()
+            # Get path from column 1 (Path/Album)
+            path_item = self.ui.batchTable.item(row, 1)
+            if path_item:
+                # For queue items, the actual path is stored in UserRole
+                path = path_item.data(Qt.ItemDataRole.UserRole)
+                if not path:
+                    # Fallback to text if UserRole not set
+                    path = path_item.text()
+                paths_to_remove.append(path)
+
+        if not paths_to_remove:
+            return
+
+        # Remove from queue
+        queue = StagingQueue()
+        queue.remove_items(paths_to_remove)
+
+        # Refresh display
+        self.refresh_queue()
 
     def on_restore_clicked(self) -> None:
         """Handle restore button click."""
@@ -248,6 +362,76 @@ class StagingViewer(QWidget):
 
             # Emit signal
             self.restore_requested.emit(batch_id, restore_to)
+
+    def on_delete_all_clicked(self) -> None:
+        """Handle delete all staged button click.
+
+        Move files to .deletedByDuperscooper.
+        """
+        from ..models.staging_queue import StagingQueue
+
+        queue = StagingQueue()
+        items = queue.get_all()
+
+        if not items:
+            QMessageBox.warning(self, "No Items", "No items staged for deletion.")
+            return
+
+        # Show confirmation dialog
+        total_size = sum(item.size_bytes for item in items)
+        size_str = self.format_size(total_size)
+
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Confirm Deletion")
+        msg.setText(
+            f"Are you sure you want to delete {len(items)} item(s) ({size_str})?"
+        )
+        msg.setInformativeText(
+            "Files will be moved to .deletedByDuperscooper and can be restored later."
+        )
+        msg.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+
+        if msg.exec() != QMessageBox.StandardButton.Yes:
+            return
+
+        # Move files using backend interface
+        from ..utils.backend_interface import stage_items
+
+        # Group by mode
+        track_paths = [item.path for item in items if item.mode == "track"]
+        album_paths = [item.path for item in items if item.mode == "album"]
+
+        try:
+            # Stage tracks
+            if track_paths:
+                stage_items(track_paths, mode="track")
+
+            # Stage albums
+            if album_paths:
+                stage_items(album_paths, mode="album")
+
+            # Clear the queue
+            queue.clear()
+
+            # Refresh display
+            self.refresh_queue()
+
+            # Show success message
+            QMessageBox.information(
+                self,
+                "Deletion Complete",
+                f"Successfully moved {len(items)} item(s) to staging.\n"
+                f"Use 'Refresh' to see completed deletions.",
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Deletion Failed", f"Failed to delete items: {str(e)}"
+            )
 
     def on_empty_clicked(self) -> None:
         """Handle empty deleted button click."""

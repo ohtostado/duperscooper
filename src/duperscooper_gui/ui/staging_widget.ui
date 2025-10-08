@@ -27,15 +27,15 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="restoreButton">
+      <widget class="QPushButton" name="removeButton">
        <property name="text">
-        <string>↩️ Restore Selected</string>
+        <string>❌ Remove Selected</string>
        </property>
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="toolTip">
-        <string>Restore the selected batch</string>
+        <string>Remove selected items from staging queue</string>
        </property>
       </widget>
      </item>
@@ -86,7 +86,7 @@
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::MultiSelection</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
@@ -96,17 +96,12 @@
      </property>
      <column>
       <property name="text">
-       <string>Batch ID</string>
+       <string>Type</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>Date</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Items</string>
+       <string>Path / Album</string>
       </property>
      </column>
      <column>
@@ -116,12 +111,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Mode</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Location</string>
+       <string>Quality Info</string>
       </property>
      </column>
     </widget>

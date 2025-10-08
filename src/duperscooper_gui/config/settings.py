@@ -131,6 +131,7 @@ class Settings:
     ALGORITHM = _CONFIG["scan"]["algorithm"]
     SIMILARITY_THRESHOLD = _CONFIG["scan"]["similarity_threshold"]
     WORKERS = _CONFIG["scan"]["workers"]
+    DEFAULT_PATHS = _CONFIG["scan"].get("default_paths", [])
 
     # UI preferences
     WINDOW_WIDTH = _CONFIG["ui"]["window_width"]
