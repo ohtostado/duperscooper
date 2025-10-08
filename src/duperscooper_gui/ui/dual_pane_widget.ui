@@ -211,6 +211,9 @@
        <item>
         <!-- Results buttons group -->
         <layout class="QHBoxLayout" name="resultsButtonLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QPushButton" name="selectAllButton">
            <property name="text">
@@ -330,6 +333,9 @@
        <item>
         <!-- Staging buttons group -->
         <layout class="QHBoxLayout" name="stagingButtonLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QPushButton" name="unstageButton">
            <property name="text">
@@ -384,7 +390,7 @@
             <string>Delete all staged items (move to .deletedByDuperscooper)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: #d32f2f; color: white; padding: 8px 16px; font-weight: bold;</string>
+            <string notr="true">background-color: #d32f2f; color: white; font-weight: bold;</string>
            </property>
           </widget>
          </item>
