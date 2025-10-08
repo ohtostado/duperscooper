@@ -473,14 +473,24 @@ class DualPaneViewer(QWidget):
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
             else:
                 metadata = self.item_metadata[path]
-                group_item = metadata["group_item"]
+                stored_group_item = metadata["group_item"]
                 group_id = metadata["group_id"]
                 original_index = metadata["original_index"]
 
-                # Check if group still exists in tree (may have been removed if empty)
-                group_parent = group_item.parent()
-                if group_parent is None:
-                    # Group was removed, need to recreate it
+                # Find the group in the tree - it may still exist if not all items
+                # were staged
+                group_item = None
+                root = results_tree.invisibleRootItem()
+                for i in range(root.childCount()):
+                    candidate = root.child(i)
+                    # Check if this is the right group by comparing text
+                    if candidate.text(1) == f"Group {group_id}":
+                        group_item = candidate
+                        break
+
+                # If group doesn't exist in tree, check if it was removed
+                if group_item is None:
+                    # Group was removed (all items were staged), recreate it
                     group_item = QTreeWidgetItem(
                         results_tree,
                         ["", f"Group {group_id}", "", "", ""],
@@ -493,6 +503,9 @@ class DualPaneViewer(QWidget):
                                 self.item_metadata[member_path][
                                     "group_item"
                                 ] = group_item
+                elif group_item != stored_group_item:
+                    # Update our stored reference if it changed
+                    metadata["group_item"] = group_item
 
                 # Get original data to restore similarity and best status
                 original_data = self.staging_data.get(path, {})
