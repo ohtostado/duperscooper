@@ -228,23 +228,58 @@ class DualPaneViewer(QWidget):
             self, "Scan Error", f"An error occurred during scanning:\n\n{error_msg}"
         )
 
+    def _format_group_header(self, group_id: int, items: List[Dict[str, Any]]) -> str:
+        """Format group header with album/artist metadata.
+
+        Args:
+            group_id: Group number
+            items: List of items in the group
+
+        Returns:
+            Formatted header string
+        """
+        if not items:
+            return f"Group {group_id}"
+
+        # Try to get album/artist from first item (they should all be the same)
+        first_item = items[0]
+        album = first_item.get("album_name", "").strip()
+        artist = first_item.get("artist_name", "").strip()
+
+        # Format based on available metadata
+        if album and artist:
+            return f"Group {group_id}: {album} by {artist}"
+        elif album:
+            return f"Group {group_id}: {album}"
+        else:
+            # Use folder name from path
+            path = first_item.get("path", "")
+            if path:
+                folder_name = Path(path).parent.name
+                return f"Group {group_id}: {folder_name}"
+            else:
+                return f"Group {group_id}"
+
     def add_duplicate_group(self, group_data: dict) -> None:
         """Add a duplicate group to results pane (real-time during scan).
 
         Args:
             group_data: Dict with group information (matches ScanResults format)
         """
+        # Add files/albums to group
+        items = group_data.get("files", []) or group_data.get("albums", [])
+        group_id = group_data.get("group_id", 0)
+
+        # Extract album/artist metadata for group header
+        group_header = self._format_group_header(group_id, items)
+
         # Create group item
         results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
         group_item = QTreeWidgetItem(
             results_tree,
-            ["", f"Group {group_data.get('group_id', '?')}", "", "", ""],
+            ["", group_header, "", "", ""],
         )
         group_item.setExpanded(True)
-
-        # Add files/albums to group
-        items = group_data.get("files", []) or group_data.get("albums", [])
-        group_id = group_data.get("group_id", 0)
 
         # Track all paths in this group in original order
         group_paths = []
