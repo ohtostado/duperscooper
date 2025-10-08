@@ -474,7 +474,25 @@ class DualPaneViewer(QWidget):
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
+                group_id = metadata["group_id"]
                 original_index = metadata["original_index"]
+
+                # Check if group still exists in tree (may have been removed if empty)
+                group_parent = group_item.parent()
+                if group_parent is None:
+                    # Group was removed, need to recreate it
+                    group_item = QTreeWidgetItem(
+                        results_tree,
+                        ["", f"Group {group_id}", "", "", ""],
+                    )
+                    group_item.setExpanded(True)
+                    # Update metadata for all items in this group
+                    if group_id in self.group_members:
+                        for member_path in self.group_members[group_id]:
+                            if member_path in self.item_metadata:
+                                self.item_metadata[member_path][
+                                    "group_item"
+                                ] = group_item
 
                 # Get original data to restore similarity and best status
                 original_data = self.staging_data.get(path, {})
