@@ -310,6 +310,11 @@
            <string>Quality</string>
           </property>
          </column>
+         <column>
+          <property name="text">
+           <string>Similarity</string>
+          </property>
+         </column>
         </widget>
        </item>
        <item>
@@ -370,7 +375,7 @@
          <item>
           <widget class="QPushButton" name="deleteAllButton">
            <property name="text">
-            <string>🗑️ Delete All</string>
+            <string>🗑️ Delete Staged</string>
            </property>
            <property name="enabled">
             <bool>false</bool>
