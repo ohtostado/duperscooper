@@ -277,7 +277,7 @@ class DualPaneViewer(QWidget):
         results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
         group_item = QTreeWidgetItem(
             results_tree,
-            ["", group_header, "", "", ""],
+            ["", group_header, "", "", "", ""],
         )
         group_item.setExpanded(True)
 
@@ -286,17 +286,22 @@ class DualPaneViewer(QWidget):
 
         for original_index, item in enumerate(items):
             path = item.get("path", "")
+            path_obj = Path(path)
+            filename = path_obj.name
+            directory = str(path_obj.parent)
+
             size_mb = item.get("size_bytes", 0) / (1024 * 1024)
             quality = item.get("audio_info", "") or item.get("quality_info", "")
             similarity = item.get("similarity_to_best", 0)
             is_best = item.get("is_best", False)
 
-            # Create tree item
+            # Create tree item with separate filename and path columns
             child_item = QTreeWidgetItem(
                 group_item,
                 [
                     "",
-                    path,
+                    filename,
+                    directory,
                     f"{size_mb:.1f} MB",
                     quality,
                     f"{similarity:.1f}%" if similarity > 0 else "",
@@ -310,7 +315,7 @@ class DualPaneViewer(QWidget):
 
             # Mark best item
             if is_best:
-                child_item.setText(1, f"[Best] {path}")
+                child_item.setText(1, f"[Best] {filename}")
 
             # Store data and metadata
             self.results_data[path] = item
@@ -383,7 +388,10 @@ class DualPaneViewer(QWidget):
             for j in range(group_item.childCount()):
                 item = group_item.child(j)
                 if item.checkState(0) == Qt.CheckState.Checked:
-                    path = item.text(1).replace("[Best] ", "")
+                    # Reconstruct full path from filename and directory
+                    filename = item.text(1).replace("[Best] ", "")
+                    directory = item.text(2)
+                    path = str(Path(directory) / filename)
                     items_to_stage.append((path, item))
 
         if not items_to_stage:
@@ -393,15 +401,16 @@ class DualPaneViewer(QWidget):
         # Move to staging pane
         staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
         for path, item in items_to_stage:
-            # Add to staging tree (include all 5 columns)
+            # Add to staging tree (include all 6 columns)
             staging_item = QTreeWidgetItem(
                 staging_tree,
                 [
                     "",
-                    item.text(1),  # Path/Album
-                    item.text(2),  # Size
-                    item.text(3),  # Quality
-                    item.text(4),  # Similarity
+                    item.text(1),  # Filename
+                    item.text(2),  # Path
+                    item.text(3),  # Size
+                    item.text(4),  # Quality
+                    item.text(5),  # Similarity
                 ],
             )
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
@@ -427,7 +436,10 @@ class DualPaneViewer(QWidget):
         for i in range(root.childCount()):
             item = root.child(i)
             if item.checkState(0) == Qt.CheckState.Checked:
-                path = item.text(1).replace("[Best] ", "")
+                # Reconstruct full path from filename and directory
+                filename = item.text(1).replace("[Best] ", "")
+                directory = item.text(2)
+                path = str(Path(directory) / filename)
                 items_to_unstage.append((path, item))
 
         if not items_to_unstage:
@@ -455,7 +467,10 @@ class DualPaneViewer(QWidget):
 
         for i in range(root.childCount()):
             item = root.child(i)
-            path = item.text(1).replace("[Best] ", "")
+            # Reconstruct full path from filename and directory
+            filename = item.text(1).replace("[Best] ", "")
+            directory = item.text(2)
+            path = str(Path(directory) / filename)
             items_to_unstage.append((path, item))
 
         if not items_to_unstage:
@@ -500,10 +515,11 @@ class DualPaneViewer(QWidget):
                     results_tree,
                     [
                         "",
-                        staging_item.text(1),
-                        staging_item.text(2),
-                        staging_item.text(3),
-                        "",
+                        staging_item.text(1),  # Filename
+                        staging_item.text(2),  # Path
+                        staging_item.text(3),  # Size
+                        staging_item.text(4),  # Quality
+                        staging_item.text(5),  # Similarity
                     ],
                 )
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
@@ -517,19 +533,20 @@ class DualPaneViewer(QWidget):
                 similarity = original_data.get("similarity_to_best", 0)
 
                 # Create tree item with original formatting
-                display_path = staging_item.text(1)
-                if is_best and not display_path.startswith("[Best]"):
-                    display_path = f"[Best] {path}"
-                elif not is_best and display_path.startswith("[Best]"):
-                    display_path = path
+                display_filename = staging_item.text(1)
+                if is_best and not display_filename.startswith("[Best]"):
+                    display_filename = f"[Best] {display_filename}"
+                elif not is_best and display_filename.startswith("[Best]"):
+                    display_filename = display_filename.replace("[Best] ", "")
 
                 results_item = QTreeWidgetItem(
                     [
                         "",
-                        display_path,
-                        staging_item.text(2),
-                        staging_item.text(3),
-                        f"{similarity:.1f}%" if similarity > 0 else "",
+                        display_filename,  # Filename
+                        staging_item.text(2),  # Path
+                        staging_item.text(3),  # Size
+                        staging_item.text(4),  # Quality
+                        f"{similarity:.1f}%" if similarity > 0 else "",  # Similarity
                     ],
                 )
 
