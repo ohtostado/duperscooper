@@ -358,14 +358,15 @@ class DualPaneViewer(QWidget):
         # Move to staging pane
         staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
         for path, item in items_to_stage:
-            # Add to staging tree
+            # Add to staging tree (include all 5 columns)
             staging_item = QTreeWidgetItem(
                 staging_tree,
                 [
                     "",
-                    item.text(1),
-                    item.text(2),
-                    item.text(3),
+                    item.text(1),  # Path/Album
+                    item.text(2),  # Size
+                    item.text(3),  # Quality
+                    item.text(4),  # Similarity
                 ],
             )
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
