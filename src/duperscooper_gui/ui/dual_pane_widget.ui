@@ -208,6 +208,66 @@
          </property>
         </widget>
        </item>
+       <item>
+        <!-- Results buttons group -->
+        <layout class="QHBoxLayout" name="resultsButtonLayout">
+         <item>
+          <widget class="QPushButton" name="selectAllButton">
+           <property name="text">
+            <string>☑ Select All</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Select all items in results pane</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="deselectAllButton">
+           <property name="text">
+            <string>☐ Deselect All</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Deselect all items in results pane</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="selectRecommendedButton">
+           <property name="text">
+            <string>Select Recommended</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Select items recommended for deletion (lower quality duplicates)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="stageButton">
+           <property name="text">
+            <string>Stage Selected &gt;&gt;</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Move selected items from results to staging pane</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-weight: bold;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="stagingWidget">
@@ -263,126 +323,71 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteAllButton">
-         <property name="text">
-          <string>🗑️ Delete All Staged</string>
-         </property>
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>Delete all staged items (move to .deletedByDuperscooper)</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: #d32f2f; color: white; padding: 8px 16px;</string>
-         </property>
-        </widget>
+        <!-- Staging buttons group -->
+        <layout class="QHBoxLayout" name="stagingButtonLayout">
+         <item>
+          <widget class="QPushButton" name="unstageButton">
+           <property name="text">
+            <string>&lt;&lt; Unstage Selected</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Move selected items from staging back to results pane</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-weight: bold;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearStagingButton">
+           <property name="text">
+            <string>Unstage All</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Clear all items from staging (move back to results)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="deleteAllButton">
+           <property name="text">
+            <string>🗑️ Delete All</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Delete all staged items (move to .deletedByDuperscooper)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #d32f2f; color: white; padding: 8px 16px; font-weight: bold;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
     </widget>
-   </item>
-   <item>
-    <!-- Bottom button bar -->
-    <layout class="QHBoxLayout" name="buttonBarLayout">
-     <item>
-      <widget class="QPushButton" name="selectAllButton">
-       <property name="text">
-        <string>☑ Select All</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Select all items in results pane</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="deselectAllButton">
-       <property name="text">
-        <string>☐ Deselect All</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Deselect all items in results pane</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="selectRecommendedButton">
-       <property name="text">
-        <string>Select Recommended</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Select items recommended for deletion (lower quality duplicates)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="stageButton">
-       <property name="text">
-        <string>Stage Selected &gt;&gt;</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Move selected items from results to staging pane</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"></string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="unstageButton">
-       <property name="text">
-        <string>&lt;&lt; Unstage Selected</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Move selected items from staging back to results pane</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"></string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="clearStagingButton">
-       <property name="text">
-        <string>❌ Unstage All</string>
-       </property>
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Clear all items from staging (move back to results)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
    </item>
    <item>
     <widget class="QLabel" name="statusLabel">
