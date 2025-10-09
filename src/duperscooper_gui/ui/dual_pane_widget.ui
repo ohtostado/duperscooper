@@ -181,6 +181,11 @@
          </column>
          <column>
           <property name="text">
+           <string>Best</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Filename</string>
           </property>
          </column>
@@ -307,6 +312,11 @@
          <column>
           <property name="text">
            <string>☑</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Best</string>
           </property>
          </column>
          <column>
