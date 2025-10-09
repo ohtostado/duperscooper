@@ -100,8 +100,53 @@ class DualPaneViewer(QWidget):
         )
         self.ui.stagingTree.itemChanged.connect(self.on_staging_item_changed)  # type: ignore[attr-defined]
 
+        # Connect to item expanded/collapsed signals
+        self.ui.resultsTree.itemExpanded.connect(self.on_item_expanded)  # type: ignore[attr-defined]
+        self.ui.resultsTree.itemCollapsed.connect(self.on_item_collapsed)  # type: ignore[attr-defined]
+
+        # Connect to item clicked signal for single-click expand/collapse
+        self.ui.resultsTree.itemClicked.connect(self.on_results_item_clicked)  # type: ignore[attr-defined]
+
         # Load default paths and mode from config
         self._load_defaults()
+
+        # Configure column widths and headers
+        self._configure_tree_columns()
+        self._update_column_headers()
+
+    def _configure_tree_columns(self) -> None:
+        """Configure column widths and alignment for both trees."""
+        results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
+        staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
+
+        for tree in [results_tree, staging_tree]:
+            # Column 0: Checkbox - narrow, no indentation
+            tree.setColumnWidth(0, 25)
+            # Column 1: Best (star) - narrow and centered
+            tree.setColumnWidth(1, 50)
+            # Other columns will auto-size
+
+            # No indentation - checkboxes aligned to left
+            tree.setIndentation(0)
+
+            # Center align the checkbox column header
+            header = tree.header()
+            if header:
+                header.setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            # Disable root decoration (we'll use unicode arrow in header text)
+            tree.setRootIsDecorated(False)
+
+    def _update_column_headers(self) -> None:
+        """Update column headers based on current mode."""
+        results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
+        staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
+
+        # Column 2 changes based on mode
+        column_name = "Folder" if self.current_mode == "album" else "Filename"
+
+        for tree in [results_tree, staging_tree]:
+            tree.headerItem().setText(2, column_name)  # type: ignore[union-attr]
 
     def _load_defaults(self) -> None:
         """Load default paths and mode from config."""
@@ -160,7 +205,50 @@ class DualPaneViewer(QWidget):
 
     def on_mode_changed(self, index: int) -> None:
         """Handle mode change."""
-        self.current_mode = "track" if index == 0 else "album"
+        new_mode = "track" if index == 0 else "album"
+
+        # If mode is actually changing and there's data in the trees, confirm first
+        if new_mode != self.current_mode:
+            results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
+            staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
+
+            has_data = (
+                results_tree.topLevelItemCount() > 0
+                or staging_tree.topLevelItemCount() > 0
+            )
+
+            if has_data:
+                reply = QMessageBox.question(
+                    self,
+                    "Confirm Mode Change",
+                    f"Switching to {new_mode} mode will clear all current "
+                    "results and staged items.\n\nDo you want to continue?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No,
+                )
+
+                if reply != QMessageBox.StandardButton.Yes:
+                    # Revert combo box to previous mode
+                    old_index = 1 if self.current_mode == "album" else 0
+                    self.ui.modeCombo.blockSignals(True)  # type: ignore[attr-defined]
+                    self.ui.modeCombo.setCurrentIndex(old_index)  # type: ignore[attr-defined]
+                    self.ui.modeCombo.blockSignals(False)  # type: ignore[attr-defined]
+                    return
+
+                # Clear both trees
+                results_tree.clear()
+                staging_tree.clear()
+                self.results_data.clear()
+                self.staging_data.clear()
+                self.item_metadata.clear()
+                self.group_members.clear()
+
+                self.update_results_summary()
+                self.update_staging_summary()
+                self.update_button_states()
+
+        self.current_mode = new_mode
+        self._update_column_headers()
 
     def on_start_scan_clicked(self) -> None:
         """Start scan with current paths and mode."""
@@ -273,13 +361,27 @@ class DualPaneViewer(QWidget):
         # Extract album/artist metadata for group header
         group_header = self._format_group_header(group_id, items)
 
+        # Prefix with unicode down arrow to mimic expand/collapse
+        group_header = f"▼ {group_header}"
+
         # Create group item
         results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
         group_item = QTreeWidgetItem(
             results_tree,
-            ["", "", group_header, "", "", "", ""],
+            [group_header, "", "", "", "", "", ""],
         )
         group_item.setExpanded(True)
+
+        # Style the group header with background color
+        from PySide6.QtGui import QBrush, QColor
+
+        for col in range(0, 7):
+            group_item.setBackground(col, QBrush(QColor("#333333")))
+            group_item.setForeground(col, QBrush(QColor("#fff7aa")))
+
+        # Span the header text across all columns
+        item_index = results_tree.indexOfTopLevelItem(group_item)
+        results_tree.setFirstColumnSpanned(item_index, results_tree.rootIndex(), True)  # type: ignore[call-arg]
 
         # Track all paths in this group in original order
         group_paths = []
@@ -295,19 +397,22 @@ class DualPaneViewer(QWidget):
             similarity = item.get("similarity_to_best", 0)
             is_best = item.get("is_best", False)
 
-            # Create tree item with separate Best, filename, and path columns
+            # Create tree item with all columns
             child_item = QTreeWidgetItem(
                 group_item,
                 [
-                    "",
-                    "⭐" if is_best else "",  # Best column
-                    filename,
-                    directory,
-                    f"{size_mb:.1f} MB",
-                    quality,
-                    f"{similarity:.1f}%" if similarity > 0 else "",
+                    "",  # Column 0: Checkbox
+                    "⭐" if is_best else "",  # Column 1: Best
+                    filename,  # Column 2: Filename/Folder
+                    directory,  # Column 3: Path
+                    f"{size_mb:.1f} MB",  # Column 4: Size
+                    quality,  # Column 5: Quality
+                    f"{similarity:.1f}%" if similarity > 0 else "",  # Col 6
                 ],
             )
+            # Center align the star emoji in column 1
+            child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+
             # Check recommended items by default
             recommended = item.get("recommended_action") == "delete"
             child_item.setCheckState(
@@ -347,7 +452,10 @@ class DualPaneViewer(QWidget):
             group_item = root.child(i)
             for j in range(group_item.childCount()):
                 item = group_item.child(j)
-                path = item.text(1).replace("[Best] ", "")
+                # Reconstruct full path from filename and directory
+                filename = item.text(2)  # Column 2 is Filename
+                directory = item.text(3)  # Column 3 is Path
+                path = str(Path(directory) / filename)
                 # Check recommended_action from stored data
                 if path in self.results_data:
                     recommended = (
@@ -402,15 +510,17 @@ class DualPaneViewer(QWidget):
             staging_item = QTreeWidgetItem(
                 staging_tree,
                 [
-                    "",
-                    item.text(1),  # Best (⭐ or empty)
-                    item.text(2),  # Filename
-                    item.text(3),  # Path
-                    item.text(4),  # Size
-                    item.text(5),  # Quality
-                    item.text(6),  # Similarity
+                    "",  # Column 0: Checkbox
+                    item.text(1),  # Column 1: Best (⭐ or empty)
+                    item.text(2),  # Column 2: Filename
+                    item.text(3),  # Column 3: Path
+                    item.text(4),  # Column 4: Size
+                    item.text(5),  # Column 5: Quality
+                    item.text(6),  # Column 6: Similarity
                 ],
             )
+            # Center align the star emoji in column 1
+            staging_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
 
             # Move data
@@ -512,15 +622,17 @@ class DualPaneViewer(QWidget):
                 results_item = QTreeWidgetItem(
                     results_tree,
                     [
-                        "",
-                        staging_item.text(1),  # Best (⭐ or empty)
-                        staging_item.text(2),  # Filename
-                        staging_item.text(3),  # Path
-                        staging_item.text(4),  # Size
-                        staging_item.text(5),  # Quality
-                        staging_item.text(6),  # Similarity
+                        "",  # Column 0: Checkbox
+                        staging_item.text(1),  # Column 1: Best (⭐ or empty)
+                        staging_item.text(2),  # Column 2: Filename
+                        staging_item.text(3),  # Column 3: Path
+                        staging_item.text(4),  # Column 4: Size
+                        staging_item.text(5),  # Column 5: Quality
+                        staging_item.text(6),  # Column 6: Similarity
                     ],
                 )
+                # Center align the star emoji in column 1
+                results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
             else:
                 metadata = self.item_metadata[path]
@@ -533,19 +645,22 @@ class DualPaneViewer(QWidget):
 
                 results_item = QTreeWidgetItem(
                     [
-                        "",
-                        "⭐" if is_best else "",  # Best column
-                        staging_item.text(2),  # Filename
-                        staging_item.text(3),  # Path
-                        staging_item.text(4),  # Size
-                        staging_item.text(5),  # Quality
-                        f"{similarity:.1f}%" if similarity > 0 else "",  # Similarity
+                        "",  # Column 0: Checkbox
+                        "⭐" if is_best else "",  # Column 1: Best
+                        staging_item.text(2),  # Column 2: Filename
+                        staging_item.text(3),  # Column 3: Path
+                        staging_item.text(4),  # Column 4: Size
+                        staging_item.text(5),  # Column 5: Quality
+                        f"{similarity:.1f}%" if similarity > 0 else "",  # Col 6
                     ],
                 )
 
                 # Add as child of group (append to end is safer than trying to
                 # restore exact position when other items may still be in the group)
                 group_item.addChild(results_item)
+
+                # Center align the star emoji in column 1
+                results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
                 # Always leave unchecked when unstaging
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
@@ -648,6 +763,25 @@ class DualPaneViewer(QWidget):
         """Handle staging tree item changed (checkbox toggled)."""
         if column == 0:  # Checkbox column
             self.update_button_states()
+
+    def on_results_item_clicked(self, item: QTreeWidgetItem, _column: int) -> None:
+        """Handle results tree item clicked - toggle expand/collapse on single click."""
+        # Only handle clicks on group headers (items with children)
+        if item.childCount() > 0:
+            # Toggle expanded state
+            item.setExpanded(not item.isExpanded())
+
+    def on_item_expanded(self, item: QTreeWidgetItem) -> None:
+        """Handle item expanded - change arrow to down."""
+        text = item.text(0)
+        if text.startswith("▶ "):
+            item.setText(0, text.replace("▶ ", "▼ ", 1))
+
+    def on_item_collapsed(self, item: QTreeWidgetItem) -> None:
+        """Handle item collapsed - change arrow to right."""
+        text = item.text(0)
+        if text.startswith("▼ "):
+            item.setText(0, text.replace("▼ ", "▶ ", 1))
 
     def update_scan_button_state(self) -> None:
         """Update start scan button enabled state."""
