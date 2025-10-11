@@ -266,12 +266,20 @@ class AudioHasher:
         if algorithm == "exact":
             return AudioHasher.compute_file_hash(file_path)
 
-        # Check cache using file hash as key
-        file_hash = AudioHasher.compute_file_hash(file_path)
+        # Check cache using file path + mtime (fast!)
+        # Get file mtime
+        file_mtime = int(file_path.stat().st_mtime)
 
         # Check cache (unless in update_cache mode)
         if self._cache and not self.update_cache:
-            cached_value = self._cache.get(file_hash)
+            # Try new fast path+mtime based cache first
+            if hasattr(self._cache, "get_by_path"):
+                cached_value = self._cache.get_by_path(str(file_path), file_mtime)
+            else:
+                # Fallback to old hash-based cache for backwards compatibility
+                file_hash = AudioHasher.compute_file_hash(file_path)
+                cached_value = self._cache.get(file_hash)
+
             if cached_value:
                 # Cache stores comma-separated string, parse it
                 return AudioHasher.parse_raw_fingerprint(cached_value)
@@ -287,7 +295,13 @@ class AudioHasher:
             # Store in cache as comma-separated string
             if self._cache:
                 fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
-                self._cache.set(file_hash, fingerprint_str)
+                # Use new fast path+mtime based cache if available
+                if hasattr(self._cache, "set_by_path"):
+                    self._cache.set_by_path(str(file_path), file_mtime, fingerprint_str)
+                else:
+                    # Fallback to old hash-based cache
+                    file_hash = AudioHasher.compute_file_hash(file_path)
+                    self._cache.set(file_hash, fingerprint_str)
 
             return raw_fingerprint
 

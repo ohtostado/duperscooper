@@ -248,6 +248,78 @@ class SQLiteCacheBackend:
             self._local.conn.close()
             delattr(self._local, "conn")
 
+    def get_by_path(self, file_path: str, file_mtime: int) -> Optional[str]:
+        """
+        Get fingerprint from cache using file path and mtime.
+
+        This is faster than get() because it doesn't require computing SHA256.
+
+        Args:
+            file_path: Path to audio file
+            file_mtime: File modification time (from st_mtime)
+
+        Returns:
+            Cached fingerprint string or None if not found or stale
+        """
+
+        # Use filepath+mtime as key
+        cache_key = f"{file_path}:{file_mtime}"
+
+        # Try the old file_hash based cache first for backwards compatibility
+        # This allows gradual migration without cache invalidation
+        conn = self._get_connection()
+        cursor = conn.execute(
+            """
+            SELECT fingerprint FROM fingerprint_cache
+            WHERE file_hash = ?
+            """,
+            (cache_key,),
+        )
+        row = cursor.fetchone()
+
+        if row:
+            # Update last_accessed
+            conn.execute(
+                """
+                UPDATE fingerprint_cache
+                SET last_accessed = ?
+                WHERE file_hash = ?
+                """,
+                (int(time.time()), cache_key),
+            )
+            conn.commit()
+            with self._lock:
+                self._hits += 1
+            return str(row[0])
+
+        with self._lock:
+            self._misses += 1
+        return None
+
+    def set_by_path(self, file_path: str, file_mtime: int, value: str) -> None:
+        """
+        Set fingerprint in cache using file path and mtime.
+
+        Args:
+            file_path: Path to audio file
+            file_mtime: File modification time (from st_mtime)
+            value: Fingerprint value to cache
+        """
+        # Use filepath+mtime as key
+        cache_key = f"{file_path}:{file_mtime}"
+
+        conn = self._get_connection()
+        now = int(time.time())
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO fingerprint_cache
+            (file_hash, fingerprint, created_at, last_accessed)
+            VALUES (?, ?, ?, ?)
+            """,
+            (cache_key, value, now, now),
+        )
+        conn.commit()
+
     def get_album(self, album_path: str) -> Optional[Dict[str, Any]]:
         """
         Get album from cache.

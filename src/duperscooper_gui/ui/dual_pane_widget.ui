@@ -113,9 +113,6 @@
           <property name="toolTip">
            <string>Start scanning for duplicates</string>
           </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #4CAF50; color: white;</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -135,9 +132,6 @@
           <property name="toolTip">
            <string>Stop the current scan</string>
           </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #f44336; color: white;</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -156,9 +150,6 @@
           </property>
           <property name="toolTip">
            <string>Stop directory scanning and process albums found so far</string>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: #ff9800; color: white;</string>
           </property>
          </widget>
         </item>
@@ -469,9 +460,6 @@
            </property>
            <property name="toolTip">
             <string>Delete all staged items (move to .deletedByDuperscooper)</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: #d32f2f; color: white; font-weight: bold;</string>
            </property>
           </widget>
          </item>

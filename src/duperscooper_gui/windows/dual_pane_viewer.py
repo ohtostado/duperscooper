@@ -35,6 +35,7 @@ class DualPaneViewer(QWidget):
     scan_requested = Signal(list, str)  # paths, mode
     stop_requested = Signal()
     stop_and_process_requested = Signal()
+    stop_processing_requested = Signal()
     deletion_requested = Signal(list, str)  # paths, mode
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -82,6 +83,9 @@ class DualPaneViewer(QWidget):
 
         self.ui.stopScanButton.clicked.connect(self.on_stop_scan_clicked)  # type: ignore[attr-defined]
         self.ui.stopAndProcessButton.clicked.connect(self.on_stop_and_process_clicked)  # type: ignore[attr-defined]
+
+        # Fix ampersand display - Qt interprets & as mnemonic, use && for literal &
+        self.ui.stopAndProcessButton.setText("⏹ Stop && Process")  # type: ignore[attr-defined]
 
         self.ui.selectAllButton.clicked.connect(self.on_select_all_clicked)  # type: ignore[attr-defined]
         self.ui.deselectAllButton.clicked.connect(self.on_deselect_all_clicked)  # type: ignore[attr-defined]
@@ -310,20 +314,31 @@ class DualPaneViewer(QWidget):
     def on_stop_scan_clicked(self) -> None:
         """Stop the current scan."""
         self.stop_requested.emit()
+        # Only disable the button that was clicked
         self.ui.stopScanButton.setText("Stopping...")  # type: ignore[attr-defined]
         self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
-        self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
+        # Disable the other stop button too since scan is stopping
         self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText("Stopping scan...")  # type: ignore[attr-defined]
 
     def on_stop_and_process_clicked(self) -> None:
-        """Stop directory scanning but process albums found so far."""
-        self.stop_and_process_requested.emit()
-        self.ui.stopScanButton.setText("Stopping...")  # type: ignore[attr-defined]
-        self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
-        self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
-        self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
-        self.ui.statusLabel.setText("Stopping directory scan...")  # type: ignore[attr-defined]
+        """Stop directory scanning or stop processing, depending on current state."""
+        button_text = self.ui.stopAndProcessButton.text()  # type: ignore[attr-defined]
+
+        if "Stop Processing" in button_text:
+            # Currently in processing phase, stop it
+            self.stop_processing_requested.emit()
+            self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
+            self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
+            self.ui.statusLabel.setText("Stopping processing...")  # type: ignore[attr-defined]
+        else:
+            # Currently in directory scan phase, stop and process
+            self.stop_and_process_requested.emit()
+            self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
+            self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
+            # Disable the other stop button too since scan is stopping
+            self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
+            self.ui.statusLabel.setText("Stopping directory scan...")  # type: ignore[attr-defined]
 
     def on_scan_started(self) -> None:
         """Handle scan started."""
@@ -364,6 +379,20 @@ class DualPaneViewer(QWidget):
         QMessageBox.critical(
             self, "Scan Error", f"An error occurred during scanning:\n\n{error_msg}"
         )
+
+    def reset_stop_buttons(self) -> None:
+        """Reset stop buttons to their default state after stop is acknowledged."""
+        self.ui.stopScanButton.setText("⏹ Stop Scan")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setText("⏹ Stop && Process")  # type: ignore[attr-defined]
+
+    def on_processing_started(self) -> None:
+        """Handle processing phase starting (after directory scan)."""
+        # Change button to "Stop Processing" and re-enable it
+        self.ui.stopAndProcessButton.setText("⏹ Stop Processing")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(True)  # type: ignore[attr-defined]
+        # Keep Stop Scan button disabled since directory scan is complete
+        self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.statusLabel.setText("Processing albums...")  # type: ignore[attr-defined]
 
     def _format_group_header(self, group_id: int, items: List[Dict[str, Any]]) -> str:
         """Format group header with album/artist metadata.

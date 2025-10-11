@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
+from ..utils.realtime_scanner import RealtimeScanThread
 from .dual_pane_viewer import DualPaneViewer
 
 
@@ -43,6 +44,9 @@ class MainWindow(QMainWindow):
         self.dual_pane_viewer.stop_requested.connect(self.on_dual_pane_stop_requested)
         self.dual_pane_viewer.stop_and_process_requested.connect(
             self.on_dual_pane_stop_and_process_requested
+        )
+        self.dual_pane_viewer.stop_processing_requested.connect(
+            self.on_dual_pane_stop_processing_requested
         )
         self.dual_pane_viewer.deletion_requested.connect(
             self.on_dual_pane_deletion_requested
@@ -111,6 +115,9 @@ class MainWindow(QMainWindow):
         )
         self.dual_pane_scan_thread.finished.connect(self.on_dual_pane_scan_finished)
         self.dual_pane_scan_thread.error.connect(self.on_dual_pane_scan_error)
+        self.dual_pane_scan_thread.processing_started.connect(
+            self.on_dual_pane_processing_started
+        )
         self.dual_pane_scan_thread.start()
 
         # Notify dual-pane viewer
@@ -139,9 +146,28 @@ class MainWindow(QMainWindow):
                 "⏹ Directory scan stopped, processing albums found so far..."
             )
 
+    def on_dual_pane_stop_processing_requested(self):
+        """Handle stop-processing request from dual-pane viewer."""
+        if self.dual_pane_scan_thread and self.dual_pane_scan_thread.isRunning():
+            self.dual_pane_scan_thread.stop_processing()
+            self.ui.statusbar.showMessage("Stopping processing...")
+            self.ui.scanLogText.append("⏹ Stopping processing...")
+
+    def on_dual_pane_processing_started(self):
+        """Handle processing phase starting."""
+        self.dual_pane_viewer.on_processing_started()
+        self.ui.statusbar.showMessage("Processing albums...")
+        self.ui.scanLogText.append("▶ Processing albums...")
+
     def on_dual_pane_scan_progress(self, message: str, percentage: int):
         """Handle scan progress from dual-pane scan."""
         self.ui.scanLogText.append(message)
+        # Reset stop buttons when stop is acknowledged
+        # But not if processing is starting (message contains "processing")
+        if ("stopped" in message.lower() or "stopping" in message.lower()) and (
+            "processing" not in message.lower()
+        ):
+            self.dual_pane_viewer.reset_stop_buttons()
         # TODO: Update dual-pane viewer progress
 
     def on_dual_pane_scan_finished(self):

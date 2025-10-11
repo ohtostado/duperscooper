@@ -60,6 +60,8 @@ class AlbumScanner:
         max_workers: int = 8,
         progress_callback: Optional[Callable[[str, int], None]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
+        should_stop_dir_scan: Optional[Callable[[], bool]] = None,
+        on_metadata_start: Optional[Callable[[], None]] = None,
     ) -> List[Album]:
         """
         Discover all albums in given paths.
@@ -70,12 +72,22 @@ class AlbumScanner:
             progress_callback: Optional callback function(message, percentage)
                 for real-time progress updates
             should_stop: Optional callback that returns True if scan should stop
+                (applies to metadata extraction and duplicate finding)
+            should_stop_dir_scan: Optional callback for directory scanning only
+                If not provided, falls back to should_stop
+            on_metadata_start: Optional callback invoked when metadata extraction
+                phase starts (after directory discovery completes)
 
         Returns:
             List of Album objects
         """
         if self.verbose:
             print("Discovering album directories...", flush=True)
+
+        # Use separate callback for directory scanning if provided
+        dir_scan_callback = (
+            should_stop_dir_scan if should_stop_dir_scan else should_stop
+        )
 
         # Find all directories containing audio files
         # Pass a wrapper callback that reports directory discovery progress
@@ -85,14 +97,16 @@ class AlbumScanner:
                 # Directory discovery is roughly 10% of total work
                 progress_callback(message, 0)
 
-            album_dirs = self._find_album_directories(paths, dir_callback, should_stop)
+            album_dirs = self._find_album_directories(
+                paths, dir_callback, dir_scan_callback
+            )
         else:
-            album_dirs = self._find_album_directories(paths, should_stop=should_stop)
+            album_dirs = self._find_album_directories(
+                paths, should_stop=dir_scan_callback
+            )
 
-        # Check if stop was requested during directory discovery
-        if should_stop and should_stop():
-            print("DEBUG: scan_albums() stopping after directory discovery")
-            return []
+        # Note: We don't check should_stop here because it might be stop_and_process
+        # The caller will handle checking _should_stop vs _stop_and_process
 
         if self.verbose:
             print(f"Found {len(album_dirs)} album directories", flush=True)
@@ -102,6 +116,10 @@ class AlbumScanner:
             progress_callback(
                 f"Found {len(album_dirs)} albums, now scanning metadata...", 0
             )
+
+        # Invoke metadata start callback (for GUI to update button state)
+        if on_metadata_start:
+            on_metadata_start()
 
         # Extract metadata and fingerprints for each album
         albums = []
@@ -124,8 +142,19 @@ class AlbumScanner:
             iterator = album_dirs
 
         for idx, album_dir in enumerate(iterator, 1):
+            # Check for stop request before processing each album
+            if should_stop and should_stop():
+                print(
+                    f"DEBUG: Stop detected in scan_albums metadata extraction "
+                    f"at {idx}/{total_albums} albums"
+                )
+                break
+
             try:
-                album = self.extract_album_metadata(album_dir)
+                album = self.extract_album_metadata(album_dir, should_stop)
+                if album is None:
+                    # Stopped during metadata extraction
+                    break
                 albums.append(album)
 
                 # Output simple progress
@@ -201,7 +230,6 @@ class AlbumScanner:
         Returns:
             List of directory paths containing audio files
         """
-        print(f"DEBUG: _find_album_directories - should_stop callback is {'SET' if should_stop else 'NOT SET'}")
         album_dirs = set()
         files_checked = 0
         stopped = False
@@ -224,7 +252,10 @@ class AlbumScanner:
                 for file_path in path.rglob("*"):
                     # Check for stop request every 100 files
                     if files_checked % 100 == 0 and should_stop and should_stop():
-                        print(f"DEBUG: Stop detected in _find_album_directories at {files_checked} files")
+                        print(
+                            f"DEBUG: Stop detected in _find_album_directories "
+                            f"at {files_checked} files"
+                        )
                         stopped = True
                         break
 
@@ -243,19 +274,20 @@ class AlbumScanner:
                 # Check if we stopped during the inner loop
                 if stopped:
                     break
-
-        print(f"DEBUG: _find_album_directories returning {len(album_dirs)} album dirs, stopped={stopped}")
         return sorted(album_dirs)
 
-    def extract_album_metadata(self, album_path: Path) -> Album:
+    def extract_album_metadata(
+        self, album_path: Path, should_stop: Optional[Callable[[], bool]] = None
+    ) -> Optional[Album]:
         """
         Extract metadata from all tracks in an album directory.
 
         Args:
             album_path: Path to album directory
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
-            Album object with metadata and fingerprints
+            Album object with metadata and fingerprints, or None if stopped
         """
         # Try to get album from cache
         cache_backend = getattr(self.hasher, "_cache", None)
@@ -285,11 +317,28 @@ class AlbumScanner:
                 self.album_cache_hits += 1
 
                 # Get fingerprints from track-level cache
+                import time
+                t_start = time.time()
                 cached_fingerprints: List[List[int]] = []
-                for track in tracks:
+                for i, track in enumerate(tracks):
+                    # Check for stop before fingerprinting each track
+                    if should_stop and should_stop():
+                        print(
+                            f"DEBUG: Stop detected in extract_album_metadata "
+                            f"(cached) at track {i+1}/{len(tracks)}"
+                        )
+                        return None
+                    t1 = time.time()
                     fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
+                    t2 = time.time()
+                    elapsed = t2 - t1
+                    print(f"DEBUG: Track {i+1}/{len(tracks)} hash took {elapsed:.3f}s")
                     assert isinstance(fingerprint, list)
                     cached_fingerprints.append(fingerprint)
+                total_time = time.time() - t_start
+                ntracks = len(tracks)
+                msg = f"DEBUG: Total fingerprints: {total_time:.3f}s for {ntracks}"
+                print(msg)
 
                 return Album(
                     path=album_path,
@@ -335,7 +384,15 @@ class AlbumScanner:
         quality_scores = []
         track_hashes = []
 
-        for track in tracks:
+        for i, track in enumerate(tracks):
+            # Check for stop before fingerprinting each track
+            if should_stop and should_stop():
+                print(
+                    f"DEBUG: Stop detected in extract_album_metadata "
+                    f"(uncached) at track {i+1}/{len(tracks)}"
+                )
+                return None
+
             # Get fingerprint from cache or compute
             fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
             # Type is List[int] because algorithm is "perceptual"
@@ -512,7 +569,10 @@ class AlbumDuplicateFinder:
         self.min_overlap = min_overlap
 
     def find_duplicates(
-        self, albums: List[Album], strategy: str = "auto"
+        self,
+        albums: List[Album],
+        strategy: str = "auto",
+        should_stop: Optional[Callable[[], bool]] = None,
     ) -> List[List[Album]]:
         """
         Find duplicate albums using specified matching strategy.
@@ -520,34 +580,47 @@ class AlbumDuplicateFinder:
         Args:
             albums: List of Album objects to check for duplicates
             strategy: Matching strategy - "musicbrainz", "fingerprint", or "auto"
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
             List of duplicate groups (each group is a list of Album objects)
         """
+        print(
+            f"DEBUG: find_duplicates called with {len(albums)} albums, "
+            f"should_stop={'present' if should_stop else 'None'}"
+        )
         duplicate_groups = []
 
         if strategy == "musicbrainz":
-            duplicate_groups = self._match_by_musicbrainz(albums)
+            duplicate_groups = self._match_by_musicbrainz(albums, should_stop)
         elif strategy == "fingerprint":
-            duplicate_groups = self._match_by_fingerprints(albums)
+            duplicate_groups = self._match_by_fingerprints(albums, should_stop)
         elif strategy == "auto":
             # Auto: Establish canonical albums from MB IDs/metadata,
             # then match untagged albums against them via fingerprints
-            duplicate_groups = self._match_canonical(albums)
+            duplicate_groups = self._match_canonical(albums, should_stop)
         else:
             raise ValueError(
                 f"Unknown strategy: {strategy}. "
                 "Use 'musicbrainz', 'fingerprint', or 'auto'"
             )
 
+        # Check for stop before annotating
+        if should_stop and should_stop():
+            return duplicate_groups
+
         # Annotate partial matches if enabled
         if self.allow_partial:
             for group in duplicate_groups:
+                if should_stop and should_stop():
+                    return duplicate_groups
                 self._annotate_partial_matches(group)
 
         return duplicate_groups
 
-    def _match_canonical(self, albums: List[Album]) -> List[List[Album]]:
+    def _match_canonical(
+        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+    ) -> List[List[Album]]:
         """
         Match albums using canonical approach.
 
@@ -557,6 +630,7 @@ class AlbumDuplicateFinder:
 
         Args:
             albums: List of Album objects
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
             List of duplicate groups with canonical album identification
@@ -566,6 +640,8 @@ class AlbumDuplicateFinder:
         untagged_albums = []
 
         for album in albums:
+            if should_stop and should_stop():
+                return []
             # Canonical if has MB ID OR both album and artist names
             if album.musicbrainz_albumid:
                 album.match_method = "MusicBrainz Album ID"
@@ -584,7 +660,7 @@ class AlbumDuplicateFinder:
 
         # Do fingerprint matching on canonical albums to catch same album
         # with different/missing MB IDs
-        canonical_fp_groups = self._match_by_fingerprints(canonical_albums)
+        canonical_fp_groups = self._match_by_fingerprints(canonical_albums, should_stop)
 
         # Merge canonical groups that share MB IDs (preserves match_method)
         merged_canonical = self._merge_groups_by_musicbrainz(canonical_fp_groups)
@@ -596,11 +672,15 @@ class AlbumDuplicateFinder:
 
         # Match untagged albums against canonical groups
         for untagged in untagged_albums:
+            if should_stop and should_stop():
+                break
             best_match_idx = None
             best_similarity = 0.0
 
             # Compare against each canonical group
             for idx, canonical_group in groups_dict.items():
+                if should_stop and should_stop():
+                    break
                 # Compare against first album in canonical group (representative)
                 canonical_rep = canonical_group[0]
 
@@ -703,12 +783,15 @@ class AlbumDuplicateFinder:
 
         return merged_groups
 
-    def _match_by_musicbrainz(self, albums: List[Album]) -> List[List[Album]]:
+    def _match_by_musicbrainz(
+        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+    ) -> List[List[Album]]:
         """
         Group albums by MusicBrainz album ID.
 
         Args:
             albums: List of Album objects
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
             List of duplicate groups with same MB ID and track count
@@ -717,12 +800,16 @@ class AlbumDuplicateFinder:
         mb_groups: Dict[str, List[Album]] = defaultdict(list)
 
         for album in albums:
+            if should_stop and should_stop():
+                return []
             if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
                 mb_groups[album.musicbrainz_albumid].append(album)
 
         # Filter to only groups with duplicates (2+ albums with same track count)
-        duplicate_groups = []
+        duplicate_groups: List[List[Album]] = []
         for _mb_id, group in mb_groups.items():
+            if should_stop and should_stop():
+                return duplicate_groups
             if len(group) < 2:
                 continue
 
@@ -741,7 +828,9 @@ class AlbumDuplicateFinder:
 
         return duplicate_groups
 
-    def _match_by_fingerprints(self, albums: List[Album]) -> List[List[Album]]:
+    def _match_by_fingerprints(
+        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+    ) -> List[List[Album]]:
         """
         Group albums by perceptual fingerprint similarity.
 
@@ -749,6 +838,7 @@ class AlbumDuplicateFinder:
 
         Args:
             albums: List of Album objects
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
             List of duplicate groups with similar fingerprints
@@ -764,12 +854,16 @@ class AlbumDuplicateFinder:
             # to reduce comparisons
             by_track_count_range: Dict[int, List[Album]] = defaultdict(list)
             for album in albums:
+                if should_stop and should_stop():
+                    return duplicate_groups
                 # Use track count bucket (rounded down to nearest 5)
                 bucket = (album.track_count // 5) * 5
                 by_track_count_range[bucket].append(album)
 
             # Also check adjacent buckets for edge cases
             for bucket, bucket_albums in by_track_count_range.items():
+                if should_stop and should_stop():
+                    return duplicate_groups
                 # Combine with adjacent buckets
                 combined_albums = list(bucket_albums)
                 for adjacent in [bucket - 5, bucket + 5]:
@@ -788,10 +882,12 @@ class AlbumDuplicateFinder:
                     continue
 
                 # Union-Find for grouping similar albums
-                uf_groups = self._union_find_similar_albums(unique_albums)
+                uf_groups = self._union_find_similar_albums(unique_albums, should_stop)
 
                 # Only include groups with 2+ albums
                 for group in uf_groups:
+                    if should_stop and should_stop():
+                        return duplicate_groups
                     if len(group) >= 2:
                         # Check if already added (due to bucket overlap)
                         group_paths = {a.path for a in group}
@@ -807,17 +903,25 @@ class AlbumDuplicateFinder:
             # Standard matching: only compare albums with same track count
             by_track_count: Dict[int, List[Album]] = defaultdict(list)
             for album in albums:
+                if should_stop and should_stop():
+                    return duplicate_groups
                 by_track_count[album.track_count].append(album)
 
             for _track_count, albums_with_count in by_track_count.items():
+                if should_stop and should_stop():
+                    return duplicate_groups
                 if len(albums_with_count) < 2:
                     continue
 
                 # Union-Find for grouping similar albums
-                uf_groups = self._union_find_similar_albums(albums_with_count)
+                uf_groups = self._union_find_similar_albums(
+                    albums_with_count, should_stop
+                )
 
                 # Only include groups with 2+ albums
                 for group in uf_groups:
+                    if should_stop and should_stop():
+                        return duplicate_groups
                     if len(group) >= 2:
                         duplicate_groups.append(group)
 
@@ -828,12 +932,15 @@ class AlbumDuplicateFinder:
 
         return duplicate_groups
 
-    def _union_find_similar_albums(self, albums: List[Album]) -> List[List[Album]]:
+    def _union_find_similar_albums(
+        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+    ) -> List[List[Album]]:
         """
         Group similar albums using Union-Find algorithm.
 
         Args:
             albums: List of albums with same track count
+            should_stop: Optional callback to check if processing should stop
 
         Returns:
             List of album groups
@@ -853,7 +960,16 @@ class AlbumDuplicateFinder:
 
         # Compare all pairs
         for i in range(len(albums)):
+            if should_stop and should_stop():
+                print(f"DEBUG: Stop detected in _union_find_similar_albums at i={i}")
+                break
             for j in range(i + 1, len(albums)):
+                if should_stop and should_stop():
+                    print(
+                        f"DEBUG: Stop detected in _union_find_similar_albums at "
+                        f"i={i}, j={j}"
+                    )
+                    break
                 # If both albums have same MusicBrainz ID, they're definitely duplicates
                 if (
                     albums[i].musicbrainz_albumid
