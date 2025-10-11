@@ -274,6 +274,104 @@ done
 echo "  ✓ Created Album C - Partial (only 2/3 tracks)"
 
 # ============================================================================
+# Album A - Scenario 5: Similar but not identical (add noise to audio)
+# ============================================================================
+ALBUM_A5="$TEST_ALBUMS_DIR/AlbumA-MP3-192-Similar-Content"
+mkdir -p "$ALBUM_A5"
+
+# Add white noise to create ~95-98% match
+# This simulates different recordings/masters of the same album
+for i in 1 2 3; do
+    FREQ=$((440 + (i-1) * 100))
+    TRACK_NUM=$(printf "%02d" $i)
+
+    # Generate clean signal
+    ffmpeg -f lavfi -i "sine=frequency=$FREQ:duration=5" -ar 44100 -ac 2 \
+        -y "$ALBUM_A5/clean-$i.wav" -loglevel error
+
+    # Add subtle white noise (volume=0.01 for subtle effect)
+    ffmpeg -i "$ALBUM_A5/clean-$i.wav" -f lavfi -i "anoisesrc=duration=5:color=white:amplitude=0.05" \
+        -filter_complex "[0:a][1:a]amix=inputs=2:duration=first" \
+        -ar 44100 -ac 2 -y "$ALBUM_A5/temp-$i.wav" -loglevel error
+
+    # Same tags as Album A but with slightly different audio content
+    ffmpeg -i "$ALBUM_A5/temp-$i.wav" -c:a libmp3lame -b:a 192k \
+        -metadata "title=Track $i" \
+        -metadata "artist=Test Artist A" \
+        -metadata "album=Test Album A (Remaster)" \
+        -metadata "track=$i/3" \
+        -y "$ALBUM_A5/$TRACK_NUM - Track $i.mp3" -loglevel error
+
+    rm "$ALBUM_A5/clean-$i.wav" "$ALBUM_A5/temp-$i.wav"
+done
+
+echo "  ✓ Created Album A - Similar Content (with noise, 95-98% match)"
+
+# ============================================================================
+# Album A - Scenario 6: Partial match (only 2/3 tracks match exactly)
+# ============================================================================
+ALBUM_A6="$TEST_ALBUMS_DIR/AlbumA-MP3-160-Partial-Match"
+mkdir -p "$ALBUM_A6"
+
+# Tracks 1 and 2 match exactly, track 3 is different
+for i in 1 2 3; do
+    if [ $i -eq 3 ]; then
+        # Track 3: completely different frequency to simulate wrong track
+        FREQ=880  # Very different from 640 Hz
+    else
+        # Tracks 1-2: exact match
+        FREQ=$((440 + (i-1) * 100))
+    fi
+    TRACK_NUM=$(printf "%02d" $i)
+
+    ffmpeg -f lavfi -i "sine=frequency=$FREQ:duration=5" -ar 44100 -ac 2 \
+        -y "$ALBUM_A6/temp-$i.wav" -loglevel error
+
+    ffmpeg -i "$ALBUM_A6/temp-$i.wav" -c:a libmp3lame -b:a 160k \
+        -metadata "title=Track $i" \
+        -metadata "artist=Test Artist A" \
+        -metadata "album=Test Album A (Special Edition)" \
+        -metadata "track=$i/3" \
+        -y "$ALBUM_A6/$TRACK_NUM - Track $i.mp3" -loglevel error
+
+    rm "$ALBUM_A6/temp-$i.wav"
+done
+
+echo "  ✓ Created Album A - Partial Track Match (2/3 tracks match, ~66% similarity)"
+
+# ============================================================================
+# Album B - Scenario 3: Different track count (4 tracks instead of 3)
+# ============================================================================
+ALBUM_B3="$TEST_ALBUMS_DIR/AlbumB-MP3-256-Extended-Edition"
+mkdir -p "$ALBUM_B3"
+
+# First 3 tracks match Album B, 4th is bonus track
+for i in 1 2 3 4; do
+    if [ $i -le 3 ]; then
+        # Tracks 1-3: match Album B exactly
+        FREQ="${FREQS_B[$((i-1))]}"
+    else
+        # Track 4: bonus track (different content)
+        FREQ=440  # Different from Album B
+    fi
+    TRACK_NUM=$(printf "%02d" $i)
+
+    ffmpeg -f lavfi -i "sine=frequency=$FREQ:duration=5" \
+        -ar 44100 -ac 2 -y "$ALBUM_B3/temp-$i.wav" -loglevel error
+
+    ffmpeg -i "$ALBUM_B3/temp-$i.wav" -c:a libmp3lame -b:a 256k \
+        -metadata "title=Song $i" \
+        -metadata "artist=Test Artist B" \
+        -metadata "album=Test Album B (Extended Edition)" \
+        -metadata "track=$i/4" \
+        -y "$ALBUM_B3/$TRACK_NUM - Song $i.mp3" -loglevel error
+
+    rm "$ALBUM_B3/temp-$i.wav"
+done
+
+echo "  ✓ Created Album B - Extended Edition (4 tracks, won't match 3-track versions)"
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo ""
@@ -297,10 +395,22 @@ echo "    - Multiple format variants (FLAC, MP3 64-320kbps)"
 echo "    - Should detect duplicates across formats"
 echo ""
 echo "  Album Mode:"
-echo "    - Album A: 4 versions (FLAC full, MP3-320 full, MP3-128 no-MB, FLAC untagged)"
-echo "    - Album B: 2 versions (FLAC full, MP3-192 full)"
-echo "    - Album C: 1 partial album (2/3 tracks)"
-echo "    - Tests: MusicBrainz matching, ID3 tag matching, fingerprint matching, partial albums"
+echo "    - Album A: 6 versions"
+echo "      * FLAC full metadata (100% match, MusicBrainz ID)"
+echo "      * MP3-320 full metadata (100% match, MusicBrainz ID)"
+echo "      * MP3-128 no MusicBrainz (100% match, ID3 only)"
+echo "      * FLAC untagged (100% match, fingerprint only)"
+echo "      * MP3-192 similar content (100% match, noise too subtle for Chromaprint)"
+echo "      * MP3-160 partial track match (~66% match, requires --similarity-threshold 60)"
+echo "    - Album B: 3 versions"
+echo "      * FLAC full metadata (100% match)"
+echo "      * MP3-192 full metadata (100% match)"
+echo "      * MP3-256 extended edition (4 tracks, requires --allow-partial-albums)"
+echo "    - Album C: 1 partial album (2/3 tracks, won't match without partial albums enabled)"
+echo ""
+echo "    Note: Chromaprint is very robust - even with noise, similar encodings"
+echo "          show 100% match. For partial/extended album scenarios, use:"
+echo "          duperscooper --album-mode --allow-partial-albums --similarity-threshold 60 $TEST_ALBUMS_DIR"
 echo ""
 echo "To test:"
 echo "  duperscooper $TEST_AUDIO_DIR"
