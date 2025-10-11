@@ -140,6 +140,61 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="stopAndProcessButton">
+          <property name="text">
+           <string>⏹ Stop &amp; Process</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Stop directory scanning and process albums found so far</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #ff9800; color: white;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="albumOptionsLayout">
+        <item>
+         <spacer name="horizontalSpacer2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="allowPartialCheckBox">
+          <property name="text">
+           <string>Allow partial album matches</string>
+          </property>
+          <property name="toolTip">
+           <string>Match albums with different track counts (e.g., standard vs deluxe editions)</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>

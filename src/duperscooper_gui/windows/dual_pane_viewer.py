@@ -34,6 +34,7 @@ class DualPaneViewer(QWidget):
     # Signals
     scan_requested = Signal(list, str)  # paths, mode
     stop_requested = Signal()
+    stop_and_process_requested = Signal()
     deletion_requested = Signal(list, str)  # paths, mode
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -76,8 +77,11 @@ class DualPaneViewer(QWidget):
         self.ui.pathsList.itemSelectionChanged.connect(self.on_paths_selection_changed)  # type: ignore[attr-defined]
 
         self.ui.modeCombo.currentIndexChanged.connect(self.on_mode_changed)  # type: ignore[attr-defined]
+        self.ui.allowPartialCheckBox.stateChanged.connect(self.on_allow_partial_changed)  # type: ignore[attr-defined]
         self.ui.startScanButton.clicked.connect(self.on_start_scan_clicked)  # type: ignore[attr-defined]
+
         self.ui.stopScanButton.clicked.connect(self.on_stop_scan_clicked)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.clicked.connect(self.on_stop_and_process_clicked)  # type: ignore[attr-defined]
 
         self.ui.selectAllButton.clicked.connect(self.on_select_all_clicked)  # type: ignore[attr-defined]
         self.ui.deselectAllButton.clicked.connect(self.on_deselect_all_clicked)  # type: ignore[attr-defined]
@@ -113,6 +117,9 @@ class DualPaneViewer(QWidget):
         # Configure column widths and headers
         self._configure_tree_columns()
         self._update_column_headers()
+
+        # Update album options visibility
+        self._update_album_options_visibility()
 
     def _configure_tree_columns(self) -> None:
         """Configure column widths and alignment for both trees."""
@@ -249,6 +256,17 @@ class DualPaneViewer(QWidget):
 
         self.current_mode = new_mode
         self._update_column_headers()
+        self._update_album_options_visibility()
+
+    def on_allow_partial_changed(self) -> None:
+        """Handle allow partial checkbox change."""
+        # Just update the state - will be used when scan is started
+        pass
+
+    def _update_album_options_visibility(self) -> None:
+        """Enable/disable album-specific options based on mode."""
+        is_album_mode = self.current_mode == "album"
+        self.ui.allowPartialCheckBox.setEnabled(is_album_mode)  # type: ignore[attr-defined]
 
     def on_start_scan_clicked(self) -> None:
         """Start scan with current paths and mode."""
@@ -278,7 +296,12 @@ class DualPaneViewer(QWidget):
         # Update UI state
         self.ui.startScanButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.stopScanButton.setEnabled(True)  # type: ignore[attr-defined]
-        self.ui.pathsGroup.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(True)  # type: ignore[attr-defined]
+        # Disable path controls but not the whole group (which contains stop buttons)
+        self.ui.pathsList.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.addPathButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.removePathButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.modeCombo.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText("Scanning...")  # type: ignore[attr-defined]
 
         # Emit signal
@@ -287,8 +310,20 @@ class DualPaneViewer(QWidget):
     def on_stop_scan_clicked(self) -> None:
         """Stop the current scan."""
         self.stop_requested.emit()
+        self.ui.stopScanButton.setText("Stopping...")  # type: ignore[attr-defined]
         self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText("Stopping scan...")  # type: ignore[attr-defined]
+
+    def on_stop_and_process_clicked(self) -> None:
+        """Stop directory scanning but process albums found so far."""
+        self.stop_and_process_requested.emit()
+        self.ui.stopScanButton.setText("Stopping...")  # type: ignore[attr-defined]
+        self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setText("Stopping...")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.statusLabel.setText("Stopping directory scan...")  # type: ignore[attr-defined]
 
     def on_scan_started(self) -> None:
         """Handle scan started."""
@@ -297,8 +332,15 @@ class DualPaneViewer(QWidget):
     def on_scan_finished(self) -> None:
         """Handle scan finished."""
         self.ui.startScanButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.stopScanButton.setText("⏹ Stop Scan")  # type: ignore[attr-defined]
         self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
-        self.ui.pathsGroup.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setText("⏹ Stop && Process")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
+        # Re-enable path controls
+        self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.removePathButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
 
         # total_groups = self.ui.resultsTree.topLevelItemCount()
         # self.ui.statusLabel.setText(
@@ -308,8 +350,15 @@ class DualPaneViewer(QWidget):
     def on_scan_error(self, error_msg: str) -> None:
         """Handle scan error."""
         self.ui.startScanButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.stopScanButton.setText("⏹ Stop Scan")  # type: ignore[attr-defined]
         self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
-        self.ui.pathsGroup.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setText("⏹ Stop && Process")  # type: ignore[attr-defined]
+        self.ui.stopAndProcessButton.setEnabled(False)  # type: ignore[attr-defined]
+        # Re-enable path controls
+        self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.removePathButton.setEnabled(True)  # type: ignore[attr-defined]
+        self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText(f"Scan error: {error_msg}")  # type: ignore[attr-defined]
 
         QMessageBox.critical(
@@ -394,12 +443,18 @@ class DualPaneViewer(QWidget):
 
             size_mb = item.get("size_bytes", 0) / (1024 * 1024)
             quality = item.get("audio_info", "") or item.get("quality_info", "")
-            similarity = item.get("similarity_to_best", 0)
+            # For albums use match_percentage, for tracks use similarity_to_best
+            similarity = item.get("match_percentage") or item.get(
+                "similarity_to_best", 0
+            )
             is_best = item.get("is_best", False)
+            quality_score = item.get("quality_score", 0)
+
+            # Format similarity percentage
+            similarity_text = f"{similarity:.1f}%" if similarity >= 0 else ""
 
             # Create tree item with all columns
             child_item = QTreeWidgetItem(
-                group_item,
                 [
                     "",  # Column 0: Checkbox
                     "⭐" if is_best else "",  # Column 1: Best
@@ -407,7 +462,7 @@ class DualPaneViewer(QWidget):
                     directory,  # Column 3: Path
                     f"{size_mb:.1f} MB",  # Column 4: Size
                     quality,  # Column 5: Quality
-                    f"{similarity:.1f}%" if similarity > 0 else "",  # Col 6
+                    similarity_text,  # Col 6: Similarity
                 ],
             )
             # Center align the star emoji in column 1
@@ -418,6 +473,21 @@ class DualPaneViewer(QWidget):
             child_item.setCheckState(
                 0, Qt.CheckState.Checked if recommended else Qt.CheckState.Unchecked
             )
+
+            # Store quality score in item for sorting
+            child_item.setData(0, Qt.ItemDataRole.UserRole, quality_score)
+
+            # Insert item in sorted position (highest quality first)
+            insert_index = 0
+            for i in range(group_item.childCount()):
+                existing_item = group_item.child(i)
+                existing_quality = existing_item.data(0, Qt.ItemDataRole.UserRole)
+                if quality_score > existing_quality:
+                    insert_index = i
+                    break
+                insert_index = i + 1
+
+            group_item.insertChild(insert_index, child_item)
 
             # Store data and metadata
             self.results_data[path] = item

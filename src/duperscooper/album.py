@@ -5,7 +5,7 @@ import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from .hasher import AudioHasher
 
@@ -54,13 +54,22 @@ class AlbumScanner:
         self.album_cache_hits = 0
         self.album_cache_misses = 0
 
-    def scan_albums(self, paths: List[Path], max_workers: int = 8) -> List[Album]:
+    def scan_albums(
+        self,
+        paths: List[Path],
+        max_workers: int = 8,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
+        should_stop: Optional[Callable[[], bool]] = None,
+    ) -> List[Album]:
         """
         Discover all albums in given paths.
 
         Args:
             paths: List of paths to search for albums
             max_workers: Number of worker threads for parallel fingerprinting
+            progress_callback: Optional callback function(message, percentage)
+                for real-time progress updates
+            should_stop: Optional callback that returns True if scan should stop
 
         Returns:
             List of Album objects
@@ -69,10 +78,30 @@ class AlbumScanner:
             print("Discovering album directories...", flush=True)
 
         # Find all directories containing audio files
-        album_dirs = self._find_album_directories(paths)
+        # Pass a wrapper callback that reports directory discovery progress
+        if progress_callback:
+
+            def dir_callback(message: str) -> None:
+                # Directory discovery is roughly 10% of total work
+                progress_callback(message, 0)
+
+            album_dirs = self._find_album_directories(paths, dir_callback, should_stop)
+        else:
+            album_dirs = self._find_album_directories(paths, should_stop=should_stop)
+
+        # Check if stop was requested during directory discovery
+        if should_stop and should_stop():
+            print("DEBUG: scan_albums() stopping after directory discovery")
+            return []
 
         if self.verbose:
             print(f"Found {len(album_dirs)} album directories", flush=True)
+
+        # Report total count to callback
+        if progress_callback:
+            progress_callback(
+                f"Found {len(album_dirs)} albums, now scanning metadata...", 0
+            )
 
         # Extract metadata and fingerprints for each album
         albums = []
@@ -105,6 +134,21 @@ class AlbumScanner:
                     msg = f"PROGRESS: Scanning albums {idx}/{total_albums} ({percent:.1f}%)"  # noqa: E501
                     print(msg, flush=True)
 
+                # Invoke progress callback if provided
+                if progress_callback:
+                    percent = int((idx / total_albums) * 100)
+                    # Include cache stats for debugging
+                    total_processed = self.album_cache_hits + self.album_cache_misses
+                    if total_processed > 0:
+                        hit_rate = self.album_cache_hits / total_processed * 100
+                        msg = (
+                            f"Scanned {idx}/{total_albums} albums "
+                            f"(cache: {hit_rate:.0f}% hits)"
+                        )
+                    else:
+                        msg = f"Scanned {idx}/{total_albums} albums"
+                    progress_callback(msg, percent)
+
             except Exception as e:
                 if self.verbose:
                     if self.simple_progress:
@@ -117,24 +161,59 @@ class AlbumScanner:
 
         if self.verbose:
             print(f"Successfully processed {len(albums)} albums", flush=True)
+            total = max(self.album_cache_hits + self.album_cache_misses, 1)
+            hit_pct = self.album_cache_hits / total * 100
+            print(
+                f"Album cache: {self.album_cache_hits} hits, "
+                f"{self.album_cache_misses} misses ({hit_pct:.1f}% hit rate)",
+                flush=True,
+            )
+
+        # Report cache stats via callback
+        if progress_callback and (self.album_cache_hits + self.album_cache_misses) > 0:
+            hit_rate = (
+                self.album_cache_hits
+                / (self.album_cache_hits + self.album_cache_misses)
+                * 100
+            )
+            progress_callback(
+                f"Scan complete - Album cache: {self.album_cache_hits} hits, "
+                f"{self.album_cache_misses} misses ({hit_rate:.1f}% hit rate)",
+                100,
+            )
 
         return albums
 
-    def _find_album_directories(self, paths: List[Path]) -> List[Path]:
+    def _find_album_directories(
+        self,
+        paths: List[Path],
+        progress_callback: Optional[Callable[[str], None]] = None,
+        should_stop: Optional[Callable[[], bool]] = None,
+    ) -> List[Path]:
         """
         Find all directories that contain audio files.
 
         Args:
             paths: List of paths to search
+            progress_callback: Optional callback for progress updates during traversal
+            should_stop: Optional callback that returns True if scan should stop
 
         Returns:
             List of directory paths containing audio files
         """
+        print(f"DEBUG: _find_album_directories - should_stop callback is {'SET' if should_stop else 'NOT SET'}")
         album_dirs = set()
+        files_checked = 0
+        stopped = False
 
         for path in paths:
             if not path.exists():
                 continue
+
+            # Check for stop request
+            if should_stop and should_stop():
+                stopped = True
+                break
 
             if path.is_file():
                 # If single file, use its parent directory
@@ -143,9 +222,29 @@ class AlbumScanner:
             elif path.is_dir():
                 # Recursively find all directories with audio files
                 for file_path in path.rglob("*"):
-                    if file_path.is_file() and self.hasher.is_audio_file(file_path):
-                        album_dirs.add(file_path.parent)
+                    # Check for stop request every 100 files
+                    if files_checked % 100 == 0 and should_stop and should_stop():
+                        print(f"DEBUG: Stop detected in _find_album_directories at {files_checked} files")
+                        stopped = True
+                        break
 
+                    if file_path.is_file():
+                        files_checked += 1
+                        # Report progress every 100 files (for testing/debugging)
+                        # TODO: Change to 1000 for production to reduce spam
+                        if progress_callback and files_checked % 100 == 0:
+                            progress_callback(
+                                f"Finding albums... (checked {files_checked} files, "
+                                f"found {len(album_dirs)} albums so far)"
+                            )
+                        if self.hasher.is_audio_file(file_path):
+                            album_dirs.add(file_path.parent)
+
+                # Check if we stopped during the inner loop
+                if stopped:
+                    break
+
+        print(f"DEBUG: _find_album_directories returning {len(album_dirs)} album dirs, stopped={stopped}")
         return sorted(album_dirs)
 
     def extract_album_metadata(self, album_path: Path) -> Album:

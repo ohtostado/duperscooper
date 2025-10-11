@@ -1,8 +1,9 @@
 """Main window for duperscooper GUI."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -40,12 +41,16 @@ class MainWindow(QMainWindow):
         self.ui.dualPaneContainer.layout().addWidget(self.dual_pane_viewer)
         self.dual_pane_viewer.scan_requested.connect(self.on_dual_pane_scan_requested)
         self.dual_pane_viewer.stop_requested.connect(self.on_dual_pane_stop_requested)
+        self.dual_pane_viewer.stop_and_process_requested.connect(
+            self.on_dual_pane_stop_and_process_requested
+        )
         self.dual_pane_viewer.deletion_requested.connect(
             self.on_dual_pane_deletion_requested
         )
 
         # Track dual-pane scan thread
-        self.dual_pane_scan_thread = None
+        self.dual_pane_scan_thread: Optional[RealtimeScanThread] = None
+        self.scan_was_stopped = False
 
         # Status message
         self.ui.statusbar.showMessage("Ready")
@@ -95,6 +100,9 @@ class MainWindow(QMainWindow):
         """Handle scan request from dual-pane viewer."""
         from ..utils.realtime_scanner import RealtimeScanThread
 
+        # Reset stop flag
+        self.scan_was_stopped = False
+
         # Start real-time scan thread
         self.dual_pane_scan_thread = RealtimeScanThread(paths, mode)
         self.dual_pane_scan_thread.progress.connect(self.on_dual_pane_scan_progress)
@@ -115,11 +123,21 @@ class MainWindow(QMainWindow):
     def on_dual_pane_stop_requested(self):
         """Handle stop request from dual-pane viewer."""
         if self.dual_pane_scan_thread and self.dual_pane_scan_thread.isRunning():
+            self.scan_was_stopped = True
             self.dual_pane_scan_thread.stop()
-            self.dual_pane_scan_thread.wait()
-            self.dual_pane_viewer.on_scan_finished()
-            self.ui.statusbar.showMessage("Scan stopped")
-            self.ui.scanLogText.append("⏹ Scan stopped by user")
+            self.ui.statusbar.showMessage("Stopping scan...")
+            self.ui.scanLogText.append("⏹ Stopping scan...")
+
+    def on_dual_pane_stop_and_process_requested(self):
+        """Handle stop-and-process request from dual-pane viewer."""
+        if self.dual_pane_scan_thread and self.dual_pane_scan_thread.isRunning():
+            self.dual_pane_scan_thread.stop_and_process()
+            self.ui.statusbar.showMessage(
+                "Stopping directory scan, will process albums found..."
+            )
+            self.ui.scanLogText.append(
+                "⏹ Directory scan stopped, processing albums found so far..."
+            )
 
     def on_dual_pane_scan_progress(self, message: str, percentage: int):
         """Handle scan progress from dual-pane scan."""
@@ -132,9 +150,16 @@ class MainWindow(QMainWindow):
         self.dual_pane_viewer.on_scan_finished()
 
         total_groups = self.dual_pane_viewer.ui.resultsTree.topLevelItemCount()
-        self.ui.scanLogText.append(
-            f"✓ Scan complete - {total_groups} duplicate groups found"
-        )
+        if self.scan_was_stopped:
+            self.ui.scanLogText.append("⏹ Scan stopped by user")
+            self.ui.statusbar.showMessage("Scan stopped")
+        else:
+            self.ui.scanLogText.append(
+                f"✓ Scan complete - {total_groups} duplicate groups found"
+            )
+            self.ui.statusbar.showMessage(
+                f"Scan complete - {total_groups} groups found"
+            )
 
     def on_dual_pane_scan_error(self, error_message: str):
         """Handle scan error from dual-pane scan."""
@@ -162,3 +187,17 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(
                 self, "Deletion Error", f"Failed to delete items:\n\n{str(e)}"
             )
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """Handle window close - clean up running threads."""
+        # Stop scan thread if running
+        if self.dual_pane_scan_thread and self.dual_pane_scan_thread.isRunning():
+            self.dual_pane_scan_thread.stop()
+            self.dual_pane_scan_thread.wait(2000)  # Wait up to 2 seconds
+            if self.dual_pane_scan_thread.isRunning():
+                # Force terminate if it won't stop
+                self.dual_pane_scan_thread.terminate()
+                self.dual_pane_scan_thread.wait()
+
+        # Accept the close event
+        event.accept()

@@ -1,6 +1,6 @@
 """Real-time scanner that emits groups as they're found."""
 
-from typing import List
+from typing import Any, Dict, List
 
 from PySide6.QtCore import QThread, Signal
 
@@ -15,13 +15,19 @@ class RealtimeScanThread(QThread):
 
     def __init__(self, paths: List[str], mode: str):
         super().__init__()
+        self.setObjectName(f"ScanThread-{mode}")  # Set thread name for debugging
         self.paths = paths
         self.mode = mode
         self._should_stop = False
+        self._stop_and_process = False
 
-    def stop(self):
-        """Request the scan to stop."""
+    def stop(self) -> None:
+        """Request the scan to stop completely."""
         self._should_stop = True
+
+    def stop_and_process(self) -> None:
+        """Request to stop directory scanning but process albums found so far."""
+        self._stop_and_process = True
 
     def run(self) -> None:
         """Run the scan in background thread."""
@@ -31,12 +37,13 @@ class RealtimeScanThread(QThread):
             else:
                 self._run_album_scan()
 
-            self.finished.emit()
+            # Note: QThread automatically emits finished signal when run() exits
+            # No need to manually emit it here
 
         except Exception as e:
             self.error.emit(str(e))
 
-    def _run_track_scan(self):
+    def _run_track_scan(self) -> None:
         """Run track mode scan with real-time group emission."""
         from pathlib import Path
 
@@ -71,7 +78,9 @@ class RealtimeScanThread(QThread):
             return
 
         # Process each group and emit
-        for group_id, (files, fingerprints) in enumerate(duplicate_groups, start=1):
+        for group_id, (files, fingerprints) in enumerate(
+            duplicate_groups.items(), start=1
+        ):
             if self._should_stop:
                 return
 
@@ -84,7 +93,7 @@ class RealtimeScanThread(QThread):
             )
 
             # Build group data in same format as CLI JSON output
-            group_data = {
+            group_data: Dict[str, Any] = {
                 "group_id": group_id,
                 "files": [],
             }
@@ -114,7 +123,7 @@ class RealtimeScanThread(QThread):
                 f"Processing group {group_id}/{len(duplicate_groups)}", percentage
             )
 
-    def _run_album_scan(self):
+    def _run_album_scan(self) -> None:
         """Run album mode scan with real-time group emission."""
         from pathlib import Path
 
@@ -136,45 +145,38 @@ class RealtimeScanThread(QThread):
         )
         scanner = AlbumScanner(hasher)
 
-        # Debug: Check if paths exist
-        for p in path_objects:
-            exists = p.exists()
-            is_dir = p.is_dir() if exists else False
-            self.progress.emit(f"DEBUG: Path {p} - exists={exists}, is_dir={is_dir}", 5)
-
         # Scan for albums
-        self.progress.emit("Scanning for albums...", 10)
+        self.progress.emit(f"Scanning {len(path_objects)} path(s) for albums...", 10)
 
-        # Debug: Manually check for album directories
-        album_dirs = scanner._find_album_directories(path_objects)
-        self.progress.emit(
-            f"DEBUG: _find_album_directories returned {len(album_dirs)} dirs", 12
+        # Scan albums with progress callback (includes directory discovery)
+        # Track last reported percentage to avoid spamming UI with updates
+        self._last_reported_pct = -1
+
+        def on_scan_progress(message: str, percentage: int) -> None:
+            # Emit every 1% for frequent updates (for testing)
+            # TODO: Change to % 10 == 0 for production to reduce spam
+            if percentage % 1 == 0 or percentage == 100:
+                # Map 0-100% of scanning to 20-90% of total progress
+                adjusted_percentage = 20 + int(percentage * 0.7)
+                self.progress.emit(message, adjusted_percentage)
+
+        albums = scanner.scan_albums(
+            path_objects,
+            progress_callback=on_scan_progress,
+            should_stop=lambda: self._should_stop or self._stop_and_process,
         )
-        if album_dirs:
-            self.progress.emit(
-                f"DEBUG: First few dirs: {[str(d) for d in album_dirs[:3]]}", 13
-            )
 
-            # Debug: Try extracting metadata from first album
-            try:
-                _ = scanner.extract_album_metadata(album_dirs[0])
-                self.progress.emit(
-                    f"DEBUG: Successfully extracted metadata from {album_dirs[0]}", 14
-                )
-            except Exception as e:
-                self.progress.emit(
-                    f"DEBUG: FAILED to extract metadata from {album_dirs[0]}: {e}", 14
-                )
-
-        albums = scanner.scan_albums(path_objects)
-
-        # Debug: print album count
-        self.progress.emit(f"DEBUG: Found {len(albums)} albums total", 20)
-
+        # Check if we should stop completely (takes precedence over stop_and_process)
         if self._should_stop:
             return
 
-        self.progress.emit(f"Found {len(albums)} albums, finding duplicates...", 30)
+        # If stop_and_process was requested, continue with albums found so far
+        if self._stop_and_process:
+            self.progress.emit(
+                f"Directory scan stopped, processing {len(albums)} albums found...", 91
+            )
+        else:
+            self.progress.emit(f"Found {len(albums)} albums, finding duplicates...", 91)
 
         # Find duplicate albums (strategy is only parameter, no similarity_threshold)
         finder = AlbumDuplicateFinder(hasher)
@@ -197,7 +199,7 @@ class RealtimeScanThread(QThread):
             best_album = max(albums_in_group, key=lambda a: a.avg_quality_score)
 
             # Build group data
-            group_data = {
+            group_data: Dict[str, Any] = {
                 "group_id": group_id,
                 "matched_album": matched_album,
                 "matched_artist": matched_artist,
@@ -242,7 +244,7 @@ class RealtimeScanThread(QThread):
             self.group_found.emit(group_data)
 
             # Update progress
-            percentage = 30 + int((group_id / len(duplicate_groups)) * 70)
+            percentage = 92 + int((group_id / len(duplicate_groups)) * 8)
             self.progress.emit(
                 f"Processing group {group_id}/{len(duplicate_groups)}", percentage
             )
