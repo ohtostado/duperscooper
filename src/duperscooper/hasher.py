@@ -310,11 +310,15 @@ class AudioHasher:
 
             if cached_result and cached_result[0]:
                 # Cache stores comma-separated string, parse it
+                print(f"DEBUG: Cache hit for {file_path.name}")
                 return AudioHasher.parse_raw_fingerprint(cached_result[0])
 
         # Cache miss or update_cache mode - compute fingerprint
         if self.update_cache:
             self.cache_updates += 1
+            print(f"DEBUG: Cache update mode - recomputing {file_path.name}")
+        else:
+            print(f"DEBUG: Cache miss - computing {file_path.name}")
 
         try:
             import time
