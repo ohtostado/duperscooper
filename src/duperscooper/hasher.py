@@ -297,12 +297,26 @@ class AudioHasher:
             # Get raw fingerprint for fuzzy matching
             raw_fingerprint = self.compute_raw_fingerprint(file_path)
 
-            # Store in cache as comma-separated string
+            # Store in cache as comma-separated string, along with metadata
             if self._cache:
                 fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
+
+                # Extract metadata at the same time to avoid double processing
+                metadata = None
+                if hasattr(self._cache, "set_by_path"):
+                    try:
+                        import json
+
+                        metadata_dict = self.get_audio_metadata_fast(file_path)
+                        metadata = json.dumps(metadata_dict)
+                    except Exception:
+                        pass  # Ignore metadata extraction errors
+
                 # Use new fast path+mtime based cache if available
                 if hasattr(self._cache, "set_by_path"):
-                    self._cache.set_by_path(str(file_path), file_mtime, fingerprint_str)
+                    self._cache.set_by_path(
+                        str(file_path), file_mtime, fingerprint_str, metadata
+                    )
                 else:
                     # Fallback to old hash-based cache
                     file_hash = AudioHasher.compute_file_hash(file_path)
@@ -320,7 +334,8 @@ class AudioHasher:
         Get audio metadata with caching support.
 
         Tries cache first, then extracts metadata using mutagen.
-        Caches the result for future calls.
+        Note: Metadata is usually cached by compute_audio_hash, so this
+        should be fast in most cases.
 
         Returns:
             Dictionary with codec, sample_rate, bit_depth, bitrate, channels
@@ -338,26 +353,11 @@ class AudioHasher:
                     metadata_dict = json.loads(cached_result[1])
                     return metadata_dict
                 except (json.JSONDecodeError, TypeError):
-                    pass  # Fall through to recompute
+                    pass  # Fall through to extract
 
-        # Cache miss - extract metadata
-        metadata = self.get_audio_metadata_fast(file_path)
-
-        # Cache the metadata alongside fingerprint if we have the fingerprint cached
-        # (The fingerprint will be cached separately by compute_audio_hash)
-        # We'll store metadata here for future quick retrieval
-        if self._cache and hasattr(self._cache, "get_by_path"):
-            cached_result = self._cache.get_by_path(str(file_path), file_mtime)
-            if cached_result:
-                # Update existing cache entry with metadata
-                fingerprint = cached_result[0]
-                metadata_json = json.dumps(metadata)
-                if hasattr(self._cache, "set_by_path"):
-                    self._cache.set_by_path(
-                        str(file_path), file_mtime, fingerprint, metadata_json
-                    )
-
-        return metadata
+        # Cache miss - extract metadata directly
+        # (This should be rare since compute_audio_hash caches it)
+        return self.get_audio_metadata_fast(file_path)
 
     @staticmethod
     def get_audio_metadata_fast(
