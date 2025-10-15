@@ -318,6 +318,7 @@ class AlbumScanner:
 
                 # Get fingerprints from track-level cache
                 import time
+
                 t_start = time.time()
                 cached_fingerprints: List[List[int]] = []
                 for i, track in enumerate(tracks):
@@ -406,9 +407,9 @@ class AlbumScanner:
             file_hash = self.hasher.compute_file_hash(track)
             track_hashes.append((str(track), file_hash))
 
-            # Get quality metadata
+            # Get quality metadata (using fast cached version)
             try:
-                metadata = self.hasher.get_audio_metadata(track)
+                metadata = self.hasher.get_audio_metadata_cached(track)
                 quality_score = self.hasher.calculate_quality_score(metadata)
                 quality_scores.append(quality_score)
             except Exception:
@@ -419,9 +420,9 @@ class AlbumScanner:
             sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
         )
 
-        # Format quality info
+        # Format quality info (using fast cached version)
         try:
-            first_metadata = self.hasher.get_audio_metadata(tracks[0])
+            first_metadata = self.hasher.get_audio_metadata_cached(tracks[0])
             quality_info = self.hasher.format_audio_info(first_metadata)
         except Exception:
             quality_info = "Unknown"

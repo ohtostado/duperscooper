@@ -274,15 +274,20 @@ class AudioHasher:
         if self._cache and not self.update_cache:
             # Try new fast path+mtime based cache first
             if hasattr(self._cache, "get_by_path"):
-                cached_value = self._cache.get_by_path(str(file_path), file_mtime)
+                cached_result = self._cache.get_by_path(str(file_path), file_mtime)
+                if cached_result:
+                    # New format: tuple of (fingerprint, metadata_json)
+                    cached_value = cached_result[0]  # fingerprint string
+                    # metadata is cached_result[1] but not used here
             else:
                 # Fallback to old hash-based cache for backwards compatibility
                 file_hash = AudioHasher.compute_file_hash(file_path)
                 cached_value = self._cache.get(file_hash)
+                cached_result = (cached_value, None) if cached_value else None
 
-            if cached_value:
+            if cached_result and cached_result[0]:
                 # Cache stores comma-separated string, parse it
-                return AudioHasher.parse_raw_fingerprint(cached_value)
+                return AudioHasher.parse_raw_fingerprint(cached_result[0])
 
         # Cache miss or update_cache mode - compute fingerprint
         if self.update_cache:
@@ -308,12 +313,117 @@ class AudioHasher:
         except Exception as e:
             raise ValueError(f"Failed to hash audio file {file_path}: {e}") from e
 
+    def get_audio_metadata_cached(
+        self, file_path: Path
+    ) -> Dict[str, Optional[Union[str, int, float]]]:
+        """
+        Get audio metadata with caching support.
+
+        Tries cache first, then extracts metadata using mutagen.
+        Caches the result for future calls.
+
+        Returns:
+            Dictionary with codec, sample_rate, bit_depth, bitrate, channels
+        """
+        import json
+
+        file_mtime = int(file_path.stat().st_mtime)
+
+        # Try to get from cache
+        if self._cache and hasattr(self._cache, "get_by_path"):
+            cached_result = self._cache.get_by_path(str(file_path), file_mtime)
+            if cached_result and cached_result[1]:  # Has cached metadata
+                try:
+                    metadata_dict: Dict[str, Optional[Union[str, int, float]]]
+                    metadata_dict = json.loads(cached_result[1])
+                    return metadata_dict
+                except (json.JSONDecodeError, TypeError):
+                    pass  # Fall through to recompute
+
+        # Cache miss - extract metadata
+        metadata = self.get_audio_metadata_fast(file_path)
+
+        # Cache the metadata alongside fingerprint if we have the fingerprint cached
+        # (The fingerprint will be cached separately by compute_audio_hash)
+        # We'll store metadata here for future quick retrieval
+        if self._cache and hasattr(self._cache, "get_by_path"):
+            cached_result = self._cache.get_by_path(str(file_path), file_mtime)
+            if cached_result:
+                # Update existing cache entry with metadata
+                fingerprint = cached_result[0]
+                metadata_json = json.dumps(metadata)
+                if hasattr(self._cache, "set_by_path"):
+                    self._cache.set_by_path(
+                        str(file_path), file_mtime, fingerprint, metadata_json
+                    )
+
+        return metadata
+
+    @staticmethod
+    def get_audio_metadata_fast(
+        file_path: Path,
+    ) -> Dict[str, Optional[Union[str, int, float]]]:
+        """
+        Extract audio metadata using mutagen (fast, no subprocess).
+
+        Returns:
+            Dictionary with codec, sample_rate, bit_depth, bitrate, channels
+        """
+        try:
+            from mutagen import File as MutagenFile
+
+            audio = MutagenFile(str(file_path))
+            if audio is None or audio.info is None:
+                return {
+                    "codec": None,
+                    "sample_rate": None,
+                    "bit_depth": None,
+                    "bitrate": None,
+                    "channels": None,
+                }
+
+            # Extract codec from MIME type
+            codec = None
+            if hasattr(audio, "mime") and audio.mime:
+                # mime is like ['audio/flac'] or ['audio/mpeg']
+                codec = audio.mime[0].split("/")[-1].upper()
+                # Normalize codec names
+                if codec == "MPEG":
+                    codec = "MP3"
+                elif codec == "X-FLAC":
+                    codec = "FLAC"
+
+            # Get audio info
+            info = audio.info
+            sample_rate = getattr(info, "sample_rate", None)
+            bit_depth = getattr(info, "bits_per_sample", None)
+            bitrate = getattr(info, "bitrate", None)
+            channels = getattr(info, "channels", None)
+
+            return {
+                "codec": codec,
+                "sample_rate": int(sample_rate) if sample_rate else None,
+                "bit_depth": int(bit_depth) if bit_depth else None,
+                "bitrate": int(bitrate) if bitrate else None,
+                "channels": int(channels) if channels else None,
+            }
+
+        except Exception:
+            # Fall back to empty metadata on any error
+            return {
+                "codec": None,
+                "sample_rate": None,
+                "bit_depth": None,
+                "bitrate": None,
+                "channels": None,
+            }
+
     @staticmethod
     def get_audio_metadata(
         file_path: Path,
     ) -> Dict[str, Optional[Union[str, int, float]]]:
         """
-        Extract audio metadata using ffprobe.
+        Extract audio metadata using ffprobe (legacy fallback).
 
         Returns:
             Dictionary with codec, sample_rate, bit_depth, bitrate, channels

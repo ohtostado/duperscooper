@@ -76,13 +76,18 @@ src/duperscooper/
   exact
 - `hamming_distance()`: Calculate bit-level differences between fingerprints
 - `similarity_percentage()`: Calculate similarity % between fingerprints
-- `get_audio_metadata()`: Extract codec, sample rate, bit depth, bitrate,
-  channels using ffprobe
+- `get_audio_metadata_fast()`: Extract codec, sample rate, bit depth, bitrate,
+  channels using mutagen (fast, no subprocess)
+- `get_audio_metadata_cached()`: Get metadata with caching (checks cache first,
+  falls back to mutagen)
+- `get_audio_metadata()`: Legacy method using ffprobe subprocess (deprecated,
+  use cached version)
 - `calculate_quality_score()`: Calculate quality score (lossless > lossy,
   higher bitrate/depth > lower)
 - `format_audio_info()`: Format metadata as human-readable string (e.g.,
   "FLAC 44.1kHz 16bit", "MP3 CBR 320kbps")
-- **Caching**: Uses CacheBackend interface for thread-safe fingerprint storage
+- **Caching**: Uses CacheBackend interface for thread-safe fingerprint and
+  metadata storage
 
 #### DuplicateFinder (finder.py)
 
@@ -128,9 +133,9 @@ src/duperscooper/
 - `scan_albums()`: Discover all albums in given paths
 - `extract_album_metadata()`: Extract metadata from all tracks in album
   directory
-- `get_musicbrainz_albumid()`: Extract MusicBrainz album ID via ffprobe
+- `get_musicbrainz_albumid()`: Extract MusicBrainz album ID using mutagen
 - `get_album_tags()`: Extract album name and artist from metadata
-- Leverages existing AudioHasher for fingerprint caching
+- Leverages existing AudioHasher for fingerprint and metadata caching
 - Non-recursive directory scan (one album = one directory)
 
 #### AlbumDuplicateFinder (album.py)
@@ -221,9 +226,12 @@ src/duperscooper/
 ### Core Runtime
 
 - `tqdm`: Progress bars
+- `mutagen`: Fast audio metadata extraction (replaces ffprobe as of v0.4.0)
 
-Note: Audio fingerprinting is done by calling the `fpcalc` binary directly
-instead of using Python libraries, for Python 3.13 compatibility.
+**Note**: Audio fingerprinting is done by calling the `fpcalc` binary directly
+instead of using Python libraries, for Python 3.13 compatibility. Metadata
+extraction uses the `mutagen` Python library for performance (10-50x faster
+than ffprobe subprocess calls).
 
 ### Development
 
@@ -784,7 +792,7 @@ source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
-**Chromaprint errors**: `pyacoustid` requires the `fpcalc` binary and FFmpeg
+**Chromaprint errors**: Requires the `fpcalc` binary from Chromaprint
 
 ```bash
 # Ubuntu/Debian
@@ -796,6 +804,9 @@ brew install chromaprint
 # Verify installation
 fpcalc --version
 ```
+
+**Note**: FFmpeg is no longer required as of v0.4.0. Metadata extraction uses
+the `mutagen` Python library.
 
 **Type checking failures**: Run `mypy src/` and fix reported issues
 

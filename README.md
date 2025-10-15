@@ -20,19 +20,20 @@ duperscooper is a Python CLI tool that identifies duplicate audio files using ac
 
 ### Prerequisites
 
-duperscooper requires two external tools for audio processing:
+duperscooper requires the Chromaprint library for audio fingerprinting:
 
 ```bash
 # Ubuntu/Debian
-sudo apt install libchromaprint-tools ffmpeg
+sudo apt install libchromaprint-tools
 
 # macOS
-brew install chromaprint ffmpeg
+brew install chromaprint
 
 # Verify installation
 fpcalc --version
-ffprobe -version
 ```
+
+**Note**: FFmpeg is no longer required as of v0.4.0. Metadata extraction now uses the `mutagen` Python library.
 
 ### Install duperscooper
 
@@ -66,7 +67,6 @@ Add duperscooper to any Dockerfile with just 2 additions:
 # Add system dependencies to your apt install section
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libchromaprint-tools \
-    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install duperscooper (works for both root and non-root users)
@@ -611,7 +611,7 @@ See [LICENSE](LICENSE) file for details.
 ## Acknowledgments
 
 - **Chromaprint** - Acoustic fingerprinting library by Lukáš Lalinský
-- **FFmpeg** - Audio metadata extraction
+- **Mutagen** - Pure Python audio metadata library
 - Built with Python 3.8+ compatibility
 
 ## Troubleshooting
@@ -624,13 +624,7 @@ sudo apt install libchromaprint-tools  # Ubuntu/Debian
 brew install chromaprint               # macOS
 ```
 
-### "ffprobe: command not found"
-
-```bash
-# Install FFmpeg
-sudo apt install ffmpeg  # Ubuntu/Debian
-brew install ffmpeg      # macOS
-```
+**Note**: As of v0.4.0, FFmpeg is no longer required. Audio metadata is extracted using the Python `mutagen` library.
 
 ### Import errors
 
