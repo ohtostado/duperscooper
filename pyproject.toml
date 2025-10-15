@@ -13,7 +13,6 @@ dependencies = [
     "tqdm>=4.66.0",
     "colorama>=0.4.6",
     "pyyaml>=6.0",
-    "mutagen>=1.47.0",
 ]
 
 [project.optional-dependencies]

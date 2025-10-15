@@ -342,11 +342,9 @@ class AudioHasher:
                     try:
                         import json
 
-                        print("  DEBUG: Extracting metadata with mutagen...")
+                        print("  DEBUG: Extracting metadata with ffprobe...")
                         t_meta_start = time.time()
-                        metadata_dict = self.get_audio_metadata_fast(
-                            file_path, debug=True
-                        )
+                        metadata_dict = self.get_audio_metadata(file_path)
                         t_meta_elapsed = time.time() - t_meta_start
                         metadata = json.dumps(metadata_dict)
                         codec_val = metadata_dict.get("codec", "None")
@@ -412,7 +410,7 @@ class AudioHasher:
         """
         Get audio metadata with caching support.
 
-        Tries cache first, then extracts metadata using mutagen.
+        Tries cache first, then extracts metadata using ffprobe.
         Note: Metadata is usually cached by compute_audio_hash, so this
         should be fast in most cases.
 
@@ -434,9 +432,9 @@ class AudioHasher:
                 except (json.JSONDecodeError, TypeError):
                     pass  # Fall through to extract
 
-        # Cache miss - extract metadata directly
+        # Cache miss - extract metadata directly with ffprobe
         # (This should be rare since compute_audio_hash caches it)
-        return self.get_audio_metadata_fast(file_path)
+        return self.get_audio_metadata(file_path)
 
     @staticmethod
     def get_audio_metadata_fast(

@@ -226,12 +226,10 @@ src/duperscooper/
 ### Core Runtime
 
 - `tqdm`: Progress bars
-- `mutagen`: Fast audio metadata extraction (replaces ffprobe as of v0.4.0)
 
 **Note**: Audio fingerprinting is done by calling the `fpcalc` binary directly
 instead of using Python libraries, for Python 3.13 compatibility. Metadata
-extraction uses the `mutagen` Python library for performance (10-50x faster
-than ffprobe subprocess calls).
+extraction uses `ffprobe` subprocess calls (requires FFmpeg installation).
 
 ### Development
 
