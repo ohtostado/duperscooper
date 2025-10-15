@@ -342,12 +342,15 @@ class AudioHasher:
                     try:
                         import json
 
+                        print("  DEBUG: Extracting metadata with mutagen...")
                         t_meta_start = time.time()
                         metadata_dict = self.get_audio_metadata_fast(
                             file_path, debug=True
                         )
                         t_meta_elapsed = time.time() - t_meta_start
                         metadata = json.dumps(metadata_dict)
+                        codec_val = metadata_dict.get("codec", "None")
+                        print(f"  DEBUG: Metadata extracted: codec={codec_val}")
                     except Exception as e:
                         print(f"  DEBUG: Metadata extraction failed: {e}")
                         pass  # Ignore metadata extraction errors
@@ -488,12 +491,12 @@ class AudioHasher:
 
             t_total = time.time() - t_start
 
-            if debug and t_total > 0.05:
+            if debug:
                 file_size = file_path.stat().st_size / (1024 * 1024)
                 print(
                     f"  DEBUG: mutagen parse took {t_parse:.3f}s, "
-                    f"total={t_total:.3f}s for {file_path.name} "
-                    f"({file_size:.2f}MB {codec})"
+                    f"total={t_total:.3f}s "
+                    f"({file_size:.2f}MB, codec={codec})"
                 )
 
             return {
