@@ -348,7 +348,8 @@ class AudioHasher:
                         )
                         t_meta_elapsed = time.time() - t_meta_start
                         metadata = json.dumps(metadata_dict)
-                    except Exception:
+                    except Exception as e:
+                        print(f"  DEBUG: Metadata extraction failed: {e}")
                         pass  # Ignore metadata extraction errors
 
                 # Use new fast path+mtime based cache if available
