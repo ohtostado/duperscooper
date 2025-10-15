@@ -294,20 +294,32 @@ class AudioHasher:
             self.cache_updates += 1
 
         try:
+            import time
+
+            t_start = time.time()
+
             # Get raw fingerprint for fuzzy matching
+            t_fp_start = time.time()
             raw_fingerprint = self.compute_raw_fingerprint(file_path)
+            t_fp_elapsed = time.time() - t_fp_start
 
             # Store in cache as comma-separated string, along with metadata
             if self._cache:
+                t_cache_start = time.time()
                 fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
 
                 # Extract metadata at the same time to avoid double processing
                 metadata = None
+                t_meta_elapsed = 0.0
                 if hasattr(self._cache, "set_by_path"):
                     try:
                         import json
 
-                        metadata_dict = self.get_audio_metadata_fast(file_path)
+                        t_meta_start = time.time()
+                        metadata_dict = self.get_audio_metadata_fast(
+                            file_path, debug=True
+                        )
+                        t_meta_elapsed = time.time() - t_meta_start
                         metadata = json.dumps(metadata_dict)
                     except Exception:
                         pass  # Ignore metadata extraction errors
@@ -321,6 +333,41 @@ class AudioHasher:
                     # Fallback to old hash-based cache
                     file_hash = AudioHasher.compute_file_hash(file_path)
                     self._cache.set(file_hash, fingerprint_str)
+
+                t_cache_elapsed = time.time() - t_cache_start
+
+            t_total = time.time() - t_start
+
+            # Log detailed timing if processing took >0.1s
+            if t_total > 0.1:
+                file_size = file_path.stat().st_size / (1024 * 1024)  # MB
+                # Get codec and format info if metadata was extracted
+                codec = "unknown"
+                fmt_info = ""
+                if metadata:
+                    try:
+                        import json
+
+                        meta = json.loads(metadata)
+                        codec = meta.get("codec", "unknown") or "unknown"
+                        sr = meta.get("sample_rate")
+                        bd = meta.get("bit_depth")
+                        br = meta.get("bitrate")
+                        if sr:
+                            fmt_info += f" {sr}Hz"
+                        if bd:
+                            fmt_info += f" {bd}bit"
+                        if br:
+                            fmt_info += f" {br//1000}kbps"
+                    except Exception:
+                        pass
+
+                print(
+                    f"DEBUG: Hash {file_path.name} took {t_total:.3f}s "
+                    f"(fp={t_fp_elapsed:.3f}s, meta={t_meta_elapsed:.3f}s, "
+                    f"cache={t_cache_elapsed:.3f}s) "
+                    f"[{file_size:.2f}MB {codec}{fmt_info}]"
+                )
 
             return raw_fingerprint
 
@@ -361,18 +408,28 @@ class AudioHasher:
 
     @staticmethod
     def get_audio_metadata_fast(
-        file_path: Path,
+        file_path: Path, debug: bool = False
     ) -> Dict[str, Optional[Union[str, int, float]]]:
         """
         Extract audio metadata using mutagen (fast, no subprocess).
+
+        Args:
+            file_path: Path to audio file
+            debug: If True, print detailed timing information
 
         Returns:
             Dictionary with codec, sample_rate, bit_depth, bitrate, channels
         """
         try:
+            import time
+
+            t_start = time.time()
             from mutagen import File as MutagenFile
 
+            t_parse_start = time.time()
             audio = MutagenFile(str(file_path))
+            t_parse = time.time() - t_parse_start
+
             if audio is None or audio.info is None:
                 return {
                     "codec": None,
@@ -399,6 +456,16 @@ class AudioHasher:
             bit_depth = getattr(info, "bits_per_sample", None)
             bitrate = getattr(info, "bitrate", None)
             channels = getattr(info, "channels", None)
+
+            t_total = time.time() - t_start
+
+            if debug and t_total > 0.05:
+                file_size = file_path.stat().st_size / (1024 * 1024)
+                print(
+                    f"  DEBUG: mutagen parse took {t_parse:.3f}s, "
+                    f"total={t_total:.3f}s for {file_path.name} "
+                    f"({file_size:.2f}MB {codec})"
+                )
 
             return {
                 "codec": codec,
