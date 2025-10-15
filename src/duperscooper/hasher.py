@@ -338,7 +338,9 @@ class AudioHasher:
                 # Extract metadata at the same time to avoid double processing
                 metadata = None
                 t_meta_elapsed = 0.0
-                if hasattr(self._cache, "set_by_path"):
+                # Only cache metadata if using SQLiteCacheBackend (has set_by_path)
+                cache_supports_metadata = hasattr(self._cache, "set_by_path")
+                if cache_supports_metadata:
                     try:
                         import json
 
@@ -352,6 +354,11 @@ class AudioHasher:
                     except Exception as e:
                         print(f"  DEBUG: Metadata extraction failed: {e}")
                         pass  # Ignore metadata extraction errors
+                else:
+                    print(
+                        "  DEBUG: Cache backend does not support metadata "
+                        "(using JSONCacheBackend?). Metadata not cached."
+                    )
 
                 # Use new fast path+mtime based cache if available
                 if hasattr(self._cache, "set_by_path"):
