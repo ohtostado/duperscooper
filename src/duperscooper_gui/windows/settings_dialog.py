@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QCheckBox,
     QColorDialog,
+    QComboBox,
     QDialog,
     QDoubleSpinBox,
     QFileDialog,
@@ -142,6 +143,14 @@ class SettingsDialog(QDialog):
         # Form layout for simple fields
         form_layout = QFormLayout()
 
+        # Default mode
+        self.default_mode = QComboBox()
+        self.default_mode.addItems(["Track Mode", "Album Mode"])
+        current_mode = self.config["scan"].get("default_mode", "album")
+        mode_index = 0 if current_mode == "track" else 1
+        self.default_mode.setCurrentIndex(mode_index)
+        form_layout.addRow("Default Scan Mode:", self.default_mode)
+
         # Similarity threshold
         self.similarity_threshold = QDoubleSpinBox()
         self.similarity_threshold.setRange(80.0, 100.0)
@@ -239,6 +248,10 @@ class SettingsDialog(QDialog):
             for i in range(self.paths_list.count()):
                 default_paths.append(self.paths_list.item(i).text())
 
+            # Get default mode from combo box
+            mode_index = self.default_mode.currentIndex()
+            default_mode_value = "track" if mode_index == 0 else "album"
+
             # Build updated config
             updated_config = {
                 "colors": {
@@ -264,7 +277,7 @@ class SettingsDialog(QDialog):
                     },
                 },
                 "scan": {
-                    "default_mode": self.config["scan"]["default_mode"],
+                    "default_mode": default_mode_value,
                     "algorithm": self.config["scan"]["algorithm"],
                     "similarity_threshold": self.similarity_threshold.value(),
                     "workers": self.workers.value(),
