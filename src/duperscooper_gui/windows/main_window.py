@@ -1,5 +1,6 @@
 """Main window for duperscooper GUI."""
 
+import platform
 from pathlib import Path
 from typing import List, Optional
 
@@ -34,6 +35,12 @@ class MainWindow(QMainWindow):
 
         # Set window title explicitly (macOS compatibility)
         self.setWindowTitle("Duperscooper - Duplicate Audio File Manager")
+
+        # Fix macOS menu bar showing "Python" instead of app name
+        # When running from Python (not a .app bundle), macOS uses the interpreter name
+        # Use non-native menu bar so it appears in the window with correct title
+        if platform.system() == "Darwin":  # macOS
+            self.ui.menubar.setNativeMenuBar(False)
 
         # Resize to match UI
         self.resize(1200, 800)
