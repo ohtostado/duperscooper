@@ -113,6 +113,9 @@ class DualPaneViewer(QWidget):
         # Track group membership (group_id -> list of paths in original order)
         self.group_members: Dict[int, List[str]] = {}
 
+        # Track scan parameters for diagnostic exports
+        self.last_scan_params: Dict[str, Any] = {}
+
         # Connect signals
         self.ui.addPathButton.clicked.connect(self.on_add_path_clicked)  # type: ignore[attr-defined]
         self.ui.removePathButton.clicked.connect(self.on_remove_path_clicked)  # type: ignore[attr-defined]
@@ -425,6 +428,28 @@ class DualPaneViewer(QWidget):
 
     def on_scan_started(self) -> None:
         """Handle scan started."""
+        # Capture scan parameters for diagnostic exports
+        from datetime import datetime
+
+        from duperscooper_gui.config.settings import Settings
+
+        paths_list: QListWidget = self.ui.pathsList  # type: ignore[attr-defined]
+        paths = [paths_list.item(i).text() for i in range(paths_list.count())]  # type: ignore[union-attr]
+
+        self.last_scan_params = {
+            "scan_timestamp": datetime.now().isoformat(),
+            "mode": self.current_mode,
+            "paths": paths,
+            "algorithm": "perceptual",  # Hardcoded in scanner
+            "similarity_threshold": Settings.SIMILARITY_THRESHOLD,
+            "max_workers": Settings.WORKERS,
+            "allow_partial_albums": (
+                self.ui.allowPartialCheckBox.isChecked()  # type: ignore[attr-defined]
+                if self.current_mode == "album"
+                else None
+            ),
+        }
+
         self.ui.statusLabel.setText("Scanning for duplicates...")  # type: ignore[attr-defined]
 
     def on_scan_finished(self) -> None:
@@ -1234,18 +1259,27 @@ class DualPaneViewer(QWidget):
         # Build export data with metadata
         export_data = {
             "export_metadata": {
-                "timestamp": datetime.now().isoformat(),
+                "export_timestamp": datetime.now().isoformat(),
                 "mode": self.current_mode,
                 "total_groups": len(self.group_members),
                 "total_items": len(self.results_data),
                 "duperscooper_version": "0.5.0",  # Update with actual version
             },
+            "scan_parameters": self.last_scan_params,
             "groups": [],
+            "diagnostic_summary": {
+                "groups_below_threshold": [],
+                "similarity_distribution": {},
+            },
         }
 
-        # Organize by groups
+        # Organize by groups with diagnostic info
+        similarity_threshold = self.last_scan_params.get("similarity_threshold", 98.0)
+
         for group_id, paths in self.group_members.items():
             group_items = []
+            similarities = []
+
             for path in paths:
                 if path in self.results_data:
                     item = self.results_data[path].copy()
@@ -1253,10 +1287,43 @@ class DualPaneViewer(QWidget):
                     item["file_exists"] = Path(path).exists()
                     group_items.append(item)
 
+                    # Collect similarity values for diagnostics
+                    sim = item.get("similarity_to_best") or item.get("match_percentage")
+                    if sim is not None and not item.get("is_best", False):
+                        similarities.append(sim)
+
             if group_items:
-                export_data["groups"].append(
-                    {"group_id": group_id, "items": group_items}
-                )
+                # Calculate group statistics
+                group_data = {"group_id": group_id, "items": group_items}
+
+                if similarities:
+                    min_sim = min(similarities)
+                    max_sim = max(similarities)
+                    avg_sim = sum(similarities) / len(similarities)
+
+                    group_data["similarity_stats"] = {
+                        "min": min_sim,
+                        "max": max_sim,
+                        "avg": avg_sim,
+                        "count_below_threshold": sum(
+                            1 for s in similarities if s < similarity_threshold
+                        ),
+                    }
+
+                    # Flag groups with items below threshold
+                    if min_sim < similarity_threshold:
+                        export_data["diagnostic_summary"][
+                            "groups_below_threshold"
+                        ].append(
+                            {
+                                "group_id": group_id,
+                                "min_similarity": min_sim,
+                                "threshold": similarity_threshold,
+                                "item_count": len(group_items),
+                            }
+                        )
+
+                export_data["groups"].append(group_data)
 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
