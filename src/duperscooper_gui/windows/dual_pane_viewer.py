@@ -4,15 +4,56 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAction
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
+    QDialog,
     QFileDialog,
+    QHeaderView,
     QListWidget,
     QMessageBox,
+    QTableWidget,
+    QTableWidgetItem,
     QTreeWidget,
     QTreeWidgetItem,
+    QVBoxLayout,
     QWidget,
 )
+
+
+class ItemPropertiesDialog(QDialog):
+    """Dialog to display item properties in a table."""
+
+    def __init__(self, item_data: Dict[str, Any], parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setWindowTitle("Item Properties")
+        self.resize(600, 400)
+
+        layout = QVBoxLayout(self)
+
+        # Create table
+        table = QTableWidget(self)
+        table.setColumnCount(2)
+        table.setHorizontalHeaderLabels(["Property", "Value"])
+        table.horizontalHeader().setStretchLastSection(True)
+        table.horizontalHeader().setSectionResizeMode(
+            0, QHeaderView.ResizeMode.ResizeToContents
+        )
+        table.setAlternatingRowColors(True)
+        table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+        # Populate table with item data
+        table.setRowCount(len(item_data))
+        for row, (key, value) in enumerate(sorted(item_data.items())):
+            # Property name
+            key_item = QTableWidgetItem(str(key))
+            table.setItem(row, 0, key_item)
+
+            # Property value
+            value_item = QTableWidgetItem(str(value))
+            table.setItem(row, 1, value_item)
+
+        layout.addWidget(table)
 
 
 class DualPaneViewer(QWidget):
@@ -114,6 +155,16 @@ class DualPaneViewer(QWidget):
 
         # Connect to item clicked signal for single-click expand/collapse
         self.ui.resultsTree.itemClicked.connect(self.on_results_item_clicked)  # type: ignore[attr-defined]
+
+        # Enable context menus on trees
+        self.ui.resultsTree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)  # type: ignore[attr-defined]
+        self.ui.resultsTree.customContextMenuRequested.connect(  # type: ignore[attr-defined]
+            self.on_results_context_menu
+        )
+        self.ui.stagingTree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)  # type: ignore[attr-defined]
+        self.ui.stagingTree.customContextMenuRequested.connect(  # type: ignore[attr-defined]
+            self.on_staging_context_menu
+        )
 
         # Load default paths and mode from config
         self._load_defaults()
@@ -984,3 +1035,78 @@ class DualPaneViewer(QWidget):
             self.ui.stagingSummary.setText(  # type: ignore[attr-defined]
                 f"{count} {item_type} staged, {size_mb:.1f} MB total"
             )
+
+    def on_results_context_menu(self, position) -> None:
+        """Show context menu for results tree items."""
+        from PySide6.QtWidgets import QMenu
+
+        results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
+        item = results_tree.itemAt(position)
+
+        if item is None or item.childCount() > 0:
+            # No item or group header - don't show menu
+            return
+
+        # Get the path from the item
+        filename = item.text(2)  # Column 2 is Filename
+        directory = item.text(3)  # Column 3 is Path
+        path = str(Path(directory) / filename)
+
+        # Check if we have data for this item
+        if path not in self.results_data:
+            return
+
+        # Create context menu
+        menu = QMenu(self)
+        properties_action = QAction("Show Properties...", self)
+        properties_action.triggered.connect(
+            lambda: self.show_item_properties(path, self.results_data)
+        )
+        menu.addAction(properties_action)
+
+        # Show menu at cursor position
+        menu.exec(results_tree.viewport().mapToGlobal(position))
+
+    def on_staging_context_menu(self, position) -> None:
+        """Show context menu for staging tree items."""
+        from PySide6.QtWidgets import QMenu
+
+        staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
+        item = staging_tree.itemAt(position)
+
+        if item is None:
+            return
+
+        # Get the path from the item
+        filename = item.text(2)  # Column 2 is Filename
+        directory = item.text(3)  # Column 3 is Path
+        path = str(Path(directory) / filename)
+
+        # Check if we have data for this item
+        if path not in self.staging_data:
+            return
+
+        # Create context menu
+        menu = QMenu(self)
+        properties_action = QAction("Show Properties...", self)
+        properties_action.triggered.connect(
+            lambda: self.show_item_properties(path, self.staging_data)
+        )
+        menu.addAction(properties_action)
+
+        # Show menu at cursor position
+        menu.exec(staging_tree.viewport().mapToGlobal(position))
+
+    def show_item_properties(
+        self, path: str, data_dict: Dict[str, Dict[str, Any]]
+    ) -> None:
+        """Show properties dialog for an item.
+
+        Args:
+            path: Full path to the item
+            data_dict: Dictionary containing item data (results_data or staging_data)
+        """
+        if path in data_dict:
+            item_data = data_dict[path]
+            dialog = ItemPropertiesDialog(item_data, self)
+            dialog.exec()
