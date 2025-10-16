@@ -81,7 +81,9 @@ class SQLiteCacheBackend:
                 file_hash TEXT PRIMARY KEY,
                 fingerprint TEXT NOT NULL,
                 created_at INTEGER NOT NULL,
-                last_accessed INTEGER NOT NULL
+                last_accessed INTEGER NOT NULL,
+                metadata TEXT,
+                file_mtime INTEGER
             )
             """
         )
@@ -91,6 +93,16 @@ class SQLiteCacheBackend:
             ON fingerprint_cache(last_accessed)
             """
         )
+
+        # Migrate existing schema if needed (add new columns)
+        try:
+            conn.execute("ALTER TABLE fingerprint_cache ADD COLUMN metadata TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        try:
+            conn.execute("ALTER TABLE fingerprint_cache ADD COLUMN file_mtime INTEGER")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
         # Album cache for duplicate detection
         conn.execute(
@@ -248,9 +260,11 @@ class SQLiteCacheBackend:
             self._local.conn.close()
             delattr(self._local, "conn")
 
-    def get_by_path(self, file_path: str, file_mtime: int) -> Optional[str]:
+    def get_by_path(
+        self, file_path: str, file_mtime: int
+    ) -> Optional[Tuple[str, Optional[str]]]:
         """
-        Get fingerprint from cache using file path and mtime.
+        Get fingerprint and metadata from cache using file path and mtime.
 
         This is faster than get() because it doesn't require computing SHA256.
 
@@ -259,7 +273,7 @@ class SQLiteCacheBackend:
             file_mtime: File modification time (from st_mtime)
 
         Returns:
-            Cached fingerprint string or None if not found or stale
+            Tuple of (fingerprint, metadata_json) or None if not found or stale
         """
 
         # Use filepath+mtime as key
@@ -270,7 +284,7 @@ class SQLiteCacheBackend:
         conn = self._get_connection()
         cursor = conn.execute(
             """
-            SELECT fingerprint FROM fingerprint_cache
+            SELECT fingerprint, metadata FROM fingerprint_cache
             WHERE file_hash = ?
             """,
             (cache_key,),
@@ -290,20 +304,27 @@ class SQLiteCacheBackend:
             conn.commit()
             with self._lock:
                 self._hits += 1
-            return str(row[0])
+            return (str(row[0]), row[1])  # (fingerprint, metadata_json)
 
         with self._lock:
             self._misses += 1
         return None
 
-    def set_by_path(self, file_path: str, file_mtime: int, value: str) -> None:
+    def set_by_path(
+        self,
+        file_path: str,
+        file_mtime: int,
+        value: str,
+        metadata: Optional[str] = None,
+    ) -> None:
         """
-        Set fingerprint in cache using file path and mtime.
+        Set fingerprint and metadata in cache using file path and mtime.
 
         Args:
             file_path: Path to audio file
             file_mtime: File modification time (from st_mtime)
             value: Fingerprint value to cache
+            metadata: Optional JSON string of metadata to cache
         """
         # Use filepath+mtime as key
         cache_key = f"{file_path}:{file_mtime}"
@@ -313,10 +334,10 @@ class SQLiteCacheBackend:
         conn.execute(
             """
             INSERT OR REPLACE INTO fingerprint_cache
-            (file_hash, fingerprint, created_at, last_accessed)
-            VALUES (?, ?, ?, ?)
+            (file_hash, fingerprint, created_at, last_accessed, metadata, file_mtime)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (cache_key, value, now, now),
+            (cache_key, value, now, now, metadata, file_mtime),
         )
         conn.commit()
 
