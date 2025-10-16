@@ -32,6 +32,9 @@ class MainWindow(QMainWindow):
         self.setMenuBar(self.ui.menubar)
         self.setStatusBar(self.ui.statusbar)
 
+        # Set window title explicitly (macOS compatibility)
+        self.setWindowTitle("Duperscooper - Duplicate Audio File Manager")
+
         # Resize to match UI
         self.resize(1200, 800)
 

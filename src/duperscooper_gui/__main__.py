@@ -11,12 +11,12 @@ from .windows.main_window import MainWindow
 
 def main():
     """Start the duperscooper GUI application."""
-    app = QApplication(sys.argv)
+    # Set application metadata BEFORE creating QApplication (required for macOS)
+    QApplication.setApplicationName("Duperscooper")
+    QApplication.setApplicationDisplayName("Duperscooper")
+    QApplication.setOrganizationName("duperscooper")
 
-    # Set application metadata
-    app.setApplicationName("Duperscooper")
-    app.setApplicationDisplayName("Duperscooper")
-    app.setOrganizationName("duperscooper")
+    app = QApplication(sys.argv)
     app.setApplicationVersion("0.1.0")
 
     # Create and show main window
