@@ -58,7 +58,20 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>Remove selected path</string>
+           <string>Remove selected paths</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeAllPathsButton">
+          <property name="text">
+           <string>🗑️ Remove All</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Remove all paths from the list</string>
           </property>
          </widget>
         </item>

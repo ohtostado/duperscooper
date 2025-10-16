@@ -116,6 +116,7 @@ class DualPaneViewer(QWidget):
         # Connect signals
         self.ui.addPathButton.clicked.connect(self.on_add_path_clicked)  # type: ignore[attr-defined]
         self.ui.removePathButton.clicked.connect(self.on_remove_path_clicked)  # type: ignore[attr-defined]
+        self.ui.removeAllPathsButton.clicked.connect(self.on_remove_all_paths_clicked)  # type: ignore[attr-defined]
         self.ui.pathsList.itemSelectionChanged.connect(self.on_paths_selection_changed)  # type: ignore[attr-defined]
 
         self.ui.modeCombo.currentIndexChanged.connect(self.on_mode_changed)  # type: ignore[attr-defined]
@@ -232,7 +233,7 @@ class DualPaneViewer(QWidget):
         self.on_browse_clicked()
 
     def on_remove_path_clicked(self) -> None:
-        """Remove selected path from the paths list."""
+        """Remove selected paths from the paths list."""
         paths_list: QListWidget = self.ui.pathsList  # type: ignore[attr-defined]
         selected_items = paths_list.selectedItems()
         for item in selected_items:
@@ -240,6 +241,26 @@ class DualPaneViewer(QWidget):
             paths_list.takeItem(row)
 
         self.update_scan_button_state()
+
+    def on_remove_all_paths_clicked(self) -> None:
+        """Remove all paths from the paths list."""
+        paths_list: QListWidget = self.ui.pathsList  # type: ignore[attr-defined]
+
+        # Confirm if there are paths to remove
+        if paths_list.count() == 0:
+            return
+
+        reply = QMessageBox.question(
+            self,
+            "Remove All Paths",
+            f"Remove all {paths_list.count()} path(s) from the list?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            paths_list.clear()
+            self.update_scan_button_state()
 
     def on_browse_clicked(self) -> None:
         """Browse for a directory to add."""
@@ -263,7 +284,11 @@ class DualPaneViewer(QWidget):
     def on_paths_selection_changed(self) -> None:
         """Handle path selection change."""
         paths_list: QListWidget = self.ui.pathsList  # type: ignore[attr-defined]
-        self.ui.removePathButton.setEnabled(len(paths_list.selectedItems()) > 0)  # type: ignore[attr-defined]
+        has_selection = len(paths_list.selectedItems()) > 0
+        has_paths = paths_list.count() > 0
+
+        self.ui.removePathButton.setEnabled(has_selection)  # type: ignore[attr-defined]
+        self.ui.removeAllPathsButton.setEnabled(has_paths)  # type: ignore[attr-defined]
 
     def on_mode_changed(self, index: int) -> None:
         """Handle mode change."""
@@ -356,6 +381,7 @@ class DualPaneViewer(QWidget):
         self.ui.pathsList.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.addPathButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.removePathButton.setEnabled(False)  # type: ignore[attr-defined]
+        self.ui.removeAllPathsButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.modeCombo.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText("Scanning...")  # type: ignore[attr-defined]
 
@@ -405,8 +431,9 @@ class DualPaneViewer(QWidget):
         # Re-enable path controls
         self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
-        self.ui.removePathButton.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
+        # Button states updated via on_paths_selection_changed
+        self.on_paths_selection_changed()
 
         # total_groups = self.ui.resultsTree.topLevelItemCount()
         # self.ui.statusLabel.setText(
@@ -423,8 +450,9 @@ class DualPaneViewer(QWidget):
         # Re-enable path controls
         self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
-        self.ui.removePathButton.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
+        # Button states updated via on_paths_selection_changed
+        self.on_paths_selection_changed()
         self.ui.statusLabel.setText(f"Scan error: {error_msg}")  # type: ignore[attr-defined]
 
         QMessageBox.critical(
