@@ -140,6 +140,8 @@ class DualPaneViewer(QWidget):
 
         self.ui.deleteAllButton.clicked.connect(self.on_delete_all_clicked)  # type: ignore[attr-defined]
 
+        self.ui.exportResultsButton.clicked.connect(self.on_export_results_clicked)  # type: ignore[attr-defined]
+
         self.ui.resultsTree.itemSelectionChanged.connect(  # type: ignore[attr-defined]
             self.on_results_selection_changed
         )
@@ -1044,6 +1046,7 @@ class DualPaneViewer(QWidget):
         self.ui.selectAllButton.setEnabled(has_results)  # type: ignore[attr-defined]
         self.ui.deselectAllButton.setEnabled(has_results)  # type: ignore[attr-defined]
         self.ui.selectRecommendedButton.setEnabled(has_results)  # type: ignore[attr-defined]
+        self.ui.exportResultsButton.setEnabled(has_results)  # type: ignore[attr-defined]
 
         # Stage button - enabled if any results are checked
         has_checked_results = self._has_checked_items(results_tree)
@@ -1181,3 +1184,136 @@ class DualPaneViewer(QWidget):
             item_data = data_dict[path]
             dialog = ItemPropertiesDialog(item_data, self)
             dialog.exec()
+
+    def on_export_results_clicked(self) -> None:
+        """Export scan results to CSV or JSON file."""
+        if not self.results_data:
+            QMessageBox.information(
+                self, "No Results", "No scan results available to export."
+            )
+            return
+
+        # Show file dialog with format selection
+        file_dialog = QFileDialog(self)
+        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+        file_dialog.setNameFilters(["JSON Files (*.json)", "CSV Files (*.csv)"])
+        file_dialog.setDefaultSuffix("json")
+        file_dialog.setWindowTitle("Export Scan Results")
+
+        if file_dialog.exec() != QFileDialog.DialogCode.Accepted:
+            return
+
+        file_path = file_dialog.selectedFiles()[0]
+        selected_filter = file_dialog.selectedNameFilter()
+
+        try:
+            if "JSON" in selected_filter:
+                self._export_to_json(file_path)
+            else:
+                self._export_to_csv(file_path)
+
+            QMessageBox.information(
+                self,
+                "Export Successful",
+                f"Scan results exported successfully to:\n{file_path}",
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Export Error", f"Failed to export results:\n{str(e)}"
+            )
+
+    def _export_to_json(self, file_path: str) -> None:
+        """Export results to JSON format with comprehensive metadata.
+
+        Args:
+            file_path: Path to save JSON file
+        """
+        import json
+        from datetime import datetime
+
+        # Build export data with metadata
+        export_data = {
+            "export_metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "mode": self.current_mode,
+                "total_groups": len(self.group_members),
+                "total_items": len(self.results_data),
+                "duperscooper_version": "0.5.0",  # Update with actual version
+            },
+            "groups": [],
+        }
+
+        # Organize by groups
+        for group_id, paths in self.group_members.items():
+            group_items = []
+            for path in paths:
+                if path in self.results_data:
+                    item = self.results_data[path].copy()
+                    # Add computed fields for analysis
+                    item["file_exists"] = Path(path).exists()
+                    group_items.append(item)
+
+            if group_items:
+                export_data["groups"].append(
+                    {"group_id": group_id, "items": group_items}
+                )
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(export_data, f, indent=2, ensure_ascii=False)
+
+    def _export_to_csv(self, file_path: str) -> None:
+        """Export results to CSV format with comprehensive metadata.
+
+        Args:
+            file_path: Path to save CSV file
+        """
+        import csv
+
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
+            # Determine fields based on mode
+            if self.current_mode == "track":
+                fieldnames = [
+                    "group_id",
+                    "path",
+                    "filename",
+                    "artist_name",
+                    "album_name",
+                    "size_bytes",
+                    "audio_info",
+                    "quality_score",
+                    "similarity_to_best",
+                    "is_best",
+                    "recommended_action",
+                    "file_exists",
+                ]
+            else:  # album mode
+                fieldnames = [
+                    "group_id",
+                    "path",
+                    "track_count",
+                    "artist_name",
+                    "album_name",
+                    "size_bytes",
+                    "quality_info",
+                    "avg_quality_score",
+                    "match_percentage",
+                    "match_method",
+                    "is_best",
+                    "recommended_action",
+                    "musicbrainz_albumid",
+                    "has_mixed_mb_ids",
+                    "file_exists",
+                ]
+
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+            writer.writeheader()
+
+            # Write all items organized by group
+            for group_id, paths in self.group_members.items():
+                for path in paths:
+                    if path in self.results_data:
+                        item = self.results_data[path].copy()
+                        item["group_id"] = group_id
+                        item["filename"] = Path(path).name
+                        item["file_exists"] = Path(path).exists()
+                        writer.writerow(item)

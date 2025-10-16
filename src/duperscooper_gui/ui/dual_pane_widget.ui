@@ -356,6 +356,40 @@
          </item>
         </layout>
        </item>
+       <item>
+        <!-- Export button row -->
+        <layout class="QHBoxLayout" name="exportButtonLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <spacer name="exportSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exportResultsButton">
+           <property name="text">
+            <string>📊 Export Results...</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Export scan results to CSV or JSON file</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="stagingWidget">
