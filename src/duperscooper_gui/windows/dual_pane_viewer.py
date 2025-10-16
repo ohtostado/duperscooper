@@ -394,6 +394,18 @@ class DualPaneViewer(QWidget):
         self.ui.stopScanButton.setEnabled(False)  # type: ignore[attr-defined]
         self.ui.statusLabel.setText("Processing albums...")  # type: ignore[attr-defined]
 
+    def _format_path_tooltip(self, path: str) -> str:
+        """Format a path for tooltip display with line breaks at slashes.
+
+        Args:
+            path: Full file path
+
+        Returns:
+            Formatted path with line breaks for readability
+        """
+        # Replace path separators with line breaks for better readability
+        return path.replace("/", "/\n")
+
     def _format_group_header(self, group_id: int, items: List[Dict[str, Any]]) -> str:
         """Format group header with album/artist metadata.
 
@@ -496,6 +508,9 @@ class DualPaneViewer(QWidget):
             )
             # Center align the star emoji in column 1
             child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+
+            # Set tooltip on path column (column 3) with full path
+            child_item.setToolTip(3, self._format_path_tooltip(path))
 
             # Check recommended items by default
             recommended = item.get("recommended_action") == "delete"
@@ -622,6 +637,9 @@ class DualPaneViewer(QWidget):
             staging_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
 
+            # Set tooltip on path column (column 3) with full path
+            staging_item.setToolTip(3, self._format_path_tooltip(path))
+
             # Move data
             if path in self.results_data:
                 self.staging_data[path] = self.results_data.pop(path)
@@ -733,6 +751,9 @@ class DualPaneViewer(QWidget):
                 # Center align the star emoji in column 1
                 results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
+
+                # Set tooltip on path column
+                results_item.setToolTip(3, self._format_path_tooltip(path))
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
@@ -760,6 +781,9 @@ class DualPaneViewer(QWidget):
 
                 # Center align the star emoji in column 1
                 results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+
+                # Set tooltip on path column
+                results_item.setToolTip(3, self._format_path_tooltip(path))
 
                 # Always leave unchecked when unstaging
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
