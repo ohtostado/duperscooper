@@ -598,8 +598,16 @@ class DualPaneViewer(QWidget):
             # Center align the star emoji in column 1
             child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
-            # Set tooltip on path column (column 5 now) with full path
-            child_item.setToolTip(5, self._format_path_tooltip(path))
+            # Set tooltips for all columns to show full text
+            child_item.setToolTip(2, filename)  # Filename
+            child_item.setToolTip(3, artist)  # Artist
+            child_item.setToolTip(4, album)  # Album
+            child_item.setToolTip(
+                5, self._format_path_tooltip(path)
+            )  # Path (custom format)
+            child_item.setToolTip(6, f"{size_mb:.1f} MB")  # Size
+            child_item.setToolTip(7, quality)  # Quality
+            child_item.setToolTip(8, similarity_text)  # Similarity
 
             # Check recommended items by default
             recommended = item.get("recommended_action") == "delete"
@@ -728,8 +736,14 @@ class DualPaneViewer(QWidget):
             staging_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
 
-            # Set tooltip on path column (column 5) with full path
-            staging_item.setToolTip(5, self._format_path_tooltip(path))
+            # Set tooltips for all columns to show full text
+            staging_item.setToolTip(2, item.text(2))  # Filename
+            staging_item.setToolTip(3, item.text(3))  # Artist
+            staging_item.setToolTip(4, item.text(4))  # Album
+            staging_item.setToolTip(5, self._format_path_tooltip(path))  # Path (custom)
+            staging_item.setToolTip(6, item.text(6))  # Size
+            staging_item.setToolTip(7, item.text(7))  # Quality
+            staging_item.setToolTip(8, item.text(8))  # Similarity
 
             # Move data
             if path in self.results_data:
@@ -845,8 +859,14 @@ class DualPaneViewer(QWidget):
                 results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
 
-                # Set tooltip on path column
-                results_item.setToolTip(5, self._format_path_tooltip(path))
+                # Set tooltips for all columns to show full text
+                results_item.setToolTip(2, staging_item.text(2))  # Filename
+                results_item.setToolTip(3, staging_item.text(3))  # Artist
+                results_item.setToolTip(4, staging_item.text(4))  # Album
+                results_item.setToolTip(5, self._format_path_tooltip(path))  # Path
+                results_item.setToolTip(6, staging_item.text(6))  # Size
+                results_item.setToolTip(7, staging_item.text(7))  # Quality
+                results_item.setToolTip(8, staging_item.text(8))  # Similarity
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
@@ -877,8 +897,15 @@ class DualPaneViewer(QWidget):
                 # Center align the star emoji in column 1
                 results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
-                # Set tooltip on path column
-                results_item.setToolTip(5, self._format_path_tooltip(path))
+                # Set tooltips for all columns to show full text
+                results_item.setToolTip(2, staging_item.text(2))  # Filename
+                results_item.setToolTip(3, staging_item.text(3))  # Artist
+                results_item.setToolTip(4, staging_item.text(4))  # Album
+                results_item.setToolTip(5, self._format_path_tooltip(path))  # Path
+                results_item.setToolTip(6, staging_item.text(6))  # Size
+                results_item.setToolTip(7, staging_item.text(7))  # Quality
+                similarity_text = f"{similarity:.1f}%" if similarity > 0 else ""
+                results_item.setToolTip(8, similarity_text)  # Similarity
 
                 # Always leave unchecked when unstaging
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
