@@ -224,8 +224,9 @@ class DualPaneViewer(QWidget):
             if Path(path).exists():
                 self.ui.pathsList.addItem(path)  # type: ignore[attr-defined]
 
-        # Update button state based on loaded paths
+        # Update button states based on loaded paths
         self.update_scan_button_state()
+        self.on_paths_selection_changed()  # Enable Remove All if paths exist
 
     def on_add_path_clicked(self) -> None:
         """Add a new path to the paths list."""
@@ -241,6 +242,7 @@ class DualPaneViewer(QWidget):
             paths_list.takeItem(row)
 
         self.update_scan_button_state()
+        self.on_paths_selection_changed()  # Update Remove All button state
 
     def on_remove_all_paths_clicked(self) -> None:
         """Remove all paths from the paths list."""
@@ -261,6 +263,7 @@ class DualPaneViewer(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             paths_list.clear()
             self.update_scan_button_state()
+            self.on_paths_selection_changed()  # Update button states
 
     def on_browse_clicked(self) -> None:
         """Browse for a directory to add."""
@@ -280,6 +283,7 @@ class DualPaneViewer(QWidget):
 
             paths_list.addItem(directory)
             self.update_scan_button_state()
+            self.on_paths_selection_changed()  # Update Remove All button state
 
     def on_paths_selection_changed(self) -> None:
         """Handle path selection change."""
