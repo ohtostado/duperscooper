@@ -7,10 +7,11 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QDialog,
     QDoubleSpinBox,
+    QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
-    QLineEdit,
+    QListWidget,
     QMessageBox,
     QPushButton,
     QSpinBox,
@@ -136,7 +137,10 @@ class SettingsDialog(QDialog):
     def create_scan_group(self) -> QGroupBox:
         """Create scan settings group."""
         group = QGroupBox("Scan Defaults")
-        layout = QFormLayout()
+        layout = QVBoxLayout()
+
+        # Form layout for simple fields
+        form_layout = QFormLayout()
 
         # Similarity threshold
         self.similarity_threshold = QDoubleSpinBox()
@@ -144,13 +148,44 @@ class SettingsDialog(QDialog):
         self.similarity_threshold.setSingleStep(0.1)
         self.similarity_threshold.setValue(self.config["scan"]["similarity_threshold"])
         self.similarity_threshold.setSuffix("%")
-        layout.addRow("Similarity Threshold:", self.similarity_threshold)
+        form_layout.addRow("Similarity Threshold:", self.similarity_threshold)
 
         # Workers
         self.workers = QSpinBox()
         self.workers.setRange(1, 32)
         self.workers.setValue(self.config["scan"]["workers"])
-        layout.addRow("Worker Threads:", self.workers)
+        form_layout.addRow("Worker Threads:", self.workers)
+
+        layout.addLayout(form_layout)
+
+        # Default paths list with +/- buttons
+        paths_label = QGroupBox("Default Scan Paths")
+        paths_layout = QVBoxLayout()
+
+        # List widget for paths
+        self.paths_list = QListWidget()
+        default_paths = self.config["scan"].get("default_paths", [])
+        for path in default_paths:
+            self.paths_list.addItem(str(path))
+        paths_layout.addWidget(self.paths_list)
+
+        # Buttons for add/remove
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addStretch()
+
+        add_btn = QPushButton("+")
+        add_btn.setFixedSize(30, 30)
+        add_btn.clicked.connect(self.add_path)
+        buttons_layout.addWidget(add_btn)
+
+        remove_btn = QPushButton("-")
+        remove_btn.setFixedSize(30, 30)
+        remove_btn.clicked.connect(self.remove_path)
+        buttons_layout.addWidget(remove_btn)
+
+        paths_layout.addLayout(buttons_layout)
+        paths_label.setLayout(paths_layout)
+        layout.addWidget(paths_label)
 
         group.setLayout(layout)
         return group
@@ -178,17 +213,32 @@ class SettingsDialog(QDialog):
         self.auto_expand.setChecked(self.config["ui"]["auto_expand_groups"])
         layout.addRow("Auto-expand Result Groups:", self.auto_expand)
 
-        # Config file path (read-only)
-        config_path = QLineEdit(str(get_config_file()))
-        config_path.setReadOnly(True)
-        layout.addRow("Configuration File:", config_path)
-
         group.setLayout(layout)
         return group
+
+    def add_path(self) -> None:
+        """Add a path to the default paths list."""
+        directory = QFileDialog.getExistingDirectory(
+            self, "Select Directory to Add", ""
+        )
+        if directory:
+            self.paths_list.addItem(directory)
+
+    def remove_path(self) -> None:
+        """Remove selected path from the default paths list."""
+        current_item = self.paths_list.currentItem()
+        if current_item:
+            row = self.paths_list.row(current_item)
+            self.paths_list.takeItem(row)
 
     def save_settings(self) -> None:
         """Save settings to config file."""
         try:
+            # Collect paths from list widget
+            default_paths = []
+            for i in range(self.paths_list.count()):
+                default_paths.append(self.paths_list.item(i).text())
+
             # Build updated config
             updated_config = {
                 "colors": {
@@ -218,7 +268,7 @@ class SettingsDialog(QDialog):
                     "algorithm": self.config["scan"]["algorithm"],
                     "similarity_threshold": self.similarity_threshold.value(),
                     "workers": self.workers.value(),
-                    "default_paths": self.config["scan"].get("default_paths", []),
+                    "default_paths": default_paths,
                 },
                 "ui": {
                     "window_width": self.window_width.value(),
