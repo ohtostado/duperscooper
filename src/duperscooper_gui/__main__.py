@@ -14,7 +14,8 @@ def main():
     app = QApplication(sys.argv)
 
     # Set application metadata
-    app.setApplicationName("duperscooper")
+    app.setApplicationName("Duperscooper")
+    app.setApplicationDisplayName("Duperscooper")
     app.setOrganizationName("duperscooper")
     app.setApplicationVersion("0.1.0")
 
