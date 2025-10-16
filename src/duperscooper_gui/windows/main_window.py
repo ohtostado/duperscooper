@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from ..utils.realtime_scanner import RealtimeScanThread
 from .dual_pane_viewer import DualPaneViewer
+from .settings_dialog import SettingsDialog
 
 
 class MainWindow(QMainWindow):
@@ -65,6 +66,15 @@ class MainWindow(QMainWindow):
         self.ui.actionOpen.triggered.connect(self.open_results)
         self.ui.actionSave.triggered.connect(self.save_results)
         self.ui.actionExit.triggered.connect(self.close)
+
+        # Add Settings action programmatically
+        self.action_settings = QAction("Settings...", self)
+        self.action_settings.setShortcut("Ctrl+,")
+        self.action_settings.triggered.connect(self.show_settings)
+        self.ui.menuFile.insertAction(self.ui.actionExit, self.action_settings)
+        self.ui.menuFile.insertSeparator(self.ui.actionExit)
+
+        # Help menu
         self.ui.actionAbout.triggered.connect(self.show_about)
 
     def open_results(self) -> None:
@@ -97,6 +107,11 @@ class MainWindow(QMainWindow):
             f"<p>Duplicate audio file finder with perceptual matching</p>"
             f"<p>Uses Chromaprint fingerprinting and quality detection</p>",
         )
+
+    def show_settings(self) -> None:
+        """Show settings dialog."""
+        dialog = SettingsDialog(self)
+        dialog.exec()
 
     # Dual-pane viewer handlers
 
