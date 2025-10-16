@@ -376,6 +376,16 @@
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="importResultsButton">
+           <property name="text">
+            <string>📥 Import Results...</string>
+           </property>
+           <property name="toolTip">
+            <string>Import scan results from JSON or CSV file</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="exportResultsButton">
            <property name="text">
             <string>📊 Export Results...</string>

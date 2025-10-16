@@ -143,6 +143,7 @@ class DualPaneViewer(QWidget):
 
         self.ui.deleteAllButton.clicked.connect(self.on_delete_all_clicked)  # type: ignore[attr-defined]
 
+        self.ui.importResultsButton.clicked.connect(self.on_import_results_clicked)  # type: ignore[attr-defined]
         self.ui.exportResultsButton.clicked.connect(self.on_export_results_clicked)  # type: ignore[attr-defined]
 
         self.ui.resultsTree.itemSelectionChanged.connect(  # type: ignore[attr-defined]
@@ -1384,3 +1385,148 @@ class DualPaneViewer(QWidget):
                         item["filename"] = Path(path).name
                         item["file_exists"] = Path(path).exists()
                         writer.writerow(item)
+
+    def on_import_results_clicked(self) -> None:
+        """Import scan results from JSON or CSV file."""
+        # Show file dialog
+        file_dialog = QFileDialog(self)
+        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+        file_dialog.setNameFilters(["JSON Files (*.json)", "CSV Files (*.csv)"])
+        file_dialog.setWindowTitle("Import Scan Results")
+
+        if file_dialog.exec() != QFileDialog.DialogCode.Accepted:
+            return
+
+        file_path = file_dialog.selectedFiles()[0]
+        selected_filter = file_dialog.selectedNameFilter()
+
+        try:
+            # Clear existing results first
+            self._clear_results()
+
+            if "JSON" in selected_filter:
+                self._import_from_json(file_path)
+            else:
+                self._import_from_csv(file_path)
+
+            QMessageBox.information(
+                self,
+                "Import Successful",
+                f"Scan results imported successfully from:\n{file_path}",
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Import Error", f"Failed to import results:\n{str(e)}"
+            )
+
+    def _clear_results(self) -> None:
+        """Clear all results from the tree."""
+        results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
+        results_tree.clear()
+        self.results_data.clear()
+        self.item_metadata.clear()
+        self.group_members.clear()
+        self.update_results_summary()
+        self.update_button_states()
+
+    def _import_from_json(self, file_path: str) -> None:
+        """Import results from JSON format.
+
+        Args:
+            file_path: Path to JSON file
+        """
+        import json
+
+        with open(file_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Extract mode and scan params if available
+        if "scan_parameters" in data:
+            self.last_scan_params = data["scan_parameters"]
+            mode = data["scan_parameters"].get("mode", "track")
+        elif "export_metadata" in data:
+            mode = data["export_metadata"].get("mode", "track")
+        else:
+            mode = "track"
+
+        # Set the mode
+        self.current_mode = mode
+        mode_index = 1 if mode == "album" else 0
+        self.ui.modeCombo.setCurrentIndex(mode_index)  # type: ignore[attr-defined]
+        self._update_column_headers()
+        self._update_album_options_visibility()
+
+        # Import groups
+        groups = data.get("groups", [])
+        for group in groups:
+            group_id = group.get("group_id", 0)
+            items = group.get("items", [])
+            if items:
+                self.add_duplicate_group(group_id, items)
+
+    def _import_from_csv(self, file_path: str) -> None:
+        """Import results from CSV format.
+
+        Args:
+            file_path: Path to CSV file
+        """
+        import csv
+
+        with open(file_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        if not rows:
+            raise ValueError("CSV file is empty")
+
+        # Detect mode from columns
+        first_row = rows[0]
+        if "track_count" in first_row or "match_percentage" in first_row:
+            mode = "album"
+        else:
+            mode = "track"
+
+        # Set the mode
+        self.current_mode = mode
+        mode_index = 1 if mode == "album" else 0
+        self.ui.modeCombo.setCurrentIndex(mode_index)  # type: ignore[attr-defined]
+        self._update_column_headers()
+        self._update_album_options_visibility()
+
+        # Group rows by group_id
+        from collections import defaultdict
+
+        groups_dict = defaultdict(list)
+        for row in rows:
+            group_id = int(row.get("group_id", 0))
+            # Convert string values back to appropriate types
+            item = {}
+            for key, value in row.items():
+                if key == "group_id":
+                    continue
+                # Convert numeric fields
+                if key in [
+                    "size_bytes",
+                    "quality_score",
+                    "avg_quality_score",
+                    "track_count",
+                ]:
+                    item[key] = int(value) if value else 0
+                elif key in [
+                    "similarity_to_best",
+                    "match_percentage",
+                ]:
+                    item[key] = float(value) if value else 0.0
+                elif key in ["is_best", "has_mixed_mb_ids"]:
+                    item[key] = value.lower() in ["true", "1", "yes"]
+                elif key == "file_exists":
+                    continue  # Skip validation field
+                else:
+                    item[key] = value
+
+            groups_dict[group_id].append(item)
+
+        # Add groups to tree
+        for group_id, items in sorted(groups_dict.items()):
+            if items:
+                self.add_duplicate_group(group_id, items)
