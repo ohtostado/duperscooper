@@ -541,14 +541,14 @@ class DualPaneViewer(QWidget):
         results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
         group_item = QTreeWidgetItem(
             results_tree,
-            [group_header, "", "", "", "", "", ""],
+            [group_header, "", "", "", "", "", "", "", ""],  # 9 columns now
         )
         group_item.setExpanded(True)
 
         # Style the group header with background color
         from PySide6.QtGui import QBrush, QColor
 
-        for col in range(0, 7):
+        for col in range(0, 9):  # Updated to 9 columns
             group_item.setBackground(col, QBrush(QColor("#333333")))
             group_item.setForeground(col, QBrush(QColor("#fff7aa")))
 
@@ -574,6 +574,10 @@ class DualPaneViewer(QWidget):
             is_best = item.get("is_best", False)
             quality_score = item.get("quality_score", 0)
 
+            # Extract artist and album metadata
+            artist = item.get("artist_name", "")
+            album = item.get("album_name", "")
+
             # Format similarity percentage
             similarity_text = f"{similarity:.1f}%" if similarity >= 0 else ""
 
@@ -583,17 +587,19 @@ class DualPaneViewer(QWidget):
                     "",  # Column 0: Checkbox
                     "⭐" if is_best else "",  # Column 1: Best
                     filename,  # Column 2: Filename/Folder
-                    directory,  # Column 3: Path
-                    f"{size_mb:.1f} MB",  # Column 4: Size
-                    quality,  # Column 5: Quality
-                    similarity_text,  # Col 6: Similarity
+                    artist,  # Column 3: Artist
+                    album,  # Column 4: Album
+                    directory,  # Column 5: Path
+                    f"{size_mb:.1f} MB",  # Column 6: Size
+                    quality,  # Column 7: Quality
+                    similarity_text,  # Column 8: Similarity
                 ],
             )
             # Center align the star emoji in column 1
             child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
-            # Set tooltip on path column (column 3) with full path
-            child_item.setToolTip(3, self._format_path_tooltip(path))
+            # Set tooltip on path column (column 5 now) with full path
+            child_item.setToolTip(5, self._format_path_tooltip(path))
 
             # Check recommended items by default
             recommended = item.get("recommended_action") == "delete"
@@ -692,7 +698,7 @@ class DualPaneViewer(QWidget):
                 if item.checkState(0) == Qt.CheckState.Checked:
                     # Reconstruct full path from filename and directory
                     filename = item.text(2)  # Column 2 is Filename
-                    directory = item.text(3)  # Column 3 is Path
+                    directory = item.text(5)  # Column 5 is Path
                     path = str(Path(directory) / filename)
                     items_to_stage.append((path, item))
 
@@ -703,25 +709,27 @@ class DualPaneViewer(QWidget):
         # Move to staging pane
         staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
         for path, item in items_to_stage:
-            # Add to staging tree (include all 7 columns)
+            # Add to staging tree (include all 9 columns)
             staging_item = QTreeWidgetItem(
                 staging_tree,
                 [
                     "",  # Column 0: Checkbox
                     item.text(1),  # Column 1: Best (⭐ or empty)
                     item.text(2),  # Column 2: Filename
-                    item.text(3),  # Column 3: Path
-                    item.text(4),  # Column 4: Size
-                    item.text(5),  # Column 5: Quality
-                    item.text(6),  # Column 6: Similarity
+                    item.text(3),  # Column 3: Artist
+                    item.text(4),  # Column 4: Album
+                    item.text(5),  # Column 5: Path
+                    item.text(6),  # Column 6: Size
+                    item.text(7),  # Column 7: Quality
+                    item.text(8),  # Column 8: Similarity
                 ],
             )
             # Center align the star emoji in column 1
             staging_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
             staging_item.setCheckState(0, Qt.CheckState.Unchecked)
 
-            # Set tooltip on path column (column 3) with full path
-            staging_item.setToolTip(3, self._format_path_tooltip(path))
+            # Set tooltip on path column (column 5) with full path
+            staging_item.setToolTip(5, self._format_path_tooltip(path))
 
             # Move data
             if path in self.results_data:
@@ -825,10 +833,12 @@ class DualPaneViewer(QWidget):
                         "",  # Column 0: Checkbox
                         staging_item.text(1),  # Column 1: Best (⭐ or empty)
                         staging_item.text(2),  # Column 2: Filename
-                        staging_item.text(3),  # Column 3: Path
-                        staging_item.text(4),  # Column 4: Size
-                        staging_item.text(5),  # Column 5: Quality
-                        staging_item.text(6),  # Column 6: Similarity
+                        staging_item.text(3),  # Column 3: Artist
+                        staging_item.text(4),  # Column 4: Album
+                        staging_item.text(5),  # Column 5: Path
+                        staging_item.text(6),  # Column 6: Size
+                        staging_item.text(7),  # Column 7: Quality
+                        staging_item.text(8),  # Column 8: Similarity
                     ],
                 )
                 # Center align the star emoji in column 1
@@ -836,7 +846,7 @@ class DualPaneViewer(QWidget):
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
 
                 # Set tooltip on path column
-                results_item.setToolTip(3, self._format_path_tooltip(path))
+                results_item.setToolTip(5, self._format_path_tooltip(path))
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
@@ -851,10 +861,12 @@ class DualPaneViewer(QWidget):
                         "",  # Column 0: Checkbox
                         "⭐" if is_best else "",  # Column 1: Best
                         staging_item.text(2),  # Column 2: Filename
-                        staging_item.text(3),  # Column 3: Path
-                        staging_item.text(4),  # Column 4: Size
-                        staging_item.text(5),  # Column 5: Quality
-                        f"{similarity:.1f}%" if similarity > 0 else "",  # Col 6
+                        staging_item.text(3),  # Column 3: Artist
+                        staging_item.text(4),  # Column 4: Album
+                        staging_item.text(5),  # Column 5: Path
+                        staging_item.text(6),  # Column 6: Size
+                        staging_item.text(7),  # Column 7: Quality
+                        f"{similarity:.1f}%" if similarity > 0 else "",  # Col 8
                     ],
                 )
 
@@ -866,7 +878,7 @@ class DualPaneViewer(QWidget):
                 results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
                 # Set tooltip on path column
-                results_item.setToolTip(3, self._format_path_tooltip(path))
+                results_item.setToolTip(5, self._format_path_tooltip(path))
 
                 # Always leave unchecked when unstaging
                 results_item.setCheckState(0, Qt.CheckState.Unchecked)
@@ -1081,7 +1093,7 @@ class DualPaneViewer(QWidget):
 
         # Get the path from the item
         filename = item.text(2)  # Column 2 is Filename
-        directory = item.text(3)  # Column 3 is Path
+        directory = item.text(5)  # Column 5 is Path
         path = str(Path(directory) / filename)
 
         # Check if we have data for this item
@@ -1111,7 +1123,7 @@ class DualPaneViewer(QWidget):
 
         # Get the path from the item
         filename = item.text(2)  # Column 2 is Filename
-        directory = item.text(3)  # Column 3 is Path
+        directory = item.text(5)  # Column 5 is Path
         path = str(Path(directory) / filename)
 
         # Check if we have data for this item

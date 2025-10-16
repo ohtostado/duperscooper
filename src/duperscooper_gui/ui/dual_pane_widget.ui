@@ -253,6 +253,16 @@
          </column>
          <column>
           <property name="text">
+           <string>Artist</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Album</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Path</string>
           </property>
          </column>
@@ -384,6 +394,16 @@
          <column>
           <property name="text">
            <string>Filename</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Artist</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Album</string>
           </property>
          </column>
          <column>
