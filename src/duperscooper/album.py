@@ -313,14 +313,14 @@ class AlbumScanner:
             current_track_paths = [str(t) for t in tracks]
 
             if cached_track_paths == current_track_paths:
-                # Cache is valid, use cached data
-                self.album_cache_hits += 1
-
+                # Album metadata is cached, but still need to get fingerprints
                 # Get fingerprints from track-level cache
                 import time
 
                 t_start = time.time()
                 cached_fingerprints: List[List[int]] = []
+                all_tracks_cached = True  # Track if all fingerprints were cached
+
                 for i, track in enumerate(tracks):
                     # Check for stop before fingerprinting each track
                     if should_stop and should_stop():
@@ -333,6 +333,11 @@ class AlbumScanner:
                     fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
                     t2 = time.time()
                     elapsed = t2 - t1
+
+                    # If fingerprinting took >0.01s, it was a cache miss
+                    if elapsed > 0.01:
+                        all_tracks_cached = False
+
                     print(f"DEBUG: Track {i+1}/{len(tracks)} hash took {elapsed:.3f}s")
                     assert isinstance(fingerprint, list)
                     cached_fingerprints.append(fingerprint)
@@ -340,6 +345,12 @@ class AlbumScanner:
                 ntracks = len(tracks)
                 msg = f"DEBUG: Total fingerprints: {total_time:.3f}s for {ntracks}"
                 print(msg)
+
+                # Only count as cache hit if ALL tracks were cached
+                if all_tracks_cached:
+                    self.album_cache_hits += 1
+                else:
+                    self.album_cache_misses += 1
 
                 return Album(
                     path=album_path,
