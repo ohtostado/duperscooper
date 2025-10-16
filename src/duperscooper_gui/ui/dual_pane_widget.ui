@@ -32,6 +32,9 @@
         <property name="toolTip">
          <string>Paths to scan for duplicates</string>
         </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
        </widget>
       </item>
       <item>
