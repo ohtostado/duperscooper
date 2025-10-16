@@ -1220,6 +1220,7 @@ def run_album_mode(args: argparse.Namespace) -> int:
         verbose=not args.no_progress,
         allow_partial=args.allow_partial_albums,
         min_overlap=args.min_album_overlap,
+        similarity_threshold=args.similarity_threshold,
     )
 
     try:

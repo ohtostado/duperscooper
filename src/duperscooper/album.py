@@ -554,6 +554,7 @@ class AlbumDuplicateFinder:
         verbose: bool = False,
         allow_partial: bool = False,
         min_overlap: float = 70.0,
+        similarity_threshold: float = 97.0,
     ):
         """
         Initialize album duplicate finder.
@@ -562,12 +563,14 @@ class AlbumDuplicateFinder:
             hasher: AudioHasher instance for fingerprint comparison
             verbose: Enable verbose output
             allow_partial: Allow matching albums with different track counts
-            min_overlap: Minimum percentage of tracks that must match for partial albums
+            min_overlap: Minimum % of tracks that must match for partial albums
+            similarity_threshold: Minimum similarity % for fingerprint matching
         """
         self.hasher = hasher
         self.verbose = verbose
         self.allow_partial = allow_partial
         self.min_overlap = min_overlap
+        self.similarity_threshold = similarity_threshold
 
     def find_duplicates(
         self,
@@ -981,9 +984,9 @@ class AlbumDuplicateFinder:
                 ):
                     union(i, j)
                 else:
-                    # Otherwise use fingerprint similarity with 97% threshold
+                    # Otherwise use fingerprint similarity with configurable threshold
                     similarity = self.album_similarity(albums[i], albums[j])
-                    if similarity >= 97.0:
+                    if similarity >= self.similarity_threshold:
                         union(i, j)
 
         # Extract groups
