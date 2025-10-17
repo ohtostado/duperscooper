@@ -117,6 +117,9 @@ class SQLiteCacheBackend:
                 avg_quality_score REAL NOT NULL,
                 quality_info TEXT NOT NULL,
                 has_mixed_mb_ids INTEGER NOT NULL,
+                disc_number INTEGER,
+                disc_subtitle TEXT,
+                total_discs INTEGER,
                 directory_mtime INTEGER NOT NULL,
                 created_at INTEGER NOT NULL,
                 last_accessed INTEGER NOT NULL
@@ -356,7 +359,7 @@ class SQLiteCacheBackend:
             """
             SELECT track_count, musicbrainz_albumid, album_name, artist_name,
                    total_size, avg_quality_score, quality_info, has_mixed_mb_ids,
-                   directory_mtime
+                   disc_number, disc_subtitle, total_discs, directory_mtime
             FROM album_cache
             WHERE album_path = ?
             """,
@@ -372,7 +375,7 @@ class SQLiteCacheBackend:
 
         try:
             current_mtime = int(Path(album_path).stat().st_mtime)
-            if current_mtime != row[8]:
+            if current_mtime != row[11]:
                 # Directory modified, cache is stale
                 return None
         except (OSError, FileNotFoundError):
@@ -410,7 +413,10 @@ class SQLiteCacheBackend:
             "avg_quality_score": row[5],
             "quality_info": row[6],
             "has_mixed_mb_ids": bool(row[7]),
-            "directory_mtime": row[8],
+            "disc_number": row[8],
+            "disc_subtitle": row[9],
+            "total_discs": row[10],
+            "directory_mtime": row[11],
             "tracks": tracks,
         }
 
@@ -434,8 +440,9 @@ class SQLiteCacheBackend:
             INSERT OR REPLACE INTO album_cache (
                 album_path, track_count, musicbrainz_albumid, album_name,
                 artist_name, total_size, avg_quality_score, quality_info,
-                has_mixed_mb_ids, directory_mtime, created_at, last_accessed
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                has_mixed_mb_ids, disc_number, disc_subtitle, total_discs,
+                directory_mtime, created_at, last_accessed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 album_path,
@@ -447,6 +454,9 @@ class SQLiteCacheBackend:
                 album_data["avg_quality_score"],
                 album_data["quality_info"],
                 int(album_data.get("has_mixed_mb_ids", False)),
+                album_data.get("disc_number"),
+                album_data.get("disc_subtitle"),
+                album_data.get("total_discs"),
                 album_data["directory_mtime"],
                 now,
                 now,
