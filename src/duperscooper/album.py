@@ -26,6 +26,10 @@ class Album:
     has_mixed_mb_ids: bool  # Flag if tracks have inconsistent MB IDs
     quality_info: str  # e.g., "FLAC 44.1kHz 16bit (avg)"
     match_method: Optional[str] = None  # How this album was matched to its group
+    # Disc information (for multi-disc releases)
+    disc_number: Optional[int] = None  # Disc number within a multi-disc release
+    disc_subtitle: Optional[str] = None  # Disc-specific subtitle
+    total_discs: Optional[int] = None  # Total number of discs in release
     # Partial matching info (set when album is part of partial match)
     is_partial_match: bool = False  # True if matched with different track count
     overlap_percentage: Optional[float] = (
@@ -364,6 +368,9 @@ class AlbumScanner:
                     fingerprints=cached_fingerprints,
                     has_mixed_mb_ids=cached_album["has_mixed_mb_ids"],
                     quality_info=cached_album["quality_info"],
+                    disc_number=cached_album.get("disc_number"),
+                    disc_subtitle=cached_album.get("disc_subtitle"),
+                    total_discs=cached_album.get("total_discs"),
                 )
 
         # Cache miss or invalid, extract metadata
@@ -387,8 +394,14 @@ class AlbumScanner:
         elif has_mixed_mb_ids and self.verbose:
             print(f"Warning: {album_path} has mixed MusicBrainz IDs: {unique_mb_ids}")
 
-        # Extract album/artist names from first track as fallback
-        album_name, artist_name = self.get_album_tags(tracks[0])
+        # Extract album/artist names and disc info from first track as fallback
+        (
+            album_name,
+            artist_name,
+            disc_number,
+            disc_subtitle,
+            total_discs,
+        ) = self.get_album_tags(tracks[0])
 
         # Get fingerprints for all tracks
         fingerprints: List[List[int]] = []
@@ -449,6 +462,9 @@ class AlbumScanner:
                 "avg_quality_score": avg_quality_score,
                 "quality_info": quality_info,
                 "has_mixed_mb_ids": has_mixed_mb_ids,
+                "disc_number": disc_number,
+                "disc_subtitle": disc_subtitle,
+                "total_discs": total_discs,
                 "directory_mtime": int(album_path.stat().st_mtime),
             }
             cache_backend.set_album(str(album_path), album_data, track_hashes)
@@ -465,6 +481,9 @@ class AlbumScanner:
             fingerprints=fingerprints,
             has_mixed_mb_ids=has_mixed_mb_ids,
             quality_info=quality_info,
+            disc_number=disc_number,
+            disc_subtitle=disc_subtitle,
+            total_discs=total_discs,
         )
 
     def get_musicbrainz_albumid(self, file_path: Path) -> Optional[str]:
@@ -508,15 +527,20 @@ class AlbumScanner:
         except Exception:
             return None
 
-    def get_album_tags(self, file_path: Path) -> Tuple[Optional[str], Optional[str]]:
+    def get_album_tags(
+        self, file_path: Path
+    ) -> Tuple[
+        Optional[str], Optional[str], Optional[int], Optional[str], Optional[int]
+    ]:
         """
-        Extract album name and artist from metadata.
+        Extract album name, artist, and disc information from metadata.
 
         Args:
             file_path: Path to audio file
 
         Returns:
-            Tuple of (album_name, artist_name), either may be None
+            Tuple of (album_name, artist_name, disc_number, disc_subtitle,
+            total_discs)
         """
         try:
             result = subprocess.run(
@@ -535,7 +559,7 @@ class AlbumScanner:
             )
 
             if result.returncode != 0:
-                return (None, None)
+                return (None, None, None, None, None)
 
             data = json.loads(result.stdout)
             tags = data.get("format", {}).get("tags", {})
@@ -543,6 +567,9 @@ class AlbumScanner:
             # Extract album and artist
             album_name = None
             artist_name = None
+            disc_number = None
+            disc_subtitle = None
+            total_discs = None
 
             for key, value in tags.items():
                 key_upper = key.upper()
@@ -550,10 +577,24 @@ class AlbumScanner:
                     album_name = value
                 elif key_upper in ("ARTIST", "ALBUM_ARTIST", "ALBUMARTIST"):
                     artist_name = value
+                elif key_upper == "DISC":
+                    # Parse disc number (may be "1/2" or just "1")
+                    try:
+                        disc_str = str(value).split("/")[0]
+                        disc_number = int(disc_str)
+                    except (ValueError, IndexError):
+                        pass
+                elif key_upper == "DISCSUBTITLE":
+                    disc_subtitle = value
+                elif key_upper == "TOTALDISCS":
+                    try:
+                        total_discs = int(value)
+                    except ValueError:
+                        pass
 
-            return (album_name, artist_name)
+            return (album_name, artist_name, disc_number, disc_subtitle, total_discs)
         except Exception:
-            return (None, None)
+            return (None, None, None, None, None)
 
 
 class AlbumDuplicateFinder:
@@ -600,10 +641,6 @@ class AlbumDuplicateFinder:
         Returns:
             List of duplicate groups (each group is a list of Album objects)
         """
-        print(
-            f"DEBUG: find_duplicates called with {len(albums)} albums, "
-            f"should_stop={'present' if should_stop else 'None'}"
-        )
         duplicate_groups = []
 
         if strategy == "musicbrainz":
@@ -734,101 +771,93 @@ class AlbumDuplicateFinder:
         self, groups: List[List[Album]]
     ) -> List[List[Album]]:
         """
-        Merge fingerprint-based groups that share MusicBrainz IDs.
+        Split and merge groups based on MusicBrainz IDs and disc numbers.
 
-        If albums in different groups have the same MusicBrainz ID and track count,
-        merge those groups together.
+        This function:
+        1. Splits groups that contain albums with same MB ID but different disc
+           numbers (e.g., different discs from a box set that were incorrectly
+           grouped by fingerprints)
+        2. Merges groups that contain albums with same (MB ID, disc number,
+           track count)
 
         Args:
             groups: List of fingerprint-matched groups
 
         Returns:
-            List of merged groups
+            List of split and merged groups
         """
         if not groups:
             return []
 
-        # Create mapping of (mb_id, track_count) -> group indices
-        mb_to_groups: Dict[Tuple[str, int], List[int]] = defaultdict(list)
+        # First, split groups by (mb_id, disc_number)
+        # Collect all albums and regroup them
+        all_albums: List[Album] = []
+        for group in groups:
+            all_albums.extend(group)
 
-        for idx, group in enumerate(groups):
-            # Get all unique MB IDs in this group
-            mb_ids = set()
-            track_counts = set()
-            for album in group:
-                if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
-                    mb_ids.add(album.musicbrainz_albumid)
-                track_counts.add(album.track_count)
+        # Regroup by (mb_id, disc_number, track_count)
+        regrouped: Dict[Tuple[Optional[str], Optional[int], int], List[Album]] = (
+            defaultdict(list)
+        )
 
-            # If group has consistent MB ID and track count, track it
-            if len(mb_ids) == 1 and len(track_counts) == 1:
-                mb_id = list(mb_ids)[0]
-                track_count = list(track_counts)[0]
-                mb_to_groups[(mb_id, track_count)].append(idx)
+        for album in all_albums:
+            # Use (MB ID, disc number, track count) as key
+            # Albums without MB ID use (None, None, track_count)
+            mb_id = album.musicbrainz_albumid if not album.has_mixed_mb_ids else None
+            key = (mb_id, album.disc_number, album.track_count)
+            regrouped[key].append(album)
 
-        # Determine which groups to merge
-        groups_to_merge: Dict[int, int] = {}  # group_idx -> canonical_group_idx
-        for (_mb_id, _track_count), group_indices in mb_to_groups.items():
-            if len(group_indices) > 1:
-                # Merge all these groups into the first one
-                canonical = group_indices[0]
-                for idx in group_indices[1:]:
-                    groups_to_merge[idx] = canonical
+        # Return only groups with 2+ albums as potential duplicates
+        result_groups = [group for group in regrouped.values() if len(group) >= 2]
 
-        # Perform merging
-        merged_groups_dict: Dict[int, List[Album]] = {}
-        for idx, group in enumerate(groups):
-            if idx in groups_to_merge:
-                # This group should be merged into another
-                canonical = groups_to_merge[idx]
-                if canonical not in merged_groups_dict:
-                    merged_groups_dict[canonical] = list(groups[canonical])
-                merged_groups_dict[canonical].extend(group)
-            elif idx not in merged_groups_dict:
-                # This group is standalone or is the canonical for merged groups
-                merged_groups_dict[idx] = list(group)
-
-        merged_groups = list(merged_groups_dict.values())
-
-        if self.verbose and groups_to_merge:
+        if self.verbose:
             print(
-                f"Merged {len(groups_to_merge)} groups using MusicBrainz IDs "
-                f"({len(groups)} -> {len(merged_groups)} groups)"
+                f"Split/merged by MB ID+disc: {len(groups)} -> {len(result_groups)} "
+                "groups"
             )
 
-        return merged_groups
+        return result_groups
 
     def _match_by_musicbrainz(
         self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
     ) -> List[List[Album]]:
         """
-        Group albums by MusicBrainz album ID.
+        Group albums by MusicBrainz album ID and disc number.
+
+        Albums are grouped if they share the same MusicBrainz ID, disc number,
+        and track count. This prevents different discs from multi-disc releases
+        (box sets) from being incorrectly grouped as duplicates.
 
         Args:
             albums: List of Album objects
             should_stop: Optional callback to check if processing should stop
 
         Returns:
-            List of duplicate groups with same MB ID and track count
+            List of duplicate groups with same MB ID, disc number, and track
+            count
         """
-        # Group by MusicBrainz ID
-        mb_groups: Dict[str, List[Album]] = defaultdict(list)
+        # Group by (MusicBrainz ID, disc number) composite key
+        mb_groups: Dict[Tuple[str, Optional[int]], List[Album]] = defaultdict(list)
 
         for album in albums:
             if should_stop and should_stop():
                 return []
             if album.musicbrainz_albumid and not album.has_mixed_mb_ids:
-                mb_groups[album.musicbrainz_albumid].append(album)
+                # Use (MB ID, disc number) as the grouping key
+                # Single-disc releases will have disc_number=None and still
+                # group correctly
+                key = (album.musicbrainz_albumid, album.disc_number)
+                mb_groups[key].append(album)
 
         # Filter to only groups with duplicates (2+ albums with same track count)
         duplicate_groups: List[List[Album]] = []
-        for _mb_id, group in mb_groups.items():
+        for _key, group in mb_groups.items():
             if should_stop and should_stop():
                 return duplicate_groups
             if len(group) < 2:
                 continue
 
-            # Group by track count within MB ID group
+            # Group by track count within MB ID+disc group
             by_track_count: Dict[int, List[Album]] = defaultdict(list)
             for album in group:
                 by_track_count[album.track_count].append(album)

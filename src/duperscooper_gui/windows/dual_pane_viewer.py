@@ -1443,6 +1443,30 @@ class DualPaneViewer(QWidget):
 
                 export_data["groups"].append(group_data)
 
+        # Add match method statistics
+        match_method_stats = {}
+        threshold_bypass_count = 0
+        for group in export_data["groups"]:
+            for item in group["items"]:
+                method = item.get("match_method", "unknown")
+                match_method_stats[method] = match_method_stats.get(method, 0) + 1
+
+                # Count items matched via MB ID that are below threshold
+                if method == "musicbrainz":
+                    sim = item.get("match_percentage", 100)
+                    if sim < similarity_threshold and not item.get("is_best", False):
+                        threshold_bypass_count += 1
+
+        export_data["diagnostic_summary"]["match_method_stats"] = match_method_stats
+        export_data["diagnostic_summary"][
+            "mb_threshold_bypasses"
+        ] = threshold_bypass_count
+        export_data["diagnostic_summary"]["note"] = (
+            "MusicBrainz ID matching bypasses similarity threshold. "
+            "Low similarity with MB match often indicates box set discs or "
+            "compilation albums."
+        )
+
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
 
@@ -1486,6 +1510,9 @@ class DualPaneViewer(QWidget):
                     "is_best",
                     "recommended_action",
                     "musicbrainz_albumid",
+                    "disc_number",
+                    "disc_subtitle",
+                    "total_discs",
                     "has_mixed_mb_ids",
                     "file_exists",
                 ]
@@ -1627,8 +1654,10 @@ class DualPaneViewer(QWidget):
                     "quality_score",
                     "avg_quality_score",
                     "track_count",
+                    "disc_number",
+                    "total_discs",
                 ]:
-                    item[key] = int(value) if value else 0
+                    item[key] = int(value) if value else None
                 elif key in [
                     "similarity_to_best",
                     "match_percentage",

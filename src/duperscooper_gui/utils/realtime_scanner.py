@@ -268,6 +268,9 @@ class RealtimeScanThread(QThread):
                             "keep" if album == best_album else "delete"
                         ),
                         "musicbrainz_albumid": album.musicbrainz_albumid,
+                        "disc_number": album.disc_number,
+                        "disc_subtitle": album.disc_subtitle,
+                        "total_discs": album.total_discs,
                         "album_name": album.album_name,
                         "artist_name": album.artist_name,
                         "confidence": confidence,
