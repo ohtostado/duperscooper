@@ -1606,7 +1606,14 @@ class DualPaneViewer(QWidget):
             group_id = group.get("group_id", 0)
             items = group.get("items", [])
             if items:
-                self.add_duplicate_group(group_id, items)
+                # Convert to expected format
+                group_data = {"group_id": group_id}
+                # Determine if track or album mode
+                if self.current_mode == "track":
+                    group_data["files"] = items
+                else:
+                    group_data["albums"] = items
+                self.add_duplicate_group(group_data)
 
     def _import_from_csv(self, file_path: str) -> None:
         """Import results from CSV format.
@@ -1675,4 +1682,11 @@ class DualPaneViewer(QWidget):
         # Add groups to tree
         for group_id, items in sorted(groups_dict.items()):
             if items:
-                self.add_duplicate_group(group_id, items)
+                # Convert to expected format
+                group_data = {"group_id": group_id}
+                # Determine if track or album mode
+                if self.current_mode == "track":
+                    group_data["files"] = items
+                else:
+                    group_data["albums"] = items
+                self.add_duplicate_group(group_data)
