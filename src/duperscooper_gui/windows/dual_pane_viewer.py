@@ -1,5 +1,6 @@
 """Dual-pane viewer for scan results and staging."""
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -19,6 +20,84 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+
+@dataclass
+class ColumnDef:
+    """Column definition for tree widget."""
+
+    index: int
+    name: str
+    data_key: str  # Key in item data dict
+    enabled: bool = True
+
+
+class TreeColumns:
+    """Centralized column configuration for results/staging trees."""
+
+    CHECKBOX = ColumnDef(0, "☑", "checkbox")
+    BEST = ColumnDef(1, "Best", "best")
+    # FILENAME = ColumnDef(2, "Filename", "filename", enabled=False)  # Commented out
+    PATH = ColumnDef(2, "Path", "path")
+    ALBUM = ColumnDef(3, "Album", "album")
+    ARTIST = ColumnDef(4, "Artist", "artist")
+    SIZE = ColumnDef(5, "Size", "size")
+    QUALITY = ColumnDef(6, "Quality", "quality")
+    SIMILARITY = ColumnDef(7, "Similarity", "similarity")
+
+    @classmethod
+    def all_enabled(cls) -> List[ColumnDef]:
+        """Get list of all enabled columns."""
+        return [
+            col
+            for col in [
+                cls.CHECKBOX,
+                cls.BEST,
+                # cls.FILENAME,  # Disabled
+                cls.PATH,
+                cls.ALBUM,
+                cls.ARTIST,
+                cls.SIZE,
+                cls.QUALITY,
+                cls.SIMILARITY,
+            ]
+            if col.enabled
+        ]
+
+    @classmethod
+    def get_column_values(cls, item_data: Dict[str, Any], path: str) -> List[str]:
+        """Extract column values from item data dictionary.
+
+        Args:
+            item_data: Dictionary containing item metadata
+            path: Full path to the item
+
+        Returns:
+            List of string values for each enabled column
+        """
+        path_obj = Path(path)
+        folder_name = path_obj.parent.name  # Only immediate folder name
+
+        size_mb = item_data.get("size_bytes", 0) / (1024 * 1024)
+        quality = item_data.get("audio_info", "") or item_data.get("quality_info", "")
+        similarity = item_data.get("match_percentage") or item_data.get(
+            "similarity_to_best", 0
+        )
+        is_best = item_data.get("is_best", False)
+        artist = item_data.get("artist_name", "")
+        album = item_data.get("album_name", "")
+        similarity_text = f"{similarity:.1f}%" if similarity >= 0 else ""
+
+        return [
+            "",  # Checkbox (empty, set separately)
+            "⭐" if is_best else "",  # Best
+            folder_name,  # Path (immediate folder name only)
+            album,  # Album
+            artist,  # Artist
+            f"{size_mb:.1f} MB",  # Size
+            quality,  # Quality
+            similarity_text,  # Similarity
+        ]
 
 
 class ItemPropertiesDialog(QDialog):
@@ -120,6 +199,7 @@ class DualPaneViewer(QWidget):
         self.ui.addPathButton.clicked.connect(self.on_add_path_clicked)  # type: ignore[attr-defined]
         self.ui.removePathButton.clicked.connect(self.on_remove_path_clicked)  # type: ignore[attr-defined]
         self.ui.removeAllPathsButton.clicked.connect(self.on_remove_all_paths_clicked)  # type: ignore[attr-defined]
+        self.ui.loadDefaultPathsButton.clicked.connect(self.on_load_default_paths_clicked)  # type: ignore[attr-defined]
         self.ui.pathsList.itemSelectionChanged.connect(self.on_paths_selection_changed)  # type: ignore[attr-defined]
 
         self.ui.modeCombo.currentIndexChanged.connect(self.on_mode_changed)  # type: ignore[attr-defined]
@@ -207,15 +287,13 @@ class DualPaneViewer(QWidget):
             tree.setRootIsDecorated(False)
 
     def _update_column_headers(self) -> None:
-        """Update column headers based on current mode."""
+        """Update column headers from TreeColumns configuration."""
         results_tree: QTreeWidget = self.ui.resultsTree  # type: ignore[attr-defined]
         staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
 
-        # Column 2 changes based on mode
-        column_name = "Folder" if self.current_mode == "album" else "Filename"
-
         for tree in [results_tree, staging_tree]:
-            tree.headerItem().setText(2, column_name)  # type: ignore[union-attr]
+            for col in TreeColumns.all_enabled():
+                tree.headerItem().setText(col.index, col.name)  # type: ignore[union-attr]
 
     def _load_defaults(self) -> None:
         """Load default paths and mode from config."""
@@ -270,6 +348,24 @@ class DualPaneViewer(QWidget):
             paths_list.clear()
             self.update_scan_button_state()
             self.on_paths_selection_changed()  # Update button states
+
+    def on_load_default_paths_clicked(self) -> None:
+        """Load default paths from settings, replacing current paths."""
+        from duperscooper_gui.config.settings import Settings
+
+        paths_list: QListWidget = self.ui.pathsList  # type: ignore[attr-defined]
+
+        # Clear current paths
+        paths_list.clear()
+
+        # Load default paths
+        for path in Settings.DEFAULT_PATHS:
+            if Path(path).exists():
+                paths_list.addItem(path)
+
+        # Update button states
+        self.update_scan_button_state()
+        self.on_paths_selection_changed()
 
     def on_browse_clicked(self) -> None:
         """Browse for a directory to add."""
@@ -589,62 +685,54 @@ class DualPaneViewer(QWidget):
 
         for original_index, item in enumerate(items):
             path = item.get("path", "")
-            path_obj = Path(path)
-            filename = path_obj.name
-            directory = str(path_obj.parent)
-
-            size_mb = item.get("size_bytes", 0) / (1024 * 1024)
-            quality = item.get("audio_info", "") or item.get("quality_info", "")
-            # For albums use match_percentage, for tracks use similarity_to_best
-            similarity = item.get("match_percentage") or item.get(
-                "similarity_to_best", 0
-            )
-            is_best = item.get("is_best", False)
             quality_score = item.get("quality_score", 0)
 
-            # Extract artist and album metadata
-            artist = item.get("artist_name", "")
-            album = item.get("album_name", "")
-
-            # Format similarity percentage
-            similarity_text = f"{similarity:.1f}%" if similarity >= 0 else ""
+            # Get column values using centralized configuration
+            column_values = TreeColumns.get_column_values(item, path)
 
             # Create tree item with all columns
-            child_item = QTreeWidgetItem(
-                [
-                    "",  # Column 0: Checkbox
-                    "⭐" if is_best else "",  # Column 1: Best
-                    filename,  # Column 2: Filename/Folder
-                    artist,  # Column 3: Artist
-                    album,  # Column 4: Album
-                    directory,  # Column 5: Path
-                    f"{size_mb:.1f} MB",  # Column 6: Size
-                    quality,  # Column 7: Quality
-                    similarity_text,  # Column 8: Similarity
-                ],
+            child_item = QTreeWidgetItem(column_values)
+
+            # Center align the star emoji in Best column
+            child_item.setTextAlignment(
+                TreeColumns.BEST.index, Qt.AlignmentFlag.AlignCenter
             )
-            # Center align the star emoji in column 1
-            child_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
 
             # Set tooltips for all columns to show full text
-            child_item.setToolTip(2, filename)  # Filename
-            child_item.setToolTip(3, artist)  # Artist
-            child_item.setToolTip(4, album)  # Album
             child_item.setToolTip(
-                5, self._format_path_tooltip(path)
-            )  # Path (custom format)
-            child_item.setToolTip(6, f"{size_mb:.1f} MB")  # Size
-            child_item.setToolTip(7, quality)  # Quality
-            child_item.setToolTip(8, similarity_text)  # Similarity
+                TreeColumns.ALBUM.index, column_values[TreeColumns.ALBUM.index]
+            )
+            child_item.setToolTip(
+                TreeColumns.ARTIST.index, column_values[TreeColumns.ARTIST.index]
+            )
+            child_item.setToolTip(
+                TreeColumns.PATH.index, self._format_path_tooltip(path)
+            )
+            child_item.setToolTip(
+                TreeColumns.SIZE.index, column_values[TreeColumns.SIZE.index]
+            )
+            child_item.setToolTip(
+                TreeColumns.QUALITY.index, column_values[TreeColumns.QUALITY.index]
+            )
+            child_item.setToolTip(
+                TreeColumns.SIMILARITY.index,
+                column_values[TreeColumns.SIMILARITY.index],
+            )
 
             # Check recommended items by default
             recommended = item.get("recommended_action") == "delete"
             child_item.setCheckState(
-                0, Qt.CheckState.Checked if recommended else Qt.CheckState.Unchecked
+                TreeColumns.CHECKBOX.index,
+                Qt.CheckState.Checked if recommended else Qt.CheckState.Unchecked,
             )
 
-            # Store quality score in item for sorting
-            child_item.setData(0, Qt.ItemDataRole.UserRole, quality_score)
+            # Store quality score and full path in item data
+            child_item.setData(
+                TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole, quality_score
+            )
+            child_item.setData(
+                TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1, path
+            )
 
             # Insert item in sorted position (highest quality first)
             insert_index = 0
@@ -691,17 +779,17 @@ class DualPaneViewer(QWidget):
             group_item = root.child(i)
             for j in range(group_item.childCount()):
                 item = group_item.child(j)
-                # Reconstruct full path from filename and directory
-                filename = item.text(2)  # Column 2 is Filename
-                directory = item.text(3)  # Column 3 is Path
-                path = str(Path(directory) / filename)
+                # Get full path from stored item data
+                path = item.data(
+                    TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1
+                )
                 # Check recommended_action from stored data
-                if path in self.results_data:
+                if path and path in self.results_data:
                     recommended = (
                         self.results_data[path].get("recommended_action") == "delete"
                     )
                     item.setCheckState(
-                        0,
+                        TreeColumns.CHECKBOX.index,
                         (
                             Qt.CheckState.Checked
                             if recommended
@@ -731,12 +819,13 @@ class DualPaneViewer(QWidget):
             group_item = root.child(i)
             for j in range(group_item.childCount()):
                 item = group_item.child(j)
-                if item.checkState(0) == Qt.CheckState.Checked:
-                    # Reconstruct full path from filename and directory
-                    filename = item.text(2)  # Column 2 is Filename
-                    directory = item.text(5)  # Column 5 is Path
-                    path = str(Path(directory) / filename)
-                    items_to_stage.append((path, item))
+                if item.checkState(TreeColumns.CHECKBOX.index) == Qt.CheckState.Checked:
+                    # Get full path from stored item data
+                    path = item.data(
+                        TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1
+                    )
+                    if path:
+                        items_to_stage.append((path, item))
 
         if not items_to_stage:
             QMessageBox.information(self, "No Selection", "No items selected to stage.")
@@ -745,33 +834,43 @@ class DualPaneViewer(QWidget):
         # Move to staging pane
         staging_tree: QTreeWidget = self.ui.stagingTree  # type: ignore[attr-defined]
         for path, item in items_to_stage:
-            # Add to staging tree (include all 9 columns)
+            # Copy all column values from the results item
             staging_item = QTreeWidgetItem(
                 staging_tree,
-                [
-                    "",  # Column 0: Checkbox
-                    item.text(1),  # Column 1: Best (⭐ or empty)
-                    item.text(2),  # Column 2: Filename
-                    item.text(3),  # Column 3: Artist
-                    item.text(4),  # Column 4: Album
-                    item.text(5),  # Column 5: Path
-                    item.text(6),  # Column 6: Size
-                    item.text(7),  # Column 7: Quality
-                    item.text(8),  # Column 8: Similarity
-                ],
+                [item.text(col.index) for col in TreeColumns.all_enabled()],
             )
-            # Center align the star emoji in column 1
-            staging_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
-            staging_item.setCheckState(0, Qt.CheckState.Unchecked)
+            # Center align the star emoji in Best column
+            staging_item.setTextAlignment(
+                TreeColumns.BEST.index, Qt.AlignmentFlag.AlignCenter
+            )
+            staging_item.setCheckState(
+                TreeColumns.CHECKBOX.index, Qt.CheckState.Unchecked
+            )
+
+            # Store full path in staging item too
+            staging_item.setData(
+                TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1, path
+            )
 
             # Set tooltips for all columns to show full text
-            staging_item.setToolTip(2, item.text(2))  # Filename
-            staging_item.setToolTip(3, item.text(3))  # Artist
-            staging_item.setToolTip(4, item.text(4))  # Album
-            staging_item.setToolTip(5, self._format_path_tooltip(path))  # Path (custom)
-            staging_item.setToolTip(6, item.text(6))  # Size
-            staging_item.setToolTip(7, item.text(7))  # Quality
-            staging_item.setToolTip(8, item.text(8))  # Similarity
+            staging_item.setToolTip(
+                TreeColumns.ALBUM.index, item.text(TreeColumns.ALBUM.index)
+            )
+            staging_item.setToolTip(
+                TreeColumns.ARTIST.index, item.text(TreeColumns.ARTIST.index)
+            )
+            staging_item.setToolTip(
+                TreeColumns.PATH.index, self._format_path_tooltip(path)
+            )
+            staging_item.setToolTip(
+                TreeColumns.SIZE.index, item.text(TreeColumns.SIZE.index)
+            )
+            staging_item.setToolTip(
+                TreeColumns.QUALITY.index, item.text(TreeColumns.QUALITY.index)
+            )
+            staging_item.setToolTip(
+                TreeColumns.SIMILARITY.index, item.text(TreeColumns.SIMILARITY.index)
+            )
 
             # Move data
             if path in self.results_data:
@@ -793,12 +892,13 @@ class DualPaneViewer(QWidget):
 
         for i in range(root.childCount()):
             item = root.child(i)
-            if item.checkState(0) == Qt.CheckState.Checked:
-                # Reconstruct full path from filename and directory
-                filename = item.text(2)  # Column 2 is Filename
-                directory = item.text(3)  # Column 3 is Path
-                path = str(Path(directory) / filename)
-                items_to_unstage.append((path, item))
+            if item.checkState(TreeColumns.CHECKBOX.index) == Qt.CheckState.Checked:
+                # Get full path from stored item data
+                path = item.data(
+                    TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1
+                )
+                if path:
+                    items_to_unstage.append((path, item))
 
         if not items_to_unstage:
             QMessageBox.information(
@@ -825,11 +925,10 @@ class DualPaneViewer(QWidget):
 
         for i in range(root.childCount()):
             item = root.child(i)
-            # Reconstruct full path from filename and directory
-            filename = item.text(2)  # Column 2 is Filename
-            directory = item.text(3)  # Column 3 is Path
-            path = str(Path(directory) / filename)
-            items_to_unstage.append((path, item))
+            # Get full path from stored item data
+            path = item.data(TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1)
+            if path:
+                items_to_unstage.append((path, item))
 
         if not items_to_unstage:
             return
@@ -871,72 +970,94 @@ class DualPaneViewer(QWidget):
                 # Fallback: add to top level if metadata lost
                 results_item = QTreeWidgetItem(
                     results_tree,
-                    [
-                        "",  # Column 0: Checkbox
-                        staging_item.text(1),  # Column 1: Best (⭐ or empty)
-                        staging_item.text(2),  # Column 2: Filename
-                        staging_item.text(3),  # Column 3: Artist
-                        staging_item.text(4),  # Column 4: Album
-                        staging_item.text(5),  # Column 5: Path
-                        staging_item.text(6),  # Column 6: Size
-                        staging_item.text(7),  # Column 7: Quality
-                        staging_item.text(8),  # Column 8: Similarity
-                    ],
+                    [staging_item.text(col.index) for col in TreeColumns.all_enabled()],
                 )
-                # Center align the star emoji in column 1
-                results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
-                results_item.setCheckState(0, Qt.CheckState.Unchecked)
+                # Center align the star emoji in Best column
+                results_item.setTextAlignment(
+                    TreeColumns.BEST.index, Qt.AlignmentFlag.AlignCenter
+                )
+                results_item.setCheckState(
+                    TreeColumns.CHECKBOX.index, Qt.CheckState.Unchecked
+                )
+
+                # Store full path in restored item
+                results_item.setData(
+                    TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1, path
+                )
 
                 # Set tooltips for all columns to show full text
-                results_item.setToolTip(2, staging_item.text(2))  # Filename
-                results_item.setToolTip(3, staging_item.text(3))  # Artist
-                results_item.setToolTip(4, staging_item.text(4))  # Album
-                results_item.setToolTip(5, self._format_path_tooltip(path))  # Path
-                results_item.setToolTip(6, staging_item.text(6))  # Size
-                results_item.setToolTip(7, staging_item.text(7))  # Quality
-                results_item.setToolTip(8, staging_item.text(8))  # Similarity
+                results_item.setToolTip(
+                    TreeColumns.ALBUM.index, staging_item.text(TreeColumns.ALBUM.index)
+                )
+                results_item.setToolTip(
+                    TreeColumns.ARTIST.index,
+                    staging_item.text(TreeColumns.ARTIST.index),
+                )
+                results_item.setToolTip(
+                    TreeColumns.PATH.index, self._format_path_tooltip(path)
+                )
+                results_item.setToolTip(
+                    TreeColumns.SIZE.index, staging_item.text(TreeColumns.SIZE.index)
+                )
+                results_item.setToolTip(
+                    TreeColumns.QUALITY.index,
+                    staging_item.text(TreeColumns.QUALITY.index),
+                )
+                results_item.setToolTip(
+                    TreeColumns.SIMILARITY.index,
+                    staging_item.text(TreeColumns.SIMILARITY.index),
+                )
             else:
                 metadata = self.item_metadata[path]
                 group_item = metadata["group_item"]
 
                 # Get original data to restore similarity and best status
                 original_data = self.staging_data.get(path, {})
-                is_best = original_data.get("is_best", False)
-                similarity = original_data.get("similarity_to_best", 0)
 
-                results_item = QTreeWidgetItem(
-                    [
-                        "",  # Column 0: Checkbox
-                        "⭐" if is_best else "",  # Column 1: Best
-                        staging_item.text(2),  # Column 2: Filename
-                        staging_item.text(3),  # Column 3: Artist
-                        staging_item.text(4),  # Column 4: Album
-                        staging_item.text(5),  # Column 5: Path
-                        staging_item.text(6),  # Column 6: Size
-                        staging_item.text(7),  # Column 7: Quality
-                        f"{similarity:.1f}%" if similarity > 0 else "",  # Col 8
-                    ],
-                )
+                # Use get_column_values to build the item
+                column_values = TreeColumns.get_column_values(original_data, path)
+
+                results_item = QTreeWidgetItem(column_values)
 
                 # Add as child of group (append to end is safer than trying to
                 # restore exact position when other items may still be in the group)
                 group_item.addChild(results_item)
 
-                # Center align the star emoji in column 1
-                results_item.setTextAlignment(1, Qt.AlignmentFlag.AlignCenter)
+                # Center align the star emoji in Best column
+                results_item.setTextAlignment(
+                    TreeColumns.BEST.index, Qt.AlignmentFlag.AlignCenter
+                )
+
+                # Store full path in restored item
+                results_item.setData(
+                    TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1, path
+                )
 
                 # Set tooltips for all columns to show full text
-                results_item.setToolTip(2, staging_item.text(2))  # Filename
-                results_item.setToolTip(3, staging_item.text(3))  # Artist
-                results_item.setToolTip(4, staging_item.text(4))  # Album
-                results_item.setToolTip(5, self._format_path_tooltip(path))  # Path
-                results_item.setToolTip(6, staging_item.text(6))  # Size
-                results_item.setToolTip(7, staging_item.text(7))  # Quality
-                similarity_text = f"{similarity:.1f}%" if similarity > 0 else ""
-                results_item.setToolTip(8, similarity_text)  # Similarity
+                results_item.setToolTip(
+                    TreeColumns.ALBUM.index, column_values[TreeColumns.ALBUM.index]
+                )
+                results_item.setToolTip(
+                    TreeColumns.ARTIST.index, column_values[TreeColumns.ARTIST.index]
+                )
+                results_item.setToolTip(
+                    TreeColumns.PATH.index, self._format_path_tooltip(path)
+                )
+                results_item.setToolTip(
+                    TreeColumns.SIZE.index, column_values[TreeColumns.SIZE.index]
+                )
+                results_item.setToolTip(
+                    TreeColumns.QUALITY.index, column_values[TreeColumns.QUALITY.index]
+                )
+                results_item.setToolTip(
+                    TreeColumns.SIMILARITY.index,
+                    column_values[TreeColumns.SIMILARITY.index],
+                )
 
                 # Always leave unchecked when unstaging
-                results_item.setCheckState(0, Qt.CheckState.Unchecked)
+                results_item.setCheckState(
+                    TreeColumns.CHECKBOX.index, Qt.CheckState.Unchecked
+                )
 
             # Move data back
             if path in self.staging_data:
@@ -1147,13 +1268,11 @@ class DualPaneViewer(QWidget):
             # No item or group header - don't show menu
             return
 
-        # Get the path from the item
-        filename = item.text(2)  # Column 2 is Filename
-        directory = item.text(5)  # Column 5 is Path
-        path = str(Path(directory) / filename)
+        # Get the path from stored item data
+        path = item.data(TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1)
 
         # Check if we have data for this item
-        if path not in self.results_data:
+        if not path or path not in self.results_data:
             return
 
         # Create context menu
@@ -1177,13 +1296,11 @@ class DualPaneViewer(QWidget):
         if item is None:
             return
 
-        # Get the path from the item
-        filename = item.text(2)  # Column 2 is Filename
-        directory = item.text(5)  # Column 5 is Path
-        path = str(Path(directory) / filename)
+        # Get the path from stored item data
+        path = item.data(TreeColumns.CHECKBOX.index, Qt.ItemDataRole.UserRole + 1)
 
         # Check if we have data for this item
-        if path not in self.staging_data:
+        if not path or path not in self.staging_data:
             return
 
         # Create context menu
