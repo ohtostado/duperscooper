@@ -32,6 +32,9 @@
         <property name="toolTip">
          <string>Paths to scan for duplicates</string>
         </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
+        </property>
        </widget>
       </item>
       <item>
@@ -55,7 +58,30 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>Remove selected path</string>
+           <string>Remove selected paths</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeAllPathsButton">
+          <property name="text">
+           <string>🗑️ Remove All</string>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Remove all paths from the list</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadDefaultPathsButton">
+          <property name="text">
+           <string>📁 Load Defaults</string>
+          </property>
+          <property name="toolTip">
+           <string>Load default paths from settings (replaces current paths)</string>
           </property>
          </widget>
         </item>
@@ -230,14 +256,24 @@
            <string>Best</string>
           </property>
          </column>
-         <column>
+         <!-- <column>
           <property name="text">
            <string>Filename</string>
+          </property>
+         </column> -->
+         <column>
+          <property name="text">
+           <string>Path</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>Path</string>
+           <string>Album</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Artist</string>
           </property>
          </column>
          <column>
@@ -268,7 +304,7 @@
         </widget>
        </item>
        <item>
-        <!-- Results buttons group -->
+        <!-- Quadrant A: Row 1 - Results buttons -->
         <layout class="QHBoxLayout" name="resultsButtonLayout">
          <property name="spacing">
           <number>6</number>
@@ -313,6 +349,19 @@
           </widget>
          </item>
          <item>
+          <spacer name="resultsButtonSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QPushButton" name="stageButton">
            <property name="text">
             <string>Stage Selected &gt;&gt;</string>
@@ -327,6 +376,50 @@
             <string notr="true">font-weight: bold;</string>
            </property>
           </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <!-- Quadrant C: Row 2 - Import/Export buttons -->
+        <layout class="QHBoxLayout" name="importExportButtonLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="importResultsButton">
+           <property name="text">
+            <string>📥 Import Results...</string>
+           </property>
+           <property name="toolTip">
+            <string>Import scan results from JSON or CSV file</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exportResultsButton">
+           <property name="text">
+            <string>📊 Export Results...</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Export scan results to CSV or JSON file</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="importExportSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -365,14 +458,24 @@
            <string>Best</string>
           </property>
          </column>
-         <column>
+         <!-- <column>
           <property name="text">
            <string>Filename</string>
+          </property>
+         </column> -->
+         <column>
+          <property name="text">
+           <string>Path</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>Path</string>
+           <string>Album</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Artist</string>
           </property>
          </column>
          <column>
@@ -403,7 +506,7 @@
         </widget>
        </item>
        <item>
-        <!-- Staging buttons group -->
+        <!-- Quadrant B: Row 1 - Staging buttons -->
         <layout class="QHBoxLayout" name="stagingButtonLayout">
          <property name="spacing">
           <number>6</number>
@@ -425,6 +528,19 @@
           </widget>
          </item>
          <item>
+          <spacer name="stagingButtonSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QPushButton" name="clearStagingButton">
            <property name="text">
             <string>Unstage All</string>
@@ -436,19 +552,6 @@
             <string>Clear all items from staging (move back to results)</string>
            </property>
           </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
          <item>
           <widget class="QPushButton" name="deleteAllButton">
@@ -464,6 +567,47 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <!-- Quadrant D: Row 2 - Empty for now -->
+        <widget class="QWidget" name="stagingRow2Widget">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="stagingRow2Layout">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <spacer name="stagingRow2Spacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

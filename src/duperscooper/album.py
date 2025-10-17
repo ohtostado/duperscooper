@@ -313,14 +313,14 @@ class AlbumScanner:
             current_track_paths = [str(t) for t in tracks]
 
             if cached_track_paths == current_track_paths:
-                # Cache is valid, use cached data
-                self.album_cache_hits += 1
-
+                # Album metadata is cached, but still need to get fingerprints
                 # Get fingerprints from track-level cache
                 import time
 
                 t_start = time.time()
                 cached_fingerprints: List[List[int]] = []
+                all_tracks_cached = True  # Track if all fingerprints were cached
+
                 for i, track in enumerate(tracks):
                     # Check for stop before fingerprinting each track
                     if should_stop and should_stop():
@@ -333,6 +333,11 @@ class AlbumScanner:
                     fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
                     t2 = time.time()
                     elapsed = t2 - t1
+
+                    # If fingerprinting took >0.01s, it was a cache miss
+                    if elapsed > 0.01:
+                        all_tracks_cached = False
+
                     print(f"DEBUG: Track {i+1}/{len(tracks)} hash took {elapsed:.3f}s")
                     assert isinstance(fingerprint, list)
                     cached_fingerprints.append(fingerprint)
@@ -340,6 +345,12 @@ class AlbumScanner:
                 ntracks = len(tracks)
                 msg = f"DEBUG: Total fingerprints: {total_time:.3f}s for {ntracks}"
                 print(msg)
+
+                # Only count as cache hit if ALL tracks were cached
+                if all_tracks_cached:
+                    self.album_cache_hits += 1
+                else:
+                    self.album_cache_misses += 1
 
                 return Album(
                     path=album_path,
@@ -554,6 +565,7 @@ class AlbumDuplicateFinder:
         verbose: bool = False,
         allow_partial: bool = False,
         min_overlap: float = 70.0,
+        similarity_threshold: float = 97.0,
     ):
         """
         Initialize album duplicate finder.
@@ -562,12 +574,14 @@ class AlbumDuplicateFinder:
             hasher: AudioHasher instance for fingerprint comparison
             verbose: Enable verbose output
             allow_partial: Allow matching albums with different track counts
-            min_overlap: Minimum percentage of tracks that must match for partial albums
+            min_overlap: Minimum % of tracks that must match for partial albums
+            similarity_threshold: Minimum similarity % for fingerprint matching
         """
         self.hasher = hasher
         self.verbose = verbose
         self.allow_partial = allow_partial
         self.min_overlap = min_overlap
+        self.similarity_threshold = similarity_threshold
 
     def find_duplicates(
         self,
@@ -981,9 +995,9 @@ class AlbumDuplicateFinder:
                 ):
                     union(i, j)
                 else:
-                    # Otherwise use fingerprint similarity with 97% threshold
+                    # Otherwise use fingerprint similarity with configurable threshold
                     similarity = self.album_similarity(albums[i], albums[j])
-                    if similarity >= 97.0:
+                    if similarity >= self.similarity_threshold:
                         union(i, j)
 
         # Extract groups
