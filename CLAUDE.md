@@ -298,6 +298,12 @@ duperscooper ~/Music --workers 1
 # Use legacy JSON cache backend instead of SQLite
 duperscooper ~/Music --cache-backend json
 
+# Process full audio files instead of first 120 seconds (slower but more accurate)
+duperscooper ~/Music --fingerprint-length 0
+
+# Process only first 60 seconds for faster scanning
+duperscooper ~/Music --fingerprint-length 60
+
 # Album mode: Find duplicate albums
 duperscooper ~/Music --album-mode
 
@@ -581,6 +587,13 @@ duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml --
 
 ### Optimization Tips
 
+- **Fingerprint Length** (New in v0.5.0):
+  - **Default**: First 120 seconds of each track (matches pyacoustid/MusicBrainz Picard)
+  - **Benefits**: 50-80% faster for albums longer than 2 minutes
+  - **Full file**: Use `--fingerprint-length 0` for complete accuracy
+  - **Faster scanning**: Use `--fingerprint-length 60` for quick scans
+  - **Rationale**: Most audio characteristics are in first 2 minutes; full-file
+    processing rarely improves accuracy
 - **Caching**: Perceptual hashes are cached by file hash (SHA256), so
   unchanged files skip fingerprinting on subsequent runs
 - **Similarity Threshold**: Adjust `--similarity-threshold` (default 98.0%)

@@ -24,6 +24,7 @@ class AudioHasher:
         use_cache: bool = True,
         update_cache: bool = False,
         cache_backend: str = "sqlite",
+        fingerprint_length: int = 120,
     ):
         """
         Initialize audio hasher with optional cache.
@@ -34,6 +35,8 @@ class AudioHasher:
             use_cache: Whether to use cache (default: True)
             update_cache: Force regeneration of cached hashes (default: False)
             cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
         """
         if cache_path is None:
             xdg_config = Path.home() / ".config"
@@ -51,6 +54,7 @@ class AudioHasher:
         self.update_cache = update_cache
         self.cache_backend_type = cache_backend
         self.cache_updates = 0
+        self.fingerprint_length = fingerprint_length
 
         # Initialize cache backend
         if use_cache:
@@ -127,7 +131,10 @@ class AudioHasher:
 
     @staticmethod
     def _call_fpcalc(
-        file_path: Path, raw: bool = False, debug: bool = False
+        file_path: Path,
+        raw: bool = False,
+        debug: bool = False,
+        fingerprint_length: int = 120,
     ) -> Tuple[int, str]:
         """
         Call fpcalc binary directly to generate Chromaprint fingerprint.
@@ -139,32 +146,45 @@ class AudioHasher:
             file_path: Path to audio file
             raw: If True, get raw (uncompressed) fingerprint for fuzzy matching
             debug: If True, print detailed timing information
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
 
         Returns:
             Tuple of (duration_seconds, fingerprint_string)
         """
         try:
+            import os
             import time
 
             cmd = ["fpcalc"]
             if raw:
                 cmd.append("-raw")
+            # Add -length parameter (0 means process full file)
+            if fingerprint_length > 0:
+                cmd.extend(["-length", str(fingerprint_length)])
             cmd.append(str(file_path))
 
             t_start = time.time()
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=30,
-            )
+            # Use Popen instead of subprocess.run for better control
+            # Redirect stderr to devnull to reduce I/O overhead
+            with open(os.devnull, "w") as devnull:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=devnull,
+                    text=True,
+                )
+                stdout, _ = proc.communicate(timeout=120)
+
+            if proc.returncode != 0:
+                raise subprocess.CalledProcessError(proc.returncode, cmd)
+
             t_elapsed = time.time() - t_start
 
             # Parse fpcalc output
             duration = 0
             fingerprint = ""
-            for line in result.stdout.strip().split("\n"):
+            for line in stdout.strip().split("\n"):
                 if line.startswith("DURATION="):
                     duration = int(line.split("=")[1])
                 elif line.startswith("FINGERPRINT="):
@@ -236,7 +256,7 @@ class AudioHasher:
         return (1 - diff_bits / total_bits) * 100
 
     def compute_raw_fingerprint(
-        self, file_path: Path, debug: bool = False
+        self, file_path: Path, debug: bool = False, fingerprint_length: int = 120
     ) -> List[int]:
         """
         Compute raw Chromaprint fingerprint for fuzzy matching.
@@ -247,6 +267,8 @@ class AudioHasher:
         Args:
             file_path: Path to audio file
             debug: If True, print detailed timing information
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
 
         Returns:
             List of integers representing raw fingerprint
@@ -256,7 +278,7 @@ class AudioHasher:
         """
         try:
             duration, raw_fp_str = AudioHasher._call_fpcalc(
-                file_path, raw=True, debug=debug
+                file_path, raw=True, debug=debug, fingerprint_length=fingerprint_length
             )
             return AudioHasher.parse_raw_fingerprint(raw_fp_str)
         except Exception as e:
@@ -327,7 +349,9 @@ class AudioHasher:
 
             # Get raw fingerprint for fuzzy matching
             t_fp_start = time.time()
-            raw_fingerprint = self.compute_raw_fingerprint(file_path, debug=True)
+            raw_fingerprint = self.compute_raw_fingerprint(
+                file_path, debug=True, fingerprint_length=self.fingerprint_length
+            )
             t_fp_elapsed = time.time() - t_fp_start
 
             # Store in cache as comma-separated string, along with metadata

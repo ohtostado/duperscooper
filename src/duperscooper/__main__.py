@@ -660,6 +660,15 @@ Examples:
     )
 
     parser.add_argument(
+        "--fingerprint-length",
+        type=int,
+        default=120,
+        metavar="SECONDS",
+        help="Maximum audio length to fingerprint in seconds "
+        "(default: 120, use 0 for full file)",
+    )
+
+    parser.add_argument(
         "--album-mode",
         action="store_true",
         default=True,
@@ -1161,6 +1170,7 @@ def run_file_mode(args: argparse.Namespace) -> int:
         cache_backend=args.cache_backend,
         max_workers=args.workers,
         simple_progress=args.simple_progress,
+        fingerprint_length=args.fingerprint_length,
     )
 
     try:
@@ -1209,6 +1219,7 @@ def run_album_mode(args: argparse.Namespace) -> int:
         use_cache=not args.no_cache,
         update_cache=args.update_cache,
         cache_backend=args.cache_backend,
+        fingerprint_length=args.fingerprint_length,
     )
     scanner = AlbumScanner(
         hasher,
