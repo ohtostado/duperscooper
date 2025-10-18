@@ -76,7 +76,8 @@ class TreeColumns:
             List of string values for each enabled column
         """
         path_obj = Path(path)
-        folder_name = path_obj.parent.name  # Only immediate folder name
+        # For albums, path IS the album folder; for tracks, get parent folder
+        folder_name = path_obj.name if path_obj.is_dir() else path_obj.parent.name
 
         size_mb = item_data.get("size_bytes", 0) / (1024 * 1024)
         quality = item_data.get("audio_info", "") or item_data.get("quality_info", "")
