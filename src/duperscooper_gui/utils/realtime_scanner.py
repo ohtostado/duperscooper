@@ -212,8 +212,15 @@ class RealtimeScanThread(QThread):
                 )
             return result
 
+        # Create progress callback that forwards to our progress signal
+        def progress_cb(message: str, percentage: int) -> None:
+            self.progress.emit(message, percentage)
+
         duplicate_groups = finder.find_duplicates(
-            albums, strategy="auto", should_stop=check_stop
+            albums,
+            strategy="auto",
+            should_stop=check_stop,
+            progress_callback=progress_cb,
         )
 
         if self._should_stop or self._stop_processing:

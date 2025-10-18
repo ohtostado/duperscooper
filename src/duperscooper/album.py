@@ -629,6 +629,7 @@ class AlbumDuplicateFinder:
         albums: List[Album],
         strategy: str = "auto",
         should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> List[List[Album]]:
         """
         Find duplicate albums using specified matching strategy.
@@ -637,20 +638,31 @@ class AlbumDuplicateFinder:
             albums: List of Album objects to check for duplicates
             strategy: Matching strategy - "musicbrainz", "fingerprint", or "auto"
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback function(message, percentage)
+                for real-time progress updates
 
         Returns:
             List of duplicate groups (each group is a list of Album objects)
         """
         duplicate_groups = []
 
+        if progress_callback:
+            progress_callback(f"Finding duplicates ({strategy} strategy)...", 0)
+
         if strategy == "musicbrainz":
-            duplicate_groups = self._match_by_musicbrainz(albums, should_stop)
+            duplicate_groups = self._match_by_musicbrainz(
+                albums, should_stop, progress_callback
+            )
         elif strategy == "fingerprint":
-            duplicate_groups = self._match_by_fingerprints(albums, should_stop)
+            duplicate_groups = self._match_by_fingerprints(
+                albums, should_stop, progress_callback
+            )
         elif strategy == "auto":
             # Auto: Establish canonical albums from MB IDs/metadata,
             # then match untagged albums against them via fingerprints
-            duplicate_groups = self._match_canonical(albums, should_stop)
+            duplicate_groups = self._match_canonical(
+                albums, should_stop, progress_callback
+            )
         else:
             raise ValueError(
                 f"Unknown strategy: {strategy}. "
@@ -671,7 +683,10 @@ class AlbumDuplicateFinder:
         return duplicate_groups
 
     def _match_canonical(
-        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+        self,
+        albums: List[Album],
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> List[List[Album]]:
         """
         Match albums using canonical approach.
@@ -683,6 +698,7 @@ class AlbumDuplicateFinder:
         Args:
             albums: List of Album objects
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress updates
 
         Returns:
             List of duplicate groups with canonical album identification
@@ -690,6 +706,9 @@ class AlbumDuplicateFinder:
         # Separate canonical and untagged albums
         canonical_albums = []
         untagged_albums = []
+
+        if progress_callback:
+            progress_callback("Categorizing albums...", 5)
 
         for album in albums:
             if should_stop and should_stop():
@@ -710,9 +729,19 @@ class AlbumDuplicateFinder:
                 f"{len(untagged_albums)} untagged"
             )
 
+        if progress_callback:
+            progress_callback(
+                f"Matching {len(canonical_albums)} canonical albums...", 10
+            )
+
         # Do fingerprint matching on canonical albums to catch same album
         # with different/missing MB IDs
-        canonical_fp_groups = self._match_by_fingerprints(canonical_albums, should_stop)
+        canonical_fp_groups = self._match_by_fingerprints(
+            canonical_albums, should_stop, progress_callback
+        )
+
+        if progress_callback:
+            progress_callback("Merging groups by MusicBrainz ID...", 60)
 
         # Merge canonical groups that share MB IDs (preserves match_method)
         merged_canonical = self._merge_groups_by_musicbrainz(canonical_fp_groups)
@@ -723,9 +752,20 @@ class AlbumDuplicateFinder:
             groups_dict[idx] = list(group)
 
         # Match untagged albums against canonical groups
-        for untagged in untagged_albums:
+        if untagged_albums and progress_callback:
+            progress_callback(f"Matching {len(untagged_albums)} untagged albums...", 70)
+
+        for i, untagged in enumerate(untagged_albums):
             if should_stop and should_stop():
                 break
+
+            # Report progress every 10 albums
+            if progress_callback and i % 10 == 0:
+                pct = 70 + int((i / len(untagged_albums)) * 25)
+                progress_callback(
+                    f"Matching untagged album {i+1}/{len(untagged_albums)}", pct
+                )
+
             best_match_idx = None
             best_similarity = 0.0
 
@@ -819,7 +859,10 @@ class AlbumDuplicateFinder:
         return result_groups
 
     def _match_by_musicbrainz(
-        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+        self,
+        albums: List[Album],
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> List[List[Album]]:
         """
         Group albums by MusicBrainz album ID and disc number.
@@ -831,11 +874,14 @@ class AlbumDuplicateFinder:
         Args:
             albums: List of Album objects
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress updates
 
         Returns:
             List of duplicate groups with same MB ID, disc number, and track
             count
         """
+        if progress_callback:
+            progress_callback("Grouping by MusicBrainz ID...", 10)
         # Group by (MusicBrainz ID, disc number) composite key
         mb_groups: Dict[Tuple[str, Optional[int]], List[Album]] = defaultdict(list)
 
@@ -873,7 +919,10 @@ class AlbumDuplicateFinder:
         return duplicate_groups
 
     def _match_by_fingerprints(
-        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+        self,
+        albums: List[Album],
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> List[List[Album]]:
         """
         Group albums by perceptual fingerprint similarity.
@@ -883,6 +932,7 @@ class AlbumDuplicateFinder:
         Args:
             albums: List of Album objects
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress updates
 
         Returns:
             List of duplicate groups with similar fingerprints
@@ -891,6 +941,9 @@ class AlbumDuplicateFinder:
             return []
 
         duplicate_groups: List[List[Album]] = []
+
+        if progress_callback:
+            progress_callback(f"Comparing {len(albums)} albums by fingerprints...", 15)
 
         if self.allow_partial:
             # Partial matching enabled: compare albums across different track counts
@@ -926,7 +979,9 @@ class AlbumDuplicateFinder:
                     continue
 
                 # Union-Find for grouping similar albums
-                uf_groups = self._union_find_similar_albums(unique_albums, should_stop)
+                uf_groups = self._union_find_similar_albums(
+                    unique_albums, should_stop, progress_callback, 20, 40
+                )
 
                 # Only include groups with 2+ albums
                 for group in uf_groups:
@@ -959,7 +1014,7 @@ class AlbumDuplicateFinder:
 
                 # Union-Find for grouping similar albums
                 uf_groups = self._union_find_similar_albums(
-                    albums_with_count, should_stop
+                    albums_with_count, should_stop, progress_callback, 20, 40
                 )
 
                 # Only include groups with 2+ albums
@@ -977,7 +1032,12 @@ class AlbumDuplicateFinder:
         return duplicate_groups
 
     def _union_find_similar_albums(
-        self, albums: List[Album], should_stop: Optional[Callable[[], bool]] = None
+        self,
+        albums: List[Album],
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
+        base_progress: int = 20,
+        progress_range: int = 40,
     ) -> List[List[Album]]:
         """
         Group similar albums using Union-Find algorithm.
@@ -985,6 +1045,9 @@ class AlbumDuplicateFinder:
         Args:
             albums: List of albums with same track count
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress updates
+            base_progress: Starting progress percentage
+            progress_range: Progress range to use (base to base+range)
 
         Returns:
             List of album groups
@@ -1003,10 +1066,25 @@ class AlbumDuplicateFinder:
                 uf_parent[root_y] = root_x
 
         # Compare all pairs
+        total_comparisons = (len(albums) * (len(albums) - 1)) // 2
+        comparisons_done = 0
+
         for i in range(len(albums)):
             if should_stop and should_stop():
                 print(f"DEBUG: Stop detected in _union_find_similar_albums at i={i}")
                 break
+
+            # Report progress every 10 albums
+            if progress_callback and i % 10 == 0 and total_comparisons > 0:
+                pct = base_progress + int(
+                    (comparisons_done / total_comparisons) * progress_range
+                )
+                progress_callback(
+                    f"Comparing album {i+1}/{len(albums)} "
+                    f"({comparisons_done}/{total_comparisons} comparisons)",
+                    pct,
+                )
+
             for j in range(i + 1, len(albums)):
                 if should_stop and should_stop():
                     print(
@@ -1028,6 +1106,8 @@ class AlbumDuplicateFinder:
                     similarity = self.album_similarity(albums[i], albums[j])
                     if similarity >= self.similarity_threshold:
                         union(i, j)
+
+                comparisons_done += 1
 
         # Extract groups
         groups: Dict[int, List[Album]] = defaultdict(list)
