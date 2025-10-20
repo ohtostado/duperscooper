@@ -326,8 +326,9 @@ class AlbumScanner:
                     fingerprints[idx] = fingerprint
                 except Exception as e:
                     # Log error but continue processing other tracks
-                    track_name = tracks[idx].name
-                    print(f"WARNING: Failed to fingerprint {track_name}: {e}")
+                    track_path = tracks[idx]
+                    print(f"WARN: Failed to fingerprint track: {track_path}")
+                    print(f"WARN: Error details: {e}")
                     # Keep the None placeholder for this track
 
         # Filter out failed tracks - return successful tracks & fingerprints
