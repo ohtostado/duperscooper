@@ -16,9 +16,9 @@ color = "#2e7d32"  # Green
 [colors.similarity]
 # Colors for similarity percentages (match quality indicators)
 very_high = "#1b5e20"  # Dark green - ≥99% similarity
-high = "#388e3c"       # Green - ≥97% similarity
-medium = "#f57c00"     # Orange - ≥95% similarity
-low = "#c62828"        # Red - <95% similarity
+high = "#388e3c"  # Green - ≥97% similarity
+medium = "#f57c00"  # Orange - ≥95% similarity
+low = "#c62828"  # Red - <95% similarity
 
 # Thresholds for similarity color ranges (percentages)
 threshold_very_high = 99.0
@@ -38,6 +38,9 @@ default_paths = []
 
 [ui]
 # UI preferences
+# Window geometry (automatically saved when window is resized/moved)
 window_width = 1000
 window_height = 700
+window_x = -1  # -1 means let OS choose position (centered)
+window_y = -1
 auto_expand_groups = true  # Automatically expand duplicate groups in results

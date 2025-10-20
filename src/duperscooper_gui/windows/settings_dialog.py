@@ -273,6 +273,8 @@ class SettingsDialog(QDialog):
                 "ui": {
                     "window_width": self.config["ui"]["window_width"],
                     "window_height": self.config["ui"]["window_height"],
+                    "window_x": self.config["ui"].get("window_x", -1),
+                    "window_y": self.config["ui"].get("window_y", -1),
                     "auto_expand_groups": self.auto_expand.isChecked(),
                 },
             }

@@ -73,27 +73,47 @@ def load_config() -> Dict[str, Any]:
         return tomllib.load(f)
 
 
-def save_window_size(width: int, height: int) -> None:
+def save_window_geometry(width: int, height: int, x: int, y: int) -> None:
     """
-    Save window size to config file.
+    Save window geometry (size and position) to config file.
 
     Args:
         width: Window width in pixels
         height: Window height in pixels
+        x: Window x position in pixels
+        y: Window y position in pixels
     """
     import tomli_w
 
     # Load current config
     config = load_config()
 
-    # Update window size
+    # Update window geometry
     config["ui"]["window_width"] = width
     config["ui"]["window_height"] = height
+    config["ui"]["window_x"] = x
+    config["ui"]["window_y"] = y
 
     # Write back to file
     config_file = get_config_file()
     with open(config_file, "wb") as f:
         tomli_w.dump(config, f)
+
+
+# Keep backward compatibility with old function name
+def save_window_size(width: int, height: int) -> None:
+    """
+    Save window size to config file (backward compatibility).
+
+    Args:
+        width: Window width in pixels
+        height: Window height in pixels
+    """
+    # Load current position from config to preserve it
+    config = load_config()
+    x = config["ui"].get("window_x", -1)
+    y = config["ui"].get("window_y", -1)
+    save_window_geometry(width, height, x, y)
 
 
 # Load config once at module level
@@ -159,6 +179,8 @@ class Settings:
     # UI preferences
     WINDOW_WIDTH = _CONFIG["ui"]["window_width"]
     WINDOW_HEIGHT = _CONFIG["ui"]["window_height"]
+    WINDOW_X = _CONFIG["ui"].get("window_x", -1)
+    WINDOW_Y = _CONFIG["ui"].get("window_y", -1)
     AUTO_EXPAND_GROUPS = _CONFIG["ui"]["auto_expand_groups"]
 
     @classmethod

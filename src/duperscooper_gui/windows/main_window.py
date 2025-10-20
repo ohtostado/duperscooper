@@ -4,7 +4,7 @@ import platform
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtGui import QAction, QCloseEvent, QResizeEvent
+from PySide6.QtGui import QAction, QCloseEvent, QMoveEvent, QResizeEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from ..config.settings import Settings, save_window_size
+from ..config.settings import Settings, save_window_geometry
 from ..utils.realtime_scanner import RealtimeScanThread
 from .dual_pane_viewer import DualPaneViewer
 from .settings_dialog import SettingsDialog
@@ -43,8 +43,11 @@ class MainWindow(QMainWindow):
         if platform.system() == "Darwin":  # macOS
             self.ui.menubar.setNativeMenuBar(False)
 
-        # Restore window size from saved settings
+        # Restore window geometry from saved settings
         self.resize(Settings.WINDOW_WIDTH, Settings.WINDOW_HEIGHT)
+        if Settings.WINDOW_X >= 0 and Settings.WINDOW_Y >= 0:
+            # Only restore position if it was saved (not -1)
+            self.move(Settings.WINDOW_X, Settings.WINDOW_Y)
 
         # Connect signals
         self._connect_signals()
@@ -241,12 +244,22 @@ class MainWindow(QMainWindow):
             )
 
     def resizeEvent(self, event: QResizeEvent) -> None:
-        """Handle window resize - save new size to config."""
+        """Handle window resize - save new geometry to config."""
         super().resizeEvent(event)
 
-        # Save new window size to config
+        # Save new window geometry (size + position) to config
         new_size = event.size()
-        save_window_size(new_size.width(), new_size.height())
+        pos = self.pos()
+        save_window_geometry(new_size.width(), new_size.height(), pos.x(), pos.y())
+
+    def moveEvent(self, event: QMoveEvent) -> None:
+        """Handle window move - save new position to config."""
+        super().moveEvent(event)
+
+        # Save new window geometry (size + position) to config
+        new_pos = event.pos()
+        size = self.size()
+        save_window_geometry(size.width(), size.height(), new_pos.x(), new_pos.y())
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Handle window close - clean up running threads."""
