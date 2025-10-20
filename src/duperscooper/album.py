@@ -156,7 +156,10 @@ class AlbumScanner:
 
             try:
                 album = self.extract_album_metadata(
-                    album_dir, should_stop, max_workers=max_workers
+                    album_dir,
+                    should_stop,
+                    max_workers=max_workers,
+                    progress_callback=progress_callback,
                 )
                 if album is None:
                     # Explicitly stopped by user (should_stop callback)
@@ -288,6 +291,7 @@ class AlbumScanner:
         tracks: List[Path],
         max_workers: int = 8,
         should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> Optional[Tuple[List[Path], List[List[int]]]]:
         """
         Fingerprint multiple tracks in parallel using ThreadPoolExecutor.
@@ -296,6 +300,7 @@ class AlbumScanner:
             tracks: List of track paths to fingerprint
             max_workers: Maximum number of worker threads
             should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress/warning messages
 
         Returns:
             Tuple of (successful_tracks, fingerprints) where both lists have
@@ -327,8 +332,16 @@ class AlbumScanner:
                 except Exception as e:
                     # Log error but continue processing other tracks
                     track_path = tracks[idx]
-                    print(f"WARN: Failed to fingerprint track: {track_path}")
-                    print(f"WARN: Error details: {e}")
+                    warn_msg = f"⚠️ Failed to fingerprint track: {track_path}"
+                    detail_msg = f"⚠️ Error details: {e}"
+
+                    # Send to both console and GUI activity log
+                    print(warn_msg)
+                    print(detail_msg)
+                    if progress_callback:
+                        progress_callback(warn_msg, 0)
+                        progress_callback(detail_msg, 0)
+
                     # Keep the None placeholder for this track
 
         # Filter out failed tracks - return successful tracks & fingerprints
@@ -359,6 +372,7 @@ class AlbumScanner:
         album_path: Path,
         should_stop: Optional[Callable[[], bool]] = None,
         max_workers: int = 8,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> Optional[Album]:
         """
         Extract metadata from all tracks in an album directory.
@@ -367,6 +381,7 @@ class AlbumScanner:
             album_path: Path to album directory
             should_stop: Optional callback to check if processing should stop
             max_workers: Maximum number of worker threads for parallel fingerprinting
+            progress_callback: Optional callback for progress/warning messages
 
         Returns:
             Album object with metadata and fingerprints, or None if stopped
@@ -401,7 +416,10 @@ class AlbumScanner:
 
                 t_start = time.time()
                 result = self._fingerprint_tracks_parallel(
-                    tracks, max_workers=max_workers, should_stop=should_stop
+                    tracks,
+                    max_workers=max_workers,
+                    should_stop=should_stop,
+                    progress_callback=progress_callback,
                 )
                 if result is None:
                     return None  # Stopped
@@ -465,7 +483,10 @@ class AlbumScanner:
 
         # Get fingerprints for all tracks using parallel processing
         result = self._fingerprint_tracks_parallel(
-            tracks, max_workers=max_workers, should_stop=should_stop
+            tracks,
+            max_workers=max_workers,
+            should_stop=should_stop,
+            progress_callback=progress_callback,
         )
         if result is None:
             return None  # Stopped
