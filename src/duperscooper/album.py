@@ -159,7 +159,8 @@ class AlbumScanner:
                     album_dir, should_stop, max_workers=max_workers
                 )
                 if album is None:
-                    # Stopped during metadata extraction
+                    # Explicitly stopped by user (should_stop callback)
+                    print(f"DEBUG: Scan stopped by user at album {idx}/{total_albums}")
                     break
                 albums.append(album)
 
@@ -323,14 +324,25 @@ class AlbumScanner:
                     assert isinstance(fingerprint, list)
                     fingerprints[idx] = fingerprint
                 except Exception as e:
-                    print(f"ERROR: Failed to fingerprint {tracks[idx]}: {e}")
-                    return None
+                    # Log the error but continue processing other tracks
+                    print(f"WARNING: Failed to fingerprint {tracks[idx]}: {e}")
+                    # Keep the None placeholder for this track
 
-        # Ensure all fingerprints were computed
-        if None in fingerprints:
-            return None
+        # Filter out failed tracks - return partial fingerprints
+        # This allows albums with some corrupted tracks to still be processed
+        valid_fingerprints = [fp for fp in fingerprints if fp is not None]
 
-        return fingerprints  # type: ignore
+        if not valid_fingerprints:
+            # All tracks failed - raise exception to skip this album
+            raise ValueError("All tracks failed fingerprinting")
+
+        if len(valid_fingerprints) < len(tracks):
+            print(
+                f"WARNING: Only {len(valid_fingerprints)}/{len(tracks)} tracks "
+                "fingerprinted successfully"
+            )
+
+        return valid_fingerprints
 
     def extract_album_metadata(
         self,

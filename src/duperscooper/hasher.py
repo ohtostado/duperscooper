@@ -181,9 +181,6 @@ class AudioHasher:
                 )
                 stdout, _ = proc.communicate(timeout=120)
 
-            if proc.returncode != 0:
-                raise subprocess.CalledProcessError(proc.returncode, cmd)
-
             t_elapsed = time.time() - t_start
 
             # Parse fpcalc output
@@ -196,7 +193,17 @@ class AudioHasher:
                     fingerprint = line.split("=")[1]
 
             if not fingerprint:
+                # Only raise if we got no fingerprint at all
+                # Exit code 3 means decoding errors but fingerprint may still be valid
+                if proc.returncode != 0:
+                    raise ValueError(
+                        f"fpcalc failed with exit code {proc.returncode} "
+                        f"and produced no fingerprint for {file_path}"
+                    )
                 raise ValueError("fpcalc did not return a fingerprint")
+
+            # If we got a fingerprint, accept it even if exit code is non-zero
+            # (exit code 3 = decoding errors but partial fingerprint is still usable)
 
             if debug and t_elapsed > 0.1:
                 file_size = file_path.stat().st_size / (1024 * 1024)
