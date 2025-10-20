@@ -4,7 +4,7 @@ import platform
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtGui import QAction, QCloseEvent
+from PySide6.QtGui import QAction, QCloseEvent, QResizeEvent
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
+from ..config.settings import Settings, save_window_size
 from ..utils.realtime_scanner import RealtimeScanThread
 from .dual_pane_viewer import DualPaneViewer
 from .settings_dialog import SettingsDialog
@@ -42,8 +43,8 @@ class MainWindow(QMainWindow):
         if platform.system() == "Darwin":  # macOS
             self.ui.menubar.setNativeMenuBar(False)
 
-        # Resize to match UI
-        self.resize(1200, 800)
+        # Restore window size from saved settings
+        self.resize(Settings.WINDOW_WIDTH, Settings.WINDOW_HEIGHT)
 
         # Connect signals
         self._connect_signals()
@@ -238,6 +239,14 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(
                 self, "Deletion Error", f"Failed to delete items:\n\n{str(e)}"
             )
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """Handle window resize - save new size to config."""
+        super().resizeEvent(event)
+
+        # Save new window size to config
+        new_size = event.size()
+        save_window_size(new_size.width(), new_size.height())
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Handle window close - clean up running threads."""

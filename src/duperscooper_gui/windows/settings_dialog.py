@@ -204,19 +204,6 @@ class SettingsDialog(QDialog):
         group = QGroupBox("UI Preferences")
         layout = QFormLayout()
 
-        # Window size
-        self.window_width = QSpinBox()
-        self.window_width.setRange(800, 3840)
-        self.window_width.setSingleStep(100)
-        self.window_width.setValue(self.config["ui"]["window_width"])
-        layout.addRow("Default Window Width:", self.window_width)
-
-        self.window_height = QSpinBox()
-        self.window_height.setRange(600, 2160)
-        self.window_height.setSingleStep(100)
-        self.window_height.setValue(self.config["ui"]["window_height"])
-        layout.addRow("Default Window Height:", self.window_height)
-
         # Auto expand groups
         self.auto_expand = QCheckBox()
         self.auto_expand.setChecked(self.config["ui"]["auto_expand_groups"])
@@ -284,8 +271,8 @@ class SettingsDialog(QDialog):
                     "default_paths": default_paths,
                 },
                 "ui": {
-                    "window_width": self.window_width.value(),
-                    "window_height": self.window_height.value(),
+                    "window_width": self.config["ui"]["window_width"],
+                    "window_height": self.config["ui"]["window_height"],
                     "auto_expand_groups": self.auto_expand.isChecked(),
                 },
             }

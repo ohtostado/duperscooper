@@ -73,6 +73,29 @@ def load_config() -> Dict[str, Any]:
         return tomllib.load(f)
 
 
+def save_window_size(width: int, height: int) -> None:
+    """
+    Save window size to config file.
+
+    Args:
+        width: Window width in pixels
+        height: Window height in pixels
+    """
+    import tomli_w
+
+    # Load current config
+    config = load_config()
+
+    # Update window size
+    config["ui"]["window_width"] = width
+    config["ui"]["window_height"] = height
+
+    # Write back to file
+    config_file = get_config_file()
+    with open(config_file, "wb") as f:
+        tomli_w.dump(config, f)
+
+
 # Load config once at module level
 _CONFIG = load_config()
 
