@@ -588,12 +588,15 @@ duperscooper --apply-rules scan.json --strategy custom --config my-rules.yaml --
 ### Optimization Tips
 
 - **Fingerprint Length** (New in v0.5.0):
-  - **Default**: First 120 seconds of each track (matches pyacoustid/MusicBrainz Picard)
-  - **Benefits**: 50-80% faster for albums longer than 2 minutes
-  - **Full file**: Use `--fingerprint-length 0` for complete accuracy
-  - **Faster scanning**: Use `--fingerprint-length 60` for quick scans
-  - **Rationale**: Most audio characteristics are in first 2 minutes; full-file
-    processing rarely improves accuracy
+  - **Default**: First 120 seconds of each track (fpcalc default, matches MusicBrainz)
+  - **Faster scanning**: Use `--fingerprint-length 60` for ~60% speedup with good accuracy
+  - **Full file**: Use `--fingerprint-length 0` for maximum accuracy (slower)
+  - **Performance** (measured on typical MP3):
+    - 60 seconds: ~0.12s per track (fastest, 60% faster than default)
+    - 120 seconds: ~0.31s per track (default, good balance)
+    - Full file: ~0.76s per track (most accurate but 6x slower than 60s)
+  - **Rationale**: Most audio characteristics captured in first 60-120 seconds;
+    full-file processing rarely needed except for very short tracks or classical music
 - **Caching**: Perceptual hashes are cached by file hash (SHA256), so
   unchanged files skip fingerprinting on subsequent runs
 - **Similarity Threshold**: Adjust `--similarity-threshold` (default 98.0%)

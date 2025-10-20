@@ -159,9 +159,14 @@ class AudioHasher:
             cmd = ["fpcalc"]
             if raw:
                 cmd.append("-raw")
-            # Add -length parameter (0 means process full file)
-            if fingerprint_length > 0:
+            # Add -length parameter only if different from fpcalc's default (120)
+            # 0 means process full file, 120 uses default (don't specify)
+            if fingerprint_length > 0 and fingerprint_length != 120:
                 cmd.extend(["-length", str(fingerprint_length)])
+            elif fingerprint_length == 0:
+                # Explicitly process full file
+                cmd.extend(["-length", "0"])
+            # else: fingerprint_length == 120, use fpcalc default (no parameter)
             cmd.append(str(file_path))
 
             t_start = time.time()
