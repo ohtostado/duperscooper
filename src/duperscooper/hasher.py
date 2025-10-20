@@ -359,14 +359,17 @@ class AudioHasher:
             )
             t_fp_elapsed = time.time() - t_fp_start
 
+            # Initialize timing variables
+            t_meta_elapsed = 0.0
+            t_cache_elapsed = 0.0
+            metadata = None
+
             # Store in cache as comma-separated string, along with metadata
             if self._cache:
                 t_cache_start = time.time()
                 fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
 
                 # Extract metadata at the same time to avoid double processing
-                metadata = None
-                t_meta_elapsed = 0.0
                 # Only cache metadata if using SQLiteCacheBackend (has set_by_path)
                 cache_supports_metadata = hasattr(self._cache, "set_by_path")
                 if cache_supports_metadata:
