@@ -191,12 +191,12 @@ class AlbumScanner:
             except Exception as e:
                 if self.verbose:
                     if self.simple_progress:
-                        print(f"ERROR: {album_dir}: {e}", flush=True)
+                        print(f"🛑 ERROR: {album_dir}: {e}", flush=True)
                     else:
                         # tqdm.write prints without disrupting progress bar
                         from tqdm import tqdm
 
-                        tqdm.write(f"Error processing {album_dir}: {e}")
+                        tqdm.write(f"🛑 Error processing {album_dir}: {e}")
 
         if self.verbose:
             print(f"Successfully processed {len(albums)} albums", flush=True)
@@ -361,7 +361,7 @@ class AlbumScanner:
         if len(valid_fingerprints) < len(tracks):
             failed_count = len(tracks) - len(valid_fingerprints)
             print(
-                f"WARNING: {failed_count} track(s) failed, "
+                f"⚠️ WARNING: {failed_count} track(s) failed, "
                 f"using {len(valid_fingerprints)}/{len(tracks)} successful tracks"
             )
 
@@ -470,7 +470,7 @@ class AlbumScanner:
             # All tracks have same MB ID
             musicbrainz_albumid = unique_mb_ids.pop()
         elif has_mixed_mb_ids and self.verbose:
-            print(f"Warning: {album_path} has mixed MusicBrainz IDs: {unique_mb_ids}")
+            print(f"⚠️ Warning: {album_path} has mixed MusicBrainz IDs: {unique_mb_ids}")
 
         # Extract album/artist names and disc info from first track as fallback
         (
@@ -513,7 +513,7 @@ class AlbumScanner:
                 quality_scores.append(quality_score)
             except Exception as e:
                 # Log but continue if metadata extraction fails
-                print(f"WARNING: Failed to get metadata for {track.name}: {e}")
+                print(f"⚠️ WARNING: Failed to get metadata for {track.name}: {e}")
                 quality_scores.append(0.0)
                 # Still need a placeholder hash for cache
                 track_hashes.append((str(track), ""))

@@ -864,7 +864,7 @@ def main() -> int:
         try:
             scan_file = Path(args.apply_rules)
             if not scan_file.exists():
-                print(f"Error: Scan file not found: {scan_file}", file=sys.stderr)
+                print(f"🛑 Error: Scan file not found: {scan_file}", file=sys.stderr)
                 return 1
 
             # Load scan results
@@ -959,10 +959,10 @@ def main() -> int:
                 return 0
 
         except ValueError as e:
-            print(f"Error: {e}", file=sys.stderr)
+            print(f"🛑 Error: {e}", file=sys.stderr)
             return 1
         except Exception as e:
-            print(f"Unexpected error: {e}", file=sys.stderr)
+            print(f"🛑 Unexpected error: {e}", file=sys.stderr)
             import traceback
 
             traceback.print_exc()
@@ -1017,7 +1017,7 @@ def main() -> int:
                 print(f"\nRestored {count} item(s) from batch {args.restore}")
             return 0
         except FileNotFoundError as e:
-            print(f"Error: {e}", file=sys.stderr)
+            print(f"🛑 Error: {e}", file=sys.stderr)
             return 1
 
     if args.restore_interactive:
@@ -1072,7 +1072,7 @@ def main() -> int:
                             f"✓ Restored {count} item(s) from {manifest['created_at']}"
                         )
                 except Exception as e:
-                    print(f"Error restoring manifest: {e}", file=sys.stderr)
+                    print(f"🛑 Error restoring manifest: {e}", file=sys.stderr)
             return 0
 
         # Interactive restoration loop
@@ -1132,7 +1132,7 @@ def main() -> int:
                     print()
 
                 except Exception as e:
-                    print(f"Error restoring manifest: {e}", file=sys.stderr)
+                    print(f"🛑 Error restoring manifest: {e}", file=sys.stderr)
                     continue
 
             except KeyboardInterrupt:
@@ -1150,7 +1150,7 @@ def main() -> int:
 
     # Require paths unless --clear-cache or staging commands
     if not args.paths:
-        print("Error: the following arguments are required: paths", file=sys.stderr)
+        print("🛑 Error: the following arguments are required: paths", file=sys.stderr)
         return 1
 
     # Handle --track-mode flag (overrides default album mode)
@@ -1159,11 +1159,14 @@ def main() -> int:
 
     # Validate album-mode-specific options
     if args.delete_duplicate_albums and not args.album_mode:
-        print("Error: --delete-duplicate-albums requires --album-mode", file=sys.stderr)
+        print(
+            "🛑 Error: --delete-duplicate-albums requires --album-mode",
+            file=sys.stderr,
+        )
         return 1
 
     if args.auto_delete_dupes and not args.album_mode:
-        print("Error: --auto-delete-dupes requires --album-mode", file=sys.stderr)
+        print("🛑 Error: --auto-delete-dupes requires --album-mode", file=sys.stderr)
         return 1
 
     # Album mode

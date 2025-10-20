@@ -196,7 +196,7 @@ class DuplicateFinder:
                 else:
                     print(f"Cache: {stats['hits']} hits, {stats['misses']} misses")
             if self.error_count > 0:
-                print(f"Encountered {self.error_count} error(s) during processing")
+                print(f"🛑 Encountered {self.error_count} error(s) during processing")
 
         return duplicates
 
@@ -453,7 +453,7 @@ class DuplicateFinder:
 
     def _log_error(self, message: str) -> None:
         """Log error message to stderr."""
-        print(f"ERROR: {message}", file=sys.stderr)
+        print(f"🛑 ERROR: {message}", file=sys.stderr)
         self.error_count += 1
 
 
