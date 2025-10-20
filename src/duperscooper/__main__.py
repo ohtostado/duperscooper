@@ -216,14 +216,31 @@ def _get_album_match_percentage(album: Any, best_album: Any, hasher: Any) -> flo
         return 100.0
     else:
         # Calculate fingerprint similarity to best album
-        sim: float = (
-            hasher.similarity_percentage(
-                best_album.fingerprints[0], album.fingerprints[0]
+        # Use same logic as album_similarity: compare ALL tracks, not just first
+        if not best_album.fingerprints or not album.fingerprints:
+            return 0.0
+
+        # Same track count: position-based matching
+        if len(best_album.fingerprints) == len(album.fingerprints):
+            similarities = []
+            for fp1, fp2 in zip(best_album.fingerprints, album.fingerprints):
+                track_similarity = hasher.similarity_percentage(fp1, fp2)
+                similarities.append(track_similarity)
+            avg_sim: float = (
+                sum(similarities) / len(similarities) if similarities else 0.0
             )
-            if best_album.fingerprints and album.fingerprints
-            else 0.0
-        )
-        return sim
+            return avg_sim
+        else:
+            # Different track counts: just compare first track as fallback
+            # (proper partial matching would require the AlbumDuplicateFinder instance)
+            fallback_sim: float = (
+                hasher.similarity_percentage(
+                    best_album.fingerprints[0], album.fingerprints[0]
+                )
+                if best_album.fingerprints and album.fingerprints
+                else 0.0
+            )
+            return fallback_sim
 
 
 def format_album_output_text(
