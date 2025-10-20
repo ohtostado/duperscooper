@@ -60,14 +60,37 @@ class SQLiteCacheBackend:
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
-        """Get thread-local database connection."""
+        """Get thread-local database connection with retry logic."""
         if not hasattr(self._local, "conn"):
-            conn: sqlite3.Connection = sqlite3.connect(str(self.db_path), timeout=30.0)
-            # Enable WAL mode for concurrent access
-            conn.execute("PRAGMA journal_mode=WAL")
-            # Enable foreign keys
-            conn.execute("PRAGMA foreign_keys=ON")
-            self._local.conn = conn
+            import time
+
+            max_retries = 5
+            retry_delay = 0.1  # Start with 100ms
+
+            for attempt in range(max_retries):
+                try:
+                    conn: sqlite3.Connection = sqlite3.connect(
+                        str(self.db_path), timeout=30.0
+                    )
+                    # Enable WAL mode for concurrent access
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    # Enable foreign keys
+                    conn.execute("PRAGMA foreign_keys=ON")
+                    # Increase cache size for better performance
+                    conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
+                    self._local.conn = conn
+                    break
+                except sqlite3.OperationalError as e:
+                    if attempt < max_retries - 1:
+                        # Exponential backoff
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
+                    else:
+                        raise RuntimeError(
+                            f"unable to open database file "
+                            f"after {max_retries} attempts: {e}"
+                        ) from e
+
         return self._local.conn  # type: ignore[no-any-return]
 
     def _init_db(self) -> None:
