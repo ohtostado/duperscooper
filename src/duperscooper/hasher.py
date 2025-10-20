@@ -153,7 +153,6 @@ class AudioHasher:
             Tuple of (duration_seconds, fingerprint_string)
         """
         try:
-            import os
             import time
 
             cmd = ["fpcalc"]
@@ -171,15 +170,14 @@ class AudioHasher:
 
             t_start = time.time()
             # Use Popen instead of subprocess.run for better control
-            # Redirect stderr to devnull to reduce I/O overhead
-            with open(os.devnull, "w") as devnull:
-                proc = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=devnull,
-                    text=True,
-                )
-                stdout, _ = proc.communicate(timeout=120)
+            # Redirect stderr to DEVNULL to reduce I/O overhead
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            )
+            stdout, _ = proc.communicate(timeout=120)
 
             t_elapsed = time.time() - t_start
 
