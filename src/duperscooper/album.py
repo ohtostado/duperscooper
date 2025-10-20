@@ -288,7 +288,7 @@ class AlbumScanner:
         tracks: List[Path],
         max_workers: int = 8,
         should_stop: Optional[Callable[[], bool]] = None,
-    ) -> Optional[List[List[int]]]:
+    ) -> Optional[Tuple[List[Path], List[List[int]]]]:
         """
         Fingerprint multiple tracks in parallel using ThreadPoolExecutor.
 
@@ -298,8 +298,9 @@ class AlbumScanner:
             should_stop: Optional callback to check if processing should stop
 
         Returns:
-            List of fingerprints (list of integers) for each track,
-            or None if stopped
+            Tuple of (successful_tracks, fingerprints) where both lists have
+            same length and correspond to each other. Returns None if stopped.
+            Failed tracks are excluded from both lists.
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -324,25 +325,33 @@ class AlbumScanner:
                     assert isinstance(fingerprint, list)
                     fingerprints[idx] = fingerprint
                 except Exception as e:
-                    # Log the error but continue processing other tracks
-                    print(f"WARNING: Failed to fingerprint {tracks[idx]}: {e}")
+                    # Log error but continue processing other tracks
+                    track_name = tracks[idx].name
+                    print(f"WARNING: Failed to fingerprint {track_name}: {e}")
                     # Keep the None placeholder for this track
 
-        # Filter out failed tracks - return partial fingerprints
-        # This allows albums with some corrupted tracks to still be processed
-        valid_fingerprints = [fp for fp in fingerprints if fp is not None]
+        # Filter out failed tracks - return successful tracks & fingerprints
+        # Allows albums with some corrupted tracks to still be processed
+        successful_tracks = []
+        valid_fingerprints = []
+
+        for i, fp in enumerate(fingerprints):
+            if fp is not None:
+                successful_tracks.append(tracks[i])
+                valid_fingerprints.append(fp)
 
         if not valid_fingerprints:
             # All tracks failed - raise exception to skip this album
             raise ValueError("All tracks failed fingerprinting")
 
         if len(valid_fingerprints) < len(tracks):
+            failed_count = len(tracks) - len(valid_fingerprints)
             print(
-                f"WARNING: Only {len(valid_fingerprints)}/{len(tracks)} tracks "
-                "fingerprinted successfully"
+                f"WARNING: {failed_count} track(s) failed, "
+                f"using {len(valid_fingerprints)}/{len(tracks)} successful tracks"
             )
 
-        return valid_fingerprints
+        return (successful_tracks, valid_fingerprints)
 
     def extract_album_metadata(
         self,
@@ -390,14 +399,15 @@ class AlbumScanner:
                 import time
 
                 t_start = time.time()
-                cached_fingerprints = self._fingerprint_tracks_parallel(
+                result = self._fingerprint_tracks_parallel(
                     tracks, max_workers=max_workers, should_stop=should_stop
                 )
-                if cached_fingerprints is None:
+                if result is None:
                     return None  # Stopped
 
+                successful_tracks, cached_fingerprints = result
                 total_time = time.time() - t_start
-                ntracks = len(tracks)
+                ntracks = len(successful_tracks)
                 msg = f"DEBUG: Total fingerprints: {total_time:.3f}s for {ntracks}"
                 print(msg)
 
@@ -407,7 +417,7 @@ class AlbumScanner:
 
                 return Album(
                     path=album_path,
-                    tracks=tracks,
+                    tracks=successful_tracks,
                     track_count=cached_album["track_count"],
                     musicbrainz_albumid=cached_album["musicbrainz_albumid"],
                     album_name=cached_album["album_name"],
@@ -453,32 +463,38 @@ class AlbumScanner:
         ) = self.get_album_tags(tracks[0])
 
         # Get fingerprints for all tracks using parallel processing
-        fingerprints = self._fingerprint_tracks_parallel(
+        result = self._fingerprint_tracks_parallel(
             tracks, max_workers=max_workers, should_stop=should_stop
         )
-        if fingerprints is None:
+        if result is None:
             return None  # Stopped
 
-        # Get metadata for all tracks (quick, mostly cached)
+        successful_tracks, fingerprints = result
+
+        # Get metadata for successful tracks only (quick, mostly cached)
         total_size = 0
         quality_scores = []
         track_hashes = []
 
-        for track in tracks:
-            # Get file size
-            total_size += track.stat().st_size
-
-            # Get file hash for cache storage
-            file_hash = self.hasher.compute_file_hash(track)
-            track_hashes.append((str(track), file_hash))
-
-            # Get quality metadata (using fast cached version)
+        for track in successful_tracks:
             try:
+                # Get file size
+                total_size += track.stat().st_size
+
+                # Get file hash for cache storage
+                file_hash = self.hasher.compute_file_hash(track)
+                track_hashes.append((str(track), file_hash))
+
+                # Get quality metadata (using fast cached version)
                 metadata = self.hasher.get_audio_metadata_cached(track)
                 quality_score = self.hasher.calculate_quality_score(metadata)
                 quality_scores.append(quality_score)
-            except Exception:
+            except Exception as e:
+                # Log but continue if metadata extraction fails
+                print(f"WARNING: Failed to get metadata for {track.name}: {e}")
                 quality_scores.append(0.0)
+                # Still need a placeholder hash for cache
+                track_hashes.append((str(track), ""))
 
         # Calculate average quality score
         avg_quality_score = (
@@ -512,8 +528,8 @@ class AlbumScanner:
 
         return Album(
             path=album_path,
-            tracks=tracks,
-            track_count=len(tracks),
+            tracks=successful_tracks,
+            track_count=len(successful_tracks),
             musicbrainz_albumid=musicbrainz_albumid,
             album_name=album_name,
             artist_name=artist_name,
