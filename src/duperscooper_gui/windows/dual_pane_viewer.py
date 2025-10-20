@@ -561,8 +561,10 @@ class DualPaneViewer(QWidget):
         self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
-        # Button states updated via on_paths_selection_changed
+        # Update path-related buttons
         self.on_paths_selection_changed()
+        # Update result-related buttons (export, stage, etc.)
+        self.update_button_states()
 
         # total_groups = self.ui.resultsTree.topLevelItemCount()
         # self.ui.statusLabel.setText(
@@ -580,8 +582,10 @@ class DualPaneViewer(QWidget):
         self.ui.pathsList.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.addPathButton.setEnabled(True)  # type: ignore[attr-defined]
         self.ui.modeCombo.setEnabled(True)  # type: ignore[attr-defined]
-        # Button states updated via on_paths_selection_changed
+        # Update path-related buttons
         self.on_paths_selection_changed()
+        # Update result-related buttons (export, stage, etc.) for partial results
+        self.update_button_states()
         self.ui.statusLabel.setText(f"Scan error: {error_msg}")  # type: ignore[attr-defined]
 
         QMessageBox.critical(

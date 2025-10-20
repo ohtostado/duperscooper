@@ -1,0 +1,2552 @@
+DEBUG: Stop detected in _find_album_directories at 4400 files
+DEBUG: Cache miss - computing 01 - Visage.flac
+  DEBUG: fpcalc took 0.572s (24.51MB file, 3.88min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/01 - Visage.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.658s (fp=0.575s, meta=0.080s, cache=0.083s) [24.51MB FLAC 44100Hz 16bit 880kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/01 - Visage.flac
+DEBUG: Track 1/10 hash took 0.659s
+DEBUG: Cache miss - computing 02 - Blocks On Blocks.flac
+  DEBUG: fpcalc took 0.493s (23.23MB file, 4.00min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/02 - Blocks On Blocks.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.558s (fp=0.493s, meta=0.063s, cache=0.065s) [23.23MB FLAC 44100Hz 16bit 811kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/02 - Blocks On Blocks.flac
+DEBUG: Track 2/10 hash took 0.558s
+DEBUG: Cache miss - computing 03 - The Dancer.flac
+  DEBUG: fpcalc took 0.471s (19.72MB file, 3.67min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/03 - The Dancer.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.535s (fp=0.475s, meta=0.060s, cache=0.060s) [19.72MB FLAC 44100Hz 16bit 750kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/03 - The Dancer.flac
+DEBUG: Track 3/10 hash took 0.535s
+DEBUG: Cache miss - computing 04 - Tar.flac
+  DEBUG: fpcalc took 0.462s (21.00MB file, 3.53min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/04 - Tar.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.522s (fp=0.463s, meta=0.058s, cache=0.059s) [21.00MB FLAC 44100Hz 16bit 828kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/04 - Tar.flac
+DEBUG: Track 4/10 hash took 0.522s
+DEBUG: Cache miss - computing 05 - Fade To Grey.flac
+  DEBUG: fpcalc took 0.452s (22.58MB file, 4.03min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/05 - Fade To Grey.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.513s (fp=0.453s, meta=0.060s, cache=0.060s) [22.58MB FLAC 44100Hz 16bit 781kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/05 - Fade To Grey.flac
+DEBUG: Track 5/10 hash took 0.513s
+DEBUG: Cache miss - computing 06 - Malpaso Man.flac
+  DEBUG: fpcalc took 0.491s (25.64MB file, 4.23min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/06 - Malpaso Man.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.551s (fp=0.492s, meta=0.059s, cache=0.060s) [25.64MB FLAC 44100Hz 16bit 844kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/06 - Malpaso Man.flac
+DEBUG: Track 6/10 hash took 0.551s
+DEBUG: Cache miss - computing 07 - Mind Of A Toy.flac
+  DEBUG: fpcalc took 0.447s (24.77MB file, 4.47min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/07 - Mind Of A Toy.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.513s (fp=0.448s, meta=0.064s, cache=0.065s) [24.77MB FLAC 44100Hz 16bit 773kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/07 - Mind Of A Toy.flac
+DEBUG: Track 7/10 hash took 0.513s
+DEBUG: Cache miss - computing 08 - Moon Over Moscow.flac
+  DEBUG: fpcalc took 0.483s (22.52MB file, 4.00min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/08 - Moon Over Moscow.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.545s (fp=0.483s, meta=0.061s, cache=0.062s) [22.52MB FLAC 44100Hz 16bit 784kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/08 - Moon Over Moscow.flac
+DEBUG: Track 8/10 hash took 0.545s
+DEBUG: Cache miss - computing 09 - Visa-age.flac
+  DEBUG: fpcalc took 0.498s (23.87MB file, 4.33min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/09 - Visa-age.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.562s (fp=0.498s, meta=0.063s, cache=0.063s) [23.87MB FLAC 44100Hz 16bit 769kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/09 - Visa-age.flac
+DEBUG: Track 9/10 hash took 0.562s
+DEBUG: Cache miss - computing 10 - The Steps.flac
+  DEBUG: fpcalc took 0.376s (14.82MB file, 3.23min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/10 - The Steps.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.456s (fp=0.376s, meta=0.079s, cache=0.080s) [14.82MB FLAC 44100Hz 16bit 639kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Visage/[1980-11-10] Visage [Polydor 2391 494]/10 - The Steps.flac
+DEBUG: Track 10/10 hash took 0.457s
+DEBUG: Total fingerprints: 5.416s for 10
+DEBUG: Cache miss - computing 01 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ I․ Allegro.flac
+  DEBUG: fpcalc took 0.566s (19.77MB file, 3.63min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/01 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ I․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.631s (fp=0.566s, meta=0.064s, cache=0.064s) [19.77MB FLAC 44100Hz 16bit 758kbps]                                         File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/01 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ I․ Allegro.flac
+DEBUG: Track 1/19 hash took 0.631s
+DEBUG: Cache miss - computing 02 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ II․ Largo.flac
+  DEBUG: fpcalc took 0.367s (12.32MB file, 2.73min audio, processing_ratio=0.002x realtime)                                                 File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/02 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ II․ Largo.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.423s (fp=0.367s, meta=0.055s, cache=0.056s) [12.32MB FLAC 44100Hz 16bit 627kbps]                                         File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/02 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ II․ Largo.flac
+DEBUG: Track 2/19 hash took 0.423s
+DEBUG: Cache miss - computing 03 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ III․ Allegro.flac
+  DEBUG: fpcalc took 0.545s (16.50MB file, 2.83min audio, processing_ratio=0.003x realtime)                                                 File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/03 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ III․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.602s (fp=0.545s, meta=0.056s, cache=0.057s) [16.50MB FLAC 44100Hz 16bit 812kbps]                                         File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/03 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 1 ″La Primavera″∶ III․ Allegro.flac
+DEBUG: Track 3/19 hash took 0.602s
+DEBUG: Cache miss - computing 04 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ I․ Allegro non molto.flac
+  DEBUG: fpcalc took 0.414s (25.64MB file, 5.22min audio, processing_ratio=0.001x realtime)                                                 File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/04 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ I․ Allegro non molto.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.477s (fp=0.415s, meta=0.062s, cache=0.062s) [25.64MB FLAC 44100Hz 16bit 686kbps]                                         File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/04 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ I․ Allegro non molto.flac
+DEBUG: Track 4/19 hash took 0.477s
+DEBUG: Cache miss - computing 05 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ II․ Adagio⁄Presto.flac
+  DEBUG: fpcalc took 0.336s (9.90MB file, 2.17min audio, processing_ratio=0.003x realtime)                                                  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/05 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ II․ Adagio⁄Presto.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.390s (fp=0.336s, meta=0.053s, cache=0.054s) [9.90MB FLAC 44100Hz 16bit 635kbps]                                          File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/05 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ II․ Adagio⁄Presto.flac
+DEBUG: Track 5/19 hash took 0.390s
+DEBUG: Cache miss - computing 06 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ III․ Presto.flac
+  DEBUG: fpcalc took 0.404s (16.63MB file, 2.90min audio, processing_ratio=0.002x realtime)                                                 File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/06 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ III․ Presto.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.460s (fp=0.405s, meta=0.055s, cache=0.055s) [16.63MB FLAC 44100Hz 16bit 799kbps]                                         File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/06 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 2 ″L'Estate″∶ III․ Presto.flac
+DEBUG: Track 6/19 hash took 0.460s
+DEBUG: Cache miss - computing 07 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ I․ Allegro.flac
+  DEBUG: fpcalc took 0.427s (28.04MB file, 5.43min audio, processing_ratio=0.001x realtime)                                                 File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/07 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ I․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.483s (fp=0.427s, meta=0.055s, cache=0.056s) [28.04MB FLAC 44100Hz 16bit 720kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/07 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ I․ Allegro.flac
+DEBUG: Track 7/19 hash took 0.483s                                                                                                        DEBUG: Cache miss - computing 08 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ II․ Adagio molto.flac
+  DEBUG: fpcalc took 0.247s (5.32MB file, 1.52min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/08 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ II․ Adagio molto.flac
+  DEBUG: Extracting metadata with ffprobe...                                                                                                DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.302s (fp=0.247s, meta=0.055s, cache=0.055s) [5.32MB FLAC 44100Hz 16bit 487kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/08 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ II․ Adagio molto.flac
+DEBUG: Track 8/19 hash took 0.303s                                                                                                        DEBUG: Cache miss - computing 09 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ III․ Allegro.flac
+  DEBUG: fpcalc took 0.543s (17.72MB file, 3.55min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/09 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ III․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...                                                                                                DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.605s (fp=0.543s, meta=0.061s, cache=0.062s) [17.72MB FLAC 44100Hz 16bit 697kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/09 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 3 ″L'Autunno″∶ III․ Allegro.flac
+DEBUG: Track 9/19 hash took 0.605s                                                                                                        DEBUG: Cache miss - computing 10 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ I․ Allegro non molto.flac
+  DEBUG: fpcalc took 0.415s (17.16MB file, 3.12min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/10 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ I․ Allegro non molto.flac
+  DEBUG: Extracting metadata with ffprobe...                                                                                                DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.471s (fp=0.415s, meta=0.055s, cache=0.056s) [17.16MB FLAC 44100Hz 16bit 769kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/10 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ I․ Allegro non molto.flac
+DEBUG: Track 10/19 hash took 0.471s                                                                                                       DEBUG: Cache miss - computing 11 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ II․ Largo.flac
+  DEBUG: fpcalc took 0.375s (14.13MB file, 2.97min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/11 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ II․ Largo.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.431s (fp=0.375s, meta=0.055s, cache=0.056s) [14.13MB FLAC 44100Hz 16bit 662kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/11 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ II․ Largo.flac
+DEBUG: Track 11/19 hash took 0.431s
+DEBUG: Cache miss - computing 12 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ III․ Allegro.flac
+  DEBUG: fpcalc took 0.383s (15.71MB file, 3.07min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/12 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ III․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.439s (fp=0.383s, meta=0.055s, cache=0.056s) [15.71MB FLAC 44100Hz 16bit 715kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/12 - Antonio Vivaldi - Concerto in E major, op․ 8 no․ 4 ″L'Inverno″∶ III․ Allegro.flac
+DEBUG: Track 12/19 hash took 0.439s
+DEBUG: Cache miss - computing 13 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ I․ Vivace.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.158s (fp=0.100s, meta=0.058s, cache=0.058s) [1.00MB FLAC 44100Hz 16bit 900kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/13 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ I․ Vivace.flac
+DEBUG: Track 13/19 hash took 0.158s
+DEBUG: Cache miss - computing 14 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ II․ Grave.flac
+  DEBUG: fpcalc took 0.269s (5.23MB file, 1.17min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/14 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ II․ Grave.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.324s (fp=0.269s, meta=0.054s, cache=0.055s) [5.23MB FLAC 44100Hz 16bit 620kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/14 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ II․ Grave.flac
+DEBUG: Track 14/19 hash took 0.324s
+DEBUG: Cache miss - computing 15 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ III․ Allegro.flac
+  DEBUG: fpcalc took 0.305s (8.84MB file, 1.40min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/15 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ III․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.360s (fp=0.306s, meta=0.054s, cache=0.055s) [8.84MB FLAC 44100Hz 16bit 879kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/15 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ III․ Allegro.flac
+DEBUG: Track 15/19 hash took 0.361s
+DEBUG: Cache miss - computing 16 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ IV․ Adagio⁄Allegro⁄Adagio.flac
+  DEBUG: fpcalc took 0.389s (15.77MB file, 2.98min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/16 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ IV․ Adagio⁄Allegro⁄Adagio.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.451s (fp=0.389s, meta=0.062s, cache=0.062s) [15.77MB FLAC 44100Hz 16bit 737kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/16 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ IV․ Adagio⁄Allegro⁄Adagio.flac
+DEBUG: Track 16/19 hash took 0.451s
+DEBUG: Cache miss - computing 17 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ V․ Vivace.flac
+  DEBUG: fpcalc took 0.248s (7.21MB file, 1.40min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/17 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ V․ Vivace.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.307s (fp=0.248s, meta=0.059s, cache=0.059s) [7.21MB FLAC 44100Hz 16bit 718kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/17 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ V․ Vivace.flac
+DEBUG: Track 17/19 hash took 0.308s
+DEBUG: Cache miss - computing 18 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VI․ Allegro.flac
+  DEBUG: fpcalc took 0.254s (6.74MB file, 1.13min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/18 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VI․ Allegro.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.310s (fp=0.254s, meta=0.055s, cache=0.056s) [6.74MB FLAC 44100Hz 16bit 823kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/18 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VI․ Allegro.flac
+DEBUG: Track 18/19 hash took 0.310s
+DEBUG: Cache miss - computing 19 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VII․ Pastorale.flac
+  DEBUG: fpcalc took 0.388s (14.22MB file, 3.00min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/19 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VII․ Pastorale.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.476s (fp=0.389s, meta=0.087s, cache=0.088s) [14.22MB FLAC 44100Hz 16bit 662kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Vivaldi, Antonio; Red Priest/[2003-09-30] Red Priest's Vivaldi∶ The 4 Seasons [Dorian Recordings DOR-90317]/19 - Arcangelo Corelli - Concerto Grosso in G minor, op․ 6 no․ 8 ″Fatto per la Notte di Natale″∶ VII․ Pastorale.flac
+DEBUG: Track 19/19 hash took 0.476s
+DEBUG: Total fingerprints: 8.104s for 19
+DEBUG: Cache miss - computing 01 - Experiment.flac
+  DEBUG: fpcalc took 0.631s (43.54MB file, 6.18min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/01 - Experiment.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.702s (fp=0.632s, meta=0.069s, cache=0.070s) [43.54MB FLAC 44100Hz 16bit 983kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/01 - Experiment.flac
+DEBUG: Track 1/9 hash took 0.702s
+DEBUG: Cache miss - computing 02 - Tribal Convictions.flac
+  DEBUG: fpcalc took 0.545s (34.02MB file, 4.85min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/02 - Tribal Convictions.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.611s (fp=0.545s, meta=0.066s, cache=0.066s) [34.02MB FLAC 44100Hz 16bit 979kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/02 - Tribal Convictions.flac
+DEBUG: Track 2/9 hash took 0.612s
+DEBUG: Cache miss - computing 03 - Chaosmöngers.flac
+  DEBUG: fpcalc took 0.604s (34.42MB file, 4.68min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/03 - Chaosmöngers.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.666s (fp=0.604s, meta=0.061s, cache=0.062s) [34.42MB FLAC 44100Hz 16bit 1024kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/03 - Chaosmöngers.flac
+DEBUG: Track 3/9 hash took 0.666s
+DEBUG: Cache miss - computing 04 - Technocratic Manipulators.flac
+  DEBUG: fpcalc took 0.545s (32.69MB file, 4.60min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/04 - Technocratic Manipulators.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.608s (fp=0.546s, meta=0.062s, cache=0.063s) [32.69MB FLAC 44100Hz 16bit 990kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/04 - Technocratic Manipulators.flac
+DEBUG: Track 4/9 hash took 0.609s
+DEBUG: Cache miss - computing 05 - Macrosolutions to Megaproblems.flac
+  DEBUG: fpcalc took 0.499s (36.76MB file, 5.57min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/05 - Macrosolutions to Megaproblems.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.562s (fp=0.500s, meta=0.062s, cache=0.063s) [36.76MB FLAC 44100Hz 16bit 922kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/05 - Macrosolutions to Megaproblems.flac
+DEBUG: Track 5/9 hash took 0.562s
+DEBUG: Cache miss - computing 06 - Brain Scan.flac
+  DEBUG: fpcalc took 0.689s (35.20MB file, 5.15min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/06 - Brain Scan.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.751s (fp=0.690s, meta=0.061s, cache=0.062s) [35.20MB FLAC 44100Hz 16bit 954kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/06 - Brain Scan.flac
+DEBUG: Track 6/9 hash took 0.751s
+DEBUG: Cache miss - computing 07 - Psychic Vacuum.flac
+  DEBUG: fpcalc took 0.614s (28.74MB file, 3.83min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/07 - Psychic Vacuum.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.682s (fp=0.615s, meta=0.067s, cache=0.067s) [28.74MB FLAC 44100Hz 16bit 1044kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/07 - Psychic Vacuum.flac
+DEBUG: Track 7/9 hash took 0.682s
+DEBUG: Cache miss - computing 08 - Cosmic Drama.flac
+  DEBUG: fpcalc took 0.567s (32.92MB file, 4.92min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/08 - Cosmic Drama.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.630s (fp=0.567s, meta=0.062s, cache=0.063s) [32.92MB FLAC 44100Hz 16bit 933kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/08 - Cosmic Drama.flac
+DEBUG: Track 8/9 hash took 0.631s
+DEBUG: Cache miss - computing 09 - Batman.flac
+  DEBUG: fpcalc took 0.404s (13.29MB file, 1.72min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/09 - Batman.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.458s (fp=0.404s, meta=0.053s, cache=0.054s) [13.29MB FLAC 44100Hz 16bit 1074kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-artist/v/Voivod/[1988-06-29] Dimension Hatröss [Noise Records 4800-2-U]/09 - Batman.flac
+DEBUG: Track 9/9 hash took 0.458s
+DEBUG: Total fingerprints: 5.673s for 9
+DEBUG: Cache hit for 01 - Field Lines Cartographer - Ghosts of Blood & Iron.flac
+DEBUG: Track 1/14 hash took 0.001s
+DEBUG: Cache hit for 02 - Vic Mars - Mortimer's Cross (1461).flac
+DEBUG: Track 2/14 hash took 0.000s
+DEBUG: Cache hit for 03 - Bare Bones - [ fears ] avaunt! upon 'the' hill.flac
+DEBUG: Track 3/14 hash took 0.000s
+DEBUG: Cache hit for 04 - Assembled Minds - 3am M5 Field Raid.flac
+DEBUG: Track 4/14 hash took 0.000s
+DEBUG: Cache hit for 05 - Grey Frequency - Agrarian Lament.flac
+DEBUG: Track 5/14 hash took 0.000s
+DEBUG: Cache hit for 06 - Endurance - Beneath the Cherry Trees.flac
+DEBUG: Track 6/14 hash took 0.000s
+DEBUG: Cache hit for 07 - Listening Center - Congested District.flac
+DEBUG: Track 7/14 hash took 0.000s
+DEBUG: Cache hit for 08 - Pulselovers - Badby 80.flac
+DEBUG: Track 8/14 hash took 0.000s
+DEBUG: Cache hit for 09 - Sproatly Smith - Ribbons.flac
+DEBUG: Track 9/14 hash took 0.000s
+DEBUG: Cache hit for 10 - Polypores - Graveney Marsh.flac
+DEBUG: Track 10/14 hash took 0.000s
+DEBUG: Cache hit for 11 - Depatterning - Last Best West (circ․ 1896).flac
+DEBUG: Track 11/14 hash took 0.000s
+DEBUG: Cache hit for 12 - Time Attendant - Black Slab.flac
+DEBUG: Track 12/14 hash took 0.000s
+DEBUG: Cache hit for 13 - A Year In The Country ⁄ Stephen Prince - A Mutable History Under a Bright June Sky.flac
+DEBUG: Track 13/14 hash took 0.000s
+DEBUG: Cache hit for 14 - David Colohan - Beyond Jack's Gate.flac
+DEBUG: Track 14/14 hash took 0.000s
+DEBUG: Total fingerprints: 0.004s for 14
+DEBUG: Cache hit for 01 - Field Lines Cartographer - OPS-4.flac
+DEBUG: Track 1/13 hash took 0.000s
+DEBUG: Cache hit for 02 - Pulselovers - Lonely Puck.flac
+DEBUG: Track 2/13 hash took 0.000s
+DEBUG: Cache hit for 03 - Magpahi - Chaika.flac
+DEBUG: Track 3/13 hash took 0.000s
+DEBUG: Cache hit for 04 - Howlround - Night Call, Collect.flac
+DEBUG: Track 4/13 hash took 0.000s
+DEBUG: Cache hit for 05 - Vic Mars - X-3.flac
+DEBUG: Track 5/13 hash took 0.000s
+DEBUG: Cache hit for 06 - Unit One - Voyages of the Moon.flac
+DEBUG: Track 6/13 hash took 0.000s
+DEBUG: Cache hit for 07 - A Year In The Country ⁄ Stephen Prince - The March of Progress⁄Frontier Dreams.flac
+DEBUG: Track 7/13 hash took 0.000s
+DEBUG: Cache hit for 08 - Keith Seatman - 093A-Prospero.flac
+DEBUG: Track 8/13 hash took 0.000s
+DEBUG: Cache hit for 09 - Grey Frequency - Phantom Cosmonauts.flac
+DEBUG: Track 9/13 hash took 0.000s
+DEBUG: Cache hit for 10 - Time Attendant - Adrift.flac
+DEBUG: Track 10/13 hash took 0.000s
+DEBUG: Cache hit for 11 - Listening Center - Mléčný Perihelion Weekend.flac
+DEBUG: Track 11/13 hash took 0.000s
+DEBUG: Cache hit for 12 - Polypores - The Amateur Astronomer.flac
+DEBUG: Track 12/13 hash took 0.000s
+DEBUG: Cache hit for 13 - David Colohan - Landfall at William Creek.flac
+DEBUG: Track 13/13 hash took 0.000s
+DEBUG: Total fingerprints: 0.004s for 13
+DEBUG: Cache hit for 01 - The Heartwood Institute - Birkby and Allbright Mine.flac
+DEBUG: Track 1/17 hash took 0.001s
+DEBUG: Cache hit for 02 - Quakers Stang - The Hoffman Kiln.flac
+DEBUG: Track 2/17 hash took 0.001s
+DEBUG: Cache hit for 03 - Depatterning - Of Looms in the Housen.flac
+DEBUG: Track 3/17 hash took 0.000s
+DEBUG: Cache hit for 04 - Embertides - Ash, Oak & Sulphur.flac
+DEBUG: Track 4/17 hash took 0.000s
+DEBUG: Cache hit for 05 - Dom Cooper - Metallurgy.flac
+DEBUG: Track 5/17 hash took 0.000s
+DEBUG: Cache hit for 06 - Field Lines Cartographer - The Mill in the Forest.flac
+DEBUG: Track 6/17 hash took 0.000s
+DEBUG: Cache hit for 07 - Grey Frequency - Nottingham Canal.flac
+DEBUG: Track 7/17 hash took 0.000s
+DEBUG: Cache hit for 08 - Howlround - A Closed Circuit.flac
+DEBUG: Track 8/17 hash took 0.000s
+DEBUG: Cache hit for 09 - The Soulless Party - Rattler to the Tower.flac
+DEBUG: Track 9/17 hash took 0.000s
+DEBUG: Cache hit for 10 - Keith Seatman - Rural Flight.flac
+DEBUG: Track 10/17 hash took 0.000s
+DEBUG: Cache hit for 11 - Listening Center - Clarion of the Collapsed Complex.flac
+DEBUG: Track 11/17 hash took 0.000s
+DEBUG: Cache hit for 12 - Spaceship - The Stones Speak of Short Lives.flac
+DEBUG: Track 12/17 hash took 0.000s
+DEBUG: Cache hit for 13 - Sproatly Smith - Canary Babies.flac
+DEBUG: Track 13/17 hash took 0.000s
+DEBUG: Cache hit for 14 - Pulselovers - Fuggles.flac
+DEBUG: Track 14/17 hash took 0.000s
+DEBUG: Cache hit for 15 - Time Attendant - Hidden Parameters.flac
+DEBUG: Track 15/17 hash took 0.000s
+DEBUG: Cache hit for 16 - Vic Mars - Watchtower and Engine.flac
+DEBUG: Track 16/17 hash took 0.000s
+DEBUG: Cache hit for 17 - A Year In The Country ⁄ Stephen Prince - The Structure⁄Respite.flac
+DEBUG: Track 17/17 hash took 0.000s
+DEBUG: Total fingerprints: 0.006s for 17
+DEBUG: Cache hit for 01 - Grey Frequency - In a Clearing.flac
+DEBUG: Track 1/11 hash took 0.002s
+DEBUG: Cache hit for 02 - Field Lines Cartographer - A Thousand Autumns.flac
+DEBUG: Track 2/11 hash took 0.000s
+DEBUG: Cache hit for 03 - Widow's Weeds feat․ Kitchen Cynics - The Brave Old Oak.flac
+DEBUG: Track 3/11 hash took 0.000s
+DEBUG: Cache hit for 04 - Depatterning - Ook⁄Dair.flac
+DEBUG: Track 4/11 hash took 0.000s
+DEBUG: Cache hit for 05 - A Year In The Country ⁄ Stephen Prince - Radicle Ether.flac
+DEBUG: Track 5/11 hash took 0.000s
+DEBUG: Cache hit for 06 - Phonofiction - Xylem Flow.flac
+DEBUG: Track 6/11 hash took 0.000s
+DEBUG: Cache hit for 07 - Pulselovers - Circles Within Circles.flac
+DEBUG: Track 7/11 hash took 0.000s
+DEBUG: Cache hit for 08 - Sproatly Smith - Watching You.flac
+DEBUG: Track 8/11 hash took 0.000s
+DEBUG: Cache hit for 09 - Vic Mars - The Test of Time.flac
+DEBUG: Track 9/11 hash took 0.000s
+DEBUG: Cache hit for 10 - The Heartwood Institute - The Trees That Watch the Stones.flac
+DEBUG: Track 10/11 hash took 0.001s
+DEBUG: Cache hit for 11 - Howlround - The Winter Dream of Novel's Oak.flac
+DEBUG: Track 11/11 hash took 0.000s
+DEBUG: Total fingerprints: 0.006s for 11
+DEBUG: Cache hit for 01 - Pulselovers - Woodford Halse to Fenny Compton in Five Minutes.flac
+DEBUG: Track 1/12 hash took 0.001s
+DEBUG: Cache hit for 02 - Sproatly Smith - The 19․48 From Fawley.flac
+DEBUG: Track 2/12 hash took 0.000s
+DEBUG: Cache hit for 03 - The Séance - Elm Grove Portal.flac
+DEBUG: Track 3/12 hash took 0.000s
+DEBUG: Cache hit for 04 - Widow's Weeds - The Ghosts of Salzcraggie.flac
+DEBUG: Track 4/12 hash took 0.001s
+DEBUG: Cache hit for 05 - The Heartwood Institute - The Solway Viaduct.flac
+DEBUG: Track 5/12 hash took 0.000s
+DEBUG: Cache hit for 06 - Depatterning - The Beets at Wellington Bridge.flac
+DEBUG: Track 6/12 hash took 0.000s
+DEBUG: Cache hit for 07 - Howlround - Thrown Open Wide.flac
+DEBUG: Track 7/12 hash took 0.000s
+DEBUG: Cache hit for 08 - A Year In The Country ⁄ Stephen Prince - Silent Treasure.flac
+DEBUG: Track 8/12 hash took 0.000s
+DEBUG: Cache hit for 09 - Field Lines Cartographer - Ghosts of the Wires.flac
+DEBUG: Track 9/12 hash took 0.000s
+DEBUG: Cache hit for 10 - Dom Cooper and Zosia Sztykowski - Summonings.flac
+DEBUG: Track 10/12 hash took 0.000s
+DEBUG: Cache hit for 11 - Keith Seatman - Along the Valley Sidings.flac
+DEBUG: Track 11/12 hash took 0.000s
+DEBUG: Cache hit for 12 - Grey Frequency - An Empty Platform.flac
+DEBUG: Track 12/12 hash took 0.000s
+DEBUG: Total fingerprints: 0.006s for 12
+DEBUG: Cache hit for 01 - The Infernal Engines (1877).flac
+DEBUG: Track 1/7 hash took 0.001s
+DEBUG: Cache hit for 02 - Night Wraiths (1878).flac
+DEBUG: Track 2/7 hash took 0.001s
+DEBUG: Cache hit for 03 - I Have Brought a Myriad Fractures and Found Some Form of Peace (1879).flac
+DEBUG: Track 3/7 hash took 0.000s
+DEBUG: Cache hit for 04 - Ellen's Theme (1983).flac
+DEBUG: Track 4/7 hash took 0.000s
+DEBUG: Cache hit for 05 - Dreams of a Third Generation Grail (2018).flac
+DEBUG: Track 5/7 hash took 0.000s
+DEBUG: Cache hit for 06 - They Are All Here (2021).flac
+DEBUG: Track 6/7 hash took 0.000s
+DEBUG: Cache hit for 07 - An Unending Quest (1877-2022).flac
+DEBUG: Track 7/7 hash took 0.000s
+DEBUG: Total fingerprints: 0.003s for 7
+DEBUG: Cache hit for 01 - A Year In The Country ⁄ Stephen Prince - Cross Sections of Time.flac
+DEBUG: Track 1/13 hash took 0.001s
+DEBUG: Cache hit for 02 - Circle⁄Temple - The Hollow Stream Buried.flac
+DEBUG: Track 2/13 hash took 0.003s
+DEBUG: Cache hit for 03 - The Heartwood Institute - Beneath the City Streets.flac
+DEBUG: Track 3/13 hash took 0.001s
+DEBUG: Cache hit for 04 - Sproatly Smith - Chapel Still Stands.flac
+DEBUG: Track 4/13 hash took 0.001s
+DEBUG: Cache hit for 05 - Field Lines Cartographer - Layers of Belief.flac
+DEBUG: Track 5/13 hash took 0.001s
+DEBUG: Cache hit for 06 - Howlround - A Heart Shaped Forest.flac
+DEBUG: Track 6/13 hash took 0.001s
+DEBUG: Cache hit for 07 - Folclore Impressionista - The Problem of Symmetry.flac
+DEBUG: Track 7/13 hash took 0.000s
+DEBUG: Cache hit for 08 - Handspan - At the End of the Aerial Flight.flac
+DEBUG: Track 8/13 hash took 0.000s
+DEBUG: Cache hit for 09 - Widow's Weeds - Gilmerton Cove.flac
+DEBUG: Track 9/13 hash took 0.001s
+DEBUG: Cache hit for 10 - Listening Center - Wattle and Daub Office Blocks.flac
+DEBUG: Track 10/13 hash took 0.001s
+DEBUG: Cache hit for 11 - Vic Mars - Once There Were Houses.flac
+DEBUG: Track 11/13 hash took 0.000s
+DEBUG: Cache hit for 12 - Pulselovers - Brodsworth.flac
+DEBUG: Track 12/13 hash took 0.000s
+DEBUG: Cache hit for 13 - Grey Frequency - Tigguo Cobauc.flac
+DEBUG: Track 13/13 hash took 0.000s
+DEBUG: Total fingerprints: 0.010s for 13
+DEBUG: Cache hit for 01 - Grey Frequency - ABC 123.flac
+DEBUG: Track 1/14 hash took 0.003s
+DEBUG: Cache hit for 02 - Field Lines Cartographer - Faded Flicker.flac
+DEBUG: Track 2/14 hash took 0.001s
+DEBUG: Cache hit for 03 - Keith Seatman - Saturday Matinee.flac
+DEBUG: Track 3/14 hash took 0.001s
+DEBUG: Cache hit for 04 - Pulselovers - The Gaumont Frieze.flac
+DEBUG: Track 4/14 hash took 0.001s
+DEBUG: Cache hit for 05 - Sproatly Smith - 1 and 3 on the Front.flac
+DEBUG: Track 5/14 hash took 0.001s
+DEBUG: Cache hit for 06 - The Howling - Scala KX 82.flac
+DEBUG: Track 6/14 hash took 0.001s
+DEBUG: Cache hit for 07 - Folclore Impressionista - Three Steps in the Dark.flac
+DEBUG: Track 7/14 hash took 0.001s
+DEBUG: Cache hit for 08 - Listening Center - Meet You Outside the New Metropole.flac
+DEBUG: Track 8/14 hash took 0.001s
+DEBUG: Cache hit for 09 - The Séance - Minors Club.flac
+DEBUG: Track 9/14 hash took 0.000s
+DEBUG: Cache hit for 10 - Widow's Weeds - Celluloid Ghosts.flac
+DEBUG: Track 10/14 hash took 0.000s
+DEBUG: Cache hit for 11 - Handspan - A World in My Pocket.flac
+DEBUG: Track 11/14 hash took 0.001s
+DEBUG: Cache hit for 12 - The Heartwood Institute - Carbon Arc.flac
+DEBUG: Track 12/14 hash took 0.000s
+DEBUG: Cache hit for 13 - A Year In The Country ⁄ Stephen Prince - Memoirs of a Magic Lantern.flac
+DEBUG: Track 13/14 hash took 0.000s
+DEBUG: Cache hit for 14 - Vic Mars - Only the Clock Remains.flac
+DEBUG: Track 14/14 hash took 0.000s
+DEBUG: Total fingerprints: 0.010s for 14
+DEBUG: Cache hit for 01 - On the Moors (1799).flac
+DEBUG: Track 1/7 hash took 0.001s
+DEBUG: Cache hit for 02 - Day 12, Scene 2, Take 28 - Hoffman's Fall (1970).flac
+DEBUG: Track 2/7 hash took 0.000s
+DEBUG: Cache hit for 03 - Blown Away Like Dust (1971).flac
+DEBUG: Track 3/7 hash took 0.000s
+DEBUG: Cache hit for 04 - An Ancient Find (1977).flac
+DEBUG: Track 4/7 hash took 0.000s
+DEBUG: Cache hit for 05 - Nobody Ever Really Knew What Happened (2004).flac
+DEBUG: Track 5/7 hash took 0.000s
+DEBUG: Cache hit for 06 - False Starts and Naysayers (2017).flac
+DEBUG: Track 6/7 hash took 0.000s
+DEBUG: Cache hit for 07 - Tumbling Through Time (1799-2020).flac
+DEBUG: Track 7/7 hash took 0.000s
+DEBUG: Total fingerprints: 0.003s for 7
+DEBUG: Cache hit for 1-01 - The Dark Chamber.flac
+DEBUG: Track 1/16 hash took 0.002s
+DEBUG: Cache hit for 1-02 - Towards the Heartland.flac
+DEBUG: Track 2/16 hash took 0.001s
+DEBUG: Cache hit for 1-03 - Layers and Marks.flac
+DEBUG: Track 3/16 hash took 0.000s
+DEBUG: Cache hit for 1-04 - The Dark Chamber (Waiting for a Moment of Stillness Mix).flac
+DEBUG: Track 4/16 hash took 0.001s
+DEBUG: Cache hit for 2-01 - The Chatter Amongst the Land.flac
+DEBUG: Track 5/16 hash took 0.001s
+DEBUG: Cache hit for 2-02 - A Cracked Sky.flac
+DEBUG: Track 6/16 hash took 0.000s
+DEBUG: Cache hit for 2-03 - Night Mesh.flac
+DEBUG: Track 7/16 hash took 0.000s
+DEBUG: Cache hit for 2-04 - Flutter Once More.flac
+DEBUG: Track 8/16 hash took 0.000s
+DEBUG: Cache hit for 2-05 - Fading From a Distance.flac
+DEBUG: Track 9/16 hash took 0.000s
+DEBUG: Cache hit for 2-06 - Imparting Received.flac
+DEBUG: Track 10/16 hash took 0.000s
+DEBUG: Cache hit for 2-07 - Songs from the Sentinels.flac
+DEBUG: Track 11/16 hash took 0.000s
+DEBUG: Cache hit for 2-08 - Tales and Constructs.flac
+DEBUG: Track 12/16 hash took 0.000s
+DEBUG: Cache hit for 2-09 - They Have Departed Once More.flac
+DEBUG: Track 13/16 hash took 0.000s
+DEBUG: Cache hit for 2-10 - To Be Sheltered.flac
+DEBUG: Track 14/16 hash took 0.000s
+DEBUG: Cache hit for 2-11 - A Measuring.flac
+DEBUG: Track 15/16 hash took 0.000s
+DEBUG: Cache hit for 2-12 - For My Gentle Scattering.flac
+DEBUG: Track 16/16 hash took 0.001s
+DEBUG: Total fingerprints: 0.010s for 16
+DEBUG: Cache hit for 01 - Torridon Gate.flac
+DEBUG: Track 1/1 hash took 0.001s
+DEBUG: Total fingerprints: 0.001s for 1
+DEBUG: Cache hit for 01 - The Straw Bear Band - The Drowning of Mardale Green.flac
+DEBUG: Track 1/12 hash took 0.003s
+DEBUG: Cache hit for 02 - Field Lines Cartographer - Drowned in Sand.flac
+DEBUG: Track 2/12 hash took 0.001s
+DEBUG: Cache hit for 03 - The Heartwood Institute - Armboth & Wythburn.flac
+DEBUG: Track 3/12 hash took 0.001s
+DEBUG: Cache hit for 04 - Howlround - Flying Over a Glassed Wedge.flac
+DEBUG: Track 4/12 hash took 0.001s
+DEBUG: Cache hit for 05 - The Rowan Amber Mill - Separations.flac
+DEBUG: Track 5/12 hash took 0.001s
+DEBUG: Cache hit for 06 - Polypores - Playground Ritual.flac
+DEBUG: Track 6/12 hash took 0.001s
+DEBUG: Cache hit for 07 - Pulselovers - The Coast in Flux.flac
+DEBUG: Track 7/12 hash took 0.001s
+DEBUG: Cache hit for 08 - The Soulless Party - Damnatorum.flac
+DEBUG: Track 8/12 hash took 0.000s
+DEBUG: Cache hit for 09 - Time Attendant - Day Blink.flac
+DEBUG: Track 9/12 hash took 0.000s
+DEBUG: Cache hit for 10 - A Year In The Country ⁄ Stephen Prince - 47 Days and Fathoms Deep.flac
+DEBUG: Track 10/12 hash took 0.001s
+DEBUG: Cache hit for 11 - Sproatly Smith - Lost Villages of Holderness.flac
+DEBUG: Track 11/12 hash took 0.000s
+DEBUG: Cache hit for 12 - Cosmic Neighbourhood - Bunk Beds.flac
+DEBUG: Track 12/12 hash took 0.000s
+DEBUG: Total fingerprints: 0.009s for 12
+DEBUG: Cache hit for 01 - Bob Wills and His Texas Playboys - Smoke On The Water.flac
+DEBUG: Track 1/27 hash took 0.003s
+DEBUG: Cache hit for 02 - Gene Autry - At Mail Call Today.flac
+DEBUG: Track 2/27 hash took 0.001s
+DEBUG: Cache hit for 03 - Spade Cooley - Shame On You.flac
+DEBUG: Track 3/27 hash took 0.001s
+DEBUG: Cache hit for 04 - Phil Harris - That's What I Like About The South.flac
+DEBUG: Track 4/27 hash took 0.001s
+DEBUG: Cache hit for 05 - Jenny Lou Carson - Jealous Heart.flac
+DEBUG: Track 5/27 hash took 0.001s
+DEBUG: Cache hit for 06 - Dick Thomas - Sioux City Sue.flac
+DEBUG: Track 6/27 hash took 0.000s
+DEBUG: Cache hit for 07 - Ernest Tubb - Tomorrow Never Comes.flac
+DEBUG: Track 7/27 hash took 0.001s
+DEBUG: Cache hit for 08 - Jimmie Davis - There's A New Moon Over My Shoulder.flac
+DEBUG: Track 8/27 hash took 0.001s
+DEBUG: Cache hit for 09 - Lulu Belle & Scotty - Have I Told You Lately That I Love You.flac
+DEBUG: Track 9/27 hash took 0.001s
+DEBUG: Cache hit for 10 - Ted Daffan - Headin' Down The Wrong Highway.flac
+DEBUG: Track 10/27 hash took 0.000s
+DEBUG: Cache hit for 11 - Jack Guthrie - Oklahoma Hills.flac
+DEBUG: Track 11/27 hash took 0.000s
+DEBUG: Cache hit for 12 - “Porky” Freeman Trio - Boogie Woogie Boy.flac
+DEBUG: Track 12/27 hash took 0.000s
+DEBUG: Cache hit for 13 - Gene Autry - Don't Fence Me In.flac
+DEBUG: Track 13/27 hash took 0.000s
+DEBUG: Cache hit for 14 - Eddy Arnold - The Cattle Call.flac
+DEBUG: Track 14/27 hash took 0.000s
+DEBUG: Cache hit for 15 - Al Dexter - I'm Losing My Mind Over You.flac
+DEBUG: Track 15/27 hash took 0.000s
+DEBUG: Cache hit for 16 - Floyd Tillman - Each Night At Nine.flac
+DEBUG: Track 16/27 hash took 0.000s
+DEBUG: Cache hit for 17 - Red Foley - Hang Your Head In Shame.flac
+DEBUG: Track 17/27 hash took 0.000s
+DEBUG: Cache hit for 18 - Tex Ritter - You Two Timed Me One Time Too Often.flac
+DEBUG: Track 18/27 hash took 0.000s
+DEBUG: Cache hit for 19 - Merle Travis - That's All.flac
+DEBUG: Track 19/27 hash took 0.000s
+DEBUG: Cache hit for 20 - Wesley Tuttle - With Tears In My Eyes.flac
+DEBUG: Track 20/27 hash took 0.000s
+DEBUG: Cache hit for 21 - Bob Wills and His Texas Playboys - Stars And Stripes On Iwo Jima.flac
+DEBUG: Track 21/27 hash took 0.000s
+DEBUG: Cache hit for 22 - Ernest Tubb - It's Been So Long Darling.flac
+DEBUG: Track 22/27 hash took 0.001s
+DEBUG: Cache hit for 23 - Jerry Irby - Nails In My Coffin.flac
+DEBUG: Track 23/27 hash took 0.000s
+DEBUG: Cache hit for 24 - Jimmy Walker - Detour.flac
+DEBUG: Track 24/27 hash took 0.000s
+DEBUG: Cache hit for 25 - Roy Acuff - We Live In Two Diff'rent Worlds.flac
+DEBUG: Track 25/27 hash took 0.000s
+DEBUG: Cache hit for 26 - Hank Snow - Blue Ranger.flac
+DEBUG: Track 26/27 hash took 0.000s
+DEBUG: Cache hit for 27 - Rambler Trio featuring Arthur Smith - Guitar Boogie.flac
+DEBUG: Track 27/27 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 27
+DEBUG: Cache hit for 01 - The Buchanan Brothers - Atomic Power.flac
+DEBUG: Track 1/28 hash took 0.003s
+DEBUG: Cache hit for 02 - Ernest Tubb - Rainbow at Midnight.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Eddy Arnold - That's How Much I Love You.flac
+DEBUG: Track 3/28 hash took 0.001s
+DEBUG: Cache hit for 04 - Cowboy Copas - Filipino Baby.flac
+DEBUG: Track 4/28 hash took 0.001s
+DEBUG: Cache hit for 05 - Al Dexter - Wine, Women, and Song.flac
+DEBUG: Track 5/28 hash took 0.000s
+DEBUG: Cache hit for 06 - Bob Wills - New Spanish Two Step.flac
+DEBUG: Track 6/28 hash took 0.001s
+DEBUG: Cache hit for 07 - Elton Britt - Someday.flac
+DEBUG: Track 7/28 hash took 0.001s
+DEBUG: Cache hit for 08 - Merle Travis - No Vacancy.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - Roy Acuff - No One Will Ever Know.flac
+DEBUG: Track 9/28 hash took 0.001s
+DEBUG: Cache hit for 10 - Owen Bradley - Zeb's Mountain Boogie.flac
+DEBUG: Track 10/28 hash took 0.000s
+DEBUG: Cache hit for 11 - Gene Autry - I Wish I Had Never Met Sunshine.flac
+DEBUG: Track 11/28 hash took 0.000s
+DEBUG: Cache hit for 12 - Cowboy Copas - Tragic Romance.flac
+DEBUG: Track 12/28 hash took 0.000s
+DEBUG: Cache hit for 13 - The Delmore Brothers - Hillbilly Boogie.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Bailes Brothers - As Long As I Live.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Bill Monroe - Rocky Road Blues.flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - Grandpa Jones - Eight More Miles to Louisville.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Merle Travis - Dark as a Dungeon.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - The Morris Brothers - Salty Dog Blues.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Harry Choates - Jole Blon (Pretty Blond).flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Cousin Emmy - Ruby.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Bill Monroe - Kentucky Waltz.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - The Delmore Brothers - Midnite Special.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Floyd Tillman - Some Other World.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Hank Penny - Steel Guiter Stomp.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - T․ Texas Tyler - Black Jack David.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Tex Ritter - You Will Have to Pay.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Bob Wills - Stay a Little Longer.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Spade Cooley - Three Way Boogie.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 28
+DEBUG: Cache hit for 01 - Tex Williams - Smoke, Smoke, Smoke (That Cigarette).flac
+DEBUG: Track 1/27 hash took 0.003s
+DEBUG: Cache hit for 02 - Eddy Arnold - It's A Sin.flac
+DEBUG: Track 2/27 hash took 0.001s
+DEBUG: Cache hit for 03 - Bob Wills - Sugar Moon.flac
+DEBUG: Track 3/27 hash took 0.001s
+DEBUG: Cache hit for 04 - Sons of the Pioneers - Cigarettes, Whusky And Wild, Wild Women.flac
+DEBUG: Track 4/27 hash took 0.000s
+DEBUG: Cache hit for 05 - Billy Hughes - Cocaine Blues.flac
+DEBUG: Track 5/27 hash took 0.000s
+DEBUG: Cache hit for 06 - The Maddox Brothers & Rose - Milk Cow Blues.flac
+DEBUG: Track 6/27 hash took 0.000s
+DEBUG: Cache hit for 07 - Moon Mullican - Foggy River.flac
+DEBUG: Track 7/27 hash took 0.000s
+DEBUG: Cache hit for 08 - Ernest Tubb - I'll Step Aside.flac
+DEBUG: Track 8/27 hash took 0.000s
+DEBUG: Cache hit for 09 - Roy Acuff - Blue Eyes Crying In The Rain.flac
+DEBUG: Track 9/27 hash took 0.000s
+DEBUG: Cache hit for 10 - The Delmore Brothers - Freight Train Boogie.flac
+DEBUG: Track 10/27 hash took 0.000s
+DEBUG: Cache hit for 11 - Merle Travis - So Round, So Firm, So Fully Packed.flac
+DEBUG: Track 11/27 hash took 0.000s
+DEBUG: Cache hit for 12 - Cowboy Copas - Signed, Sealed And Delivered.flac
+DEBUG: Track 12/27 hash took 0.000s
+DEBUG: Cache hit for 13 - Eddy Arnold - I'll Hold You In My Heart (Till I Can Hold You In My Arms).flac
+DEBUG: Track 13/27 hash took 0.000s
+DEBUG: Cache hit for 14 - Hank Williams - Move It On Over.flac
+DEBUG: Track 14/27 hash took 0.000s
+DEBUG: Cache hit for 15 - Red Foley - Never Trust A Woman.flac
+DEBUG: Track 15/27 hash took 0.000s
+DEBUG: Cache hit for 16 - Clyde Moody - Shenandoah Waltz.flac
+DEBUG: Track 16/27 hash took 0.000s
+DEBUG: Cache hit for 17 - Jack Guthrie - Oakie Boogie.flac
+DEBUG: Track 17/27 hash took 0.000s
+DEBUG: Cache hit for 18 - Moon Mullican - New Pretty Blond (New Jole Blon).flac
+DEBUG: Track 18/27 hash took 0.000s
+DEBUG: Cache hit for 19 - Bill Carlisle - Rockin' Chair Money.flac
+DEBUG: Track 19/27 hash took 0.000s
+DEBUG: Cache hit for 20 - Molly O’Day & The Cumberland Mountain Folks - The Tramp On The Street.flac
+DEBUG: Track 20/27 hash took 0.011s
+DEBUG: Cache hit for 21 - Hawkshaw Hawkins - Sunny Side Of The Mountain.flac
+DEBUG: Track 21/27 hash took 0.001s
+DEBUG: Cache hit for 22 - Fairley Holden - Keep Them Cold Icey Fingers Off Of Me.flac
+DEBUG: Track 22/27 hash took 0.000s
+DEBUG: Cache hit for 23 - Bill Monroe - Blue Moon Of Kentucky.flac
+DEBUG: Track 23/27 hash took 0.000s
+DEBUG: Cache hit for 24 - Charlie Monroe - Bringin' In The Georgia Mail.flac
+DEBUG: Track 24/27 hash took 0.000s
+DEBUG: Cache hit for 25 - Bailes Brothers - Dust On The Bible.flac
+DEBUG: Track 25/27 hash took 0.000s
+DEBUG: Cache hit for 26 - Carl Story - I've Found A Hiding Place.flac
+DEBUG: Track 26/27 hash took 0.000s
+DEBUG: Cache hit for 27 - Chet Atkins - Canned Heat.flac
+DEBUG: Track 27/27 hash took 0.000s
+DEBUG: Total fingerprints: 0.025s for 27
+DEBUG: Cache hit for 01 - Red Foley - Tennessee Saturday Night.flac
+DEBUG: Track 1/28 hash took 0.001s
+DEBUG: Cache hit for 02 - Leon Payne - Lost Highway.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Roy Acuff - Waltz of the Wind.flac
+DEBUG: Track 3/28 hash took 0.000s
+DEBUG: Cache hit for 04 - The Maddox Brothers & Rose - New Muleskinner Blues.flac
+DEBUG: Track 4/28 hash took 0.000s
+DEBUG: Cache hit for 05 - Eddie Hill - Someday You'll Call My Name.flac
+DEBUG: Track 5/28 hash took 0.001s
+DEBUG: Cache hit for 06 - Johnny Bond - Bartender's Blues.flac
+DEBUG: Track 6/28 hash took 0.001s
+DEBUG: Cache hit for 07 - Eddy Arnold - Anytime.flac
+DEBUG: Track 7/28 hash took 0.000s
+DEBUG: Cache hit for 08 - Bill Monroe - Little Cabin Home on the Hill.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - Cowboy Copas - Breeze.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Bill Carlisle - Wedding Bells.flac
+DEBUG: Track 10/28 hash took 0.000s
+DEBUG: Cache hit for 11 - Hawkshaw Hawkins - Dog House Boogie.flac
+DEBUG: Track 11/28 hash took 0.001s
+DEBUG: Cache hit for 12 - Pee Wee King - Tennessee Waltz.flac
+DEBUG: Track 12/28 hash took 0.000s
+DEBUG: Cache hit for 13 - Doye O’Dell - Dear Oakie.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Moon Mullican - Sweeter Than the Flowers.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Wayne Raney - Lost John Boogie.flac
+DEBUG: Track 15/28 hash took 0.001s
+DEBUG: Cache hit for 16 - Jimmie Skinner - Doin' My Time.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Bill Monroe - I Hear a Sweet Voice Calling.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - The Stanley Brothers - Molly and Tenbrook.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Hank Williams - Mansion on the Hill.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Jimmy Work - Tennessee Border.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - T․ Texas Tyler - Deck of Cards.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Floyd Tillman - I Love You So Much It Hurts.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Merle Travis - Merle's Boogie Woogie.flac
+DEBUG: Track 23/28 hash took 0.001s
+DEBUG: Cache hit for 24 - Jimmy Wakely - One Has My Name (The Other Has My Heart).flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Carson Robison - Life Gets Tee-Jus, Don't It？.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Bob Wills - Bubbles in My Beer.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Eddy Arnold - Bouquet of Roses.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Lonzo & Oscar - I'm My Own Grandpa.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.013s for 28
+DEBUG: Cache hit for 01 - Vaughn Monroe - Riders in the Sky.flac
+DEBUG: Track 1/28 hash took 0.002s
+DEBUG: Cache hit for 02 - Sons of the Pioneers - Room Full of Roses.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Jimmy Wakely - I Wish I Had a Nickel.flac
+DEBUG: Track 3/28 hash took 0.001s
+DEBUG: Cache hit for 04 - Hank Williams - Lovesick Blues.flac
+DEBUG: Track 4/28 hash took 0.000s
+DEBUG: Cache hit for 05 - Eddy Arnold - Then I Turned and Walked Slowly Away.flac
+DEBUG: Track 5/28 hash took 0.001s
+DEBUG: Cache hit for 06 - Little Jimmy Dickens - Take an Old Cold Tater (and Wait).flac
+DEBUG: Track 6/28 hash took 0.000s
+DEBUG: Cache hit for 07 - The Delmore Brothers - Blues Stay Away From Me.flac
+DEBUG: Track 7/28 hash took 0.001s
+DEBUG: Cache hit for 08 - Bob Wills - Don’t Be Ashamed of Your Age.flac
+DEBUG: Track 8/28 hash took 0.001s
+DEBUG: Cache hit for 09 - George Morgan - Candy Kisses.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Leon McAuliffe - Panhandle Rag.flac
+DEBUG: Track 10/28 hash took 0.000s
+DEBUG: Cache hit for 11 - Floyd Tillman - Slippin’ Around.flac
+DEBUG: Track 11/28 hash took 0.000s
+DEBUG: Cache hit for 12 - Pee Wee King - Bonaparte’s Retreat.flac
+DEBUG: Track 12/28 hash took 0.001s
+DEBUG: Cache hit for 13 - Bill Nettles - Hadacol Boogie.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Leon Payne - I Love You Because.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Hank Thompson - Whoa Sailor.flac
+DEBUG: Track 15/28 hash took 0.001s
+DEBUG: Cache hit for 16 - Ernest Tubb - Let’s Say Goodbye Like We Said Hello.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Wayne Raney - Why Don’t You Haul Off and Love Me.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Jimmie Skinner - Will You Be Satisfied That Way.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Bill Monroe - The Old Cross Road.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Johnnie & Jack - What About You.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - The Stanley Brothers - The White Dove.flac
+DEBUG: Track 21/28 hash took 0.001s
+DEBUG: Cache hit for 22 - Maddox Brothers & Rose - Philadelphia Lawyer.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Floyd Tillman - This Cold War With You.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - T․ Texas Tyler - My Bucket’s Got a Hole in It.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Hank Williams - I’m So Lonesome I Could Cry.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Bob Wills - Warm Red Wine.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Eddy Arnold - I’m Throwing Rice.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Tennessee Ernie Ford - Mule Train.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.014s for 28
+DEBUG: Cache hit for 01 - Red Foley - Chattanoogie Shoe Shine Boy.flac
+DEBUG: Track 1/28 hash took 0.003s
+DEBUG: Cache hit for 02 - Gene Autry - Blue Canadian Rockies.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Ole Rasmussen - Ole Sleepy Eyed John.flac
+DEBUG: Track 3/28 hash took 0.004s
+DEBUG: Cache hit for 04 - Lefty Frizzell - If You’ve Got the Money I’ve Got the Time.flac
+DEBUG: Track 4/28 hash took 0.001s
+DEBUG: Cache hit for 05 - Hank Williams - Long Gone Lonesome Blues.flac
+DEBUG: Track 5/28 hash took 0.001s
+DEBUG: Cache hit for 06 - Carl Smith - I Overlooked an Orchid (While Searching for a Rose).flac
+DEBUG: Track 6/28 hash took 0.001s
+DEBUG: Cache hit for 07 - Little Jimmy Dickens - Hillbilly Fever.flac
+DEBUG: Track 7/28 hash took 0.000s
+DEBUG: Cache hit for 08 - Bob Wills - Faded Love.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - Red Foley - Sugarfoot Rag.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Ted Daffan - I’ve Got Five Dollars and It’s Saturday Night.flac
+DEBUG: Track 10/28 hash took 0.001s
+DEBUG: Cache hit for 11 - Tennessee Ernie Ford And Kay Starr - I’ll Never Be Free.flac
+DEBUG: Track 11/28 hash took 0.001s
+DEBUG: Cache hit for 12 - Hank Penny - Bloodshot Eyes.flac
+DEBUG: Track 12/28 hash took 0.000s
+DEBUG: Cache hit for 13 - Lefty Frizzell - I Love You a Thousand Ways.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Hardrock Gunter - Birmingham Bounce.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Stuart Hamblen - Remember Me (I’m the One Who Loves You).flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - Moon Mullican - I’ll Sail My Ship Alone.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Johnnie Lee Wills - Rag Mop.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Billy Starr - Steppin’ Out.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Skeets McDonald - The Tattooed Lady.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Ernest Tubb - Letters Have No Arms.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Arkie Shibley - Hot Rod Race.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Jimmie Skinner - You Don’t Know My Mind.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Bill Monroe - I’m Blue, I’m Lonesome.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Webb Pierce - Drifting Texas Sand.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Floyd Tillman - I’ve Got the Craziest Feeling.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Hank Snow - I’m Movin’ On.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - The Stanley Brothers - The Fields Have Turned Brown.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Lester Flatt & Earl Scruggs - Foggy Mountain Breakdown.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.019s for 28
+DEBUG: Cache hit for 01 - Tennessee Ernie Ford - The Shot Gun Boogie.flac
+DEBUG: Track 1/29 hash took 0.002s
+DEBUG: Cache hit for 02 - Elton Britt - Rotation Blues.flac
+DEBUG: Track 2/29 hash took 0.001s
+DEBUG: Cache hit for 03 - Hank Snow - The Golden Rocket.flac
+DEBUG: Track 3/29 hash took 0.000s
+DEBUG: Cache hit for 04 - Hank Williams - Cold Cold Heart.flac
+DEBUG: Track 4/29 hash took 0.001s
+DEBUG: Cache hit for 05 - Johnnie & Jack - Poison Love.flac
+DEBUG: Track 5/29 hash took 0.001s
+DEBUG: Cache hit for 06 - Eddy Arnold - I Wanna Play House With You.flac
+DEBUG: Track 6/29 hash took 0.000s
+DEBUG: Cache hit for 07 - Lefty Frizzell - Mom and Dad’s Waltz.flac
+DEBUG: Track 7/29 hash took 0.000s
+DEBUG: Cache hit for 08 - Carl Smith - Let’s Live a Little.flac
+DEBUG: Track 8/29 hash took 0.000s
+DEBUG: Cache hit for 09 - The Pinetoppers - Mockin’ Bird Hill.flac
+DEBUG: Track 9/29 hash took 0.000s
+DEBUG: Cache hit for 10 - Johnny Bond - Sick, Sober and Sorry.flac
+DEBUG: Track 10/29 hash took 0.000s
+DEBUG: Cache hit for 11 - Moon Mullican - I Was Sorta Wonderin’.flac
+DEBUG: Track 11/29 hash took 0.000s
+DEBUG: Cache hit for 12 - Big Jeff - Step It Up and Go.flac
+DEBUG: Track 12/29 hash took 0.001s
+DEBUG: Cache hit for 13 - Lefty Frizzell - Always Late (with Your Kisses).flac
+DEBUG: Track 13/29 hash took 0.001s
+DEBUG: Cache hit for 14 - The Carlisles - Too Old to Cut the Mustard.flac
+DEBUG: Track 14/29 hash took 0.000s
+DEBUG: Cache hit for 15 - Eddie Hill - The Hot Guitar.flac
+DEBUG: Track 15/29 hash took 0.000s
+DEBUG: Cache hit for 16 - Curley Williams - Half as Much.flac
+DEBUG: Track 16/29 hash took 0.000s
+DEBUG: Cache hit for 17 - Bill Haley - Rocket ‘88’.flac
+DEBUG: Track 17/29 hash took 0.000s
+DEBUG: Cache hit for 18 - Pee Wee King - Slow Poke.flac
+DEBUG: Track 18/29 hash took 0.000s
+DEBUG: Cache hit for 19 - Hank Snow - The Rhumba Boogie.flac
+DEBUG: Track 19/29 hash took 0.000s
+DEBUG: Cache hit for 20 - The Stewart Family - Just Out of Reach (Of My Two Open Arms).flac
+DEBUG: Track 20/29 hash took 0.000s
+DEBUG: Cache hit for 21 - Zeb Turner - Chew Tobacco Rag.flac
+DEBUG: Track 21/29 hash took 0.000s
+DEBUG: Cache hit for 22 - Carl Smith - Let Old Mother Nature Have Her Way.flac
+DEBUG: Track 22/29 hash took 0.000s
+DEBUG: Cache hit for 23 - Red Foley - (There’ll Be) Peace in the Valley (For Me).flac
+DEBUG: Track 23/29 hash took 0.000s
+DEBUG: Cache hit for 24 - Jimmy Murphy - Electricity.flac
+DEBUG: Track 24/29 hash took 0.000s
+DEBUG: Cache hit for 25 - Hank Williams - Hey Good Lookin’.flac
+DEBUG: Track 25/29 hash took 0.000s
+DEBUG: Cache hit for 26 - Bill Monroe - Uncle Pen.flac
+DEBUG: Track 26/29 hash took 0.000s
+DEBUG: Cache hit for 27 - Mac Wiseman - ’Tis Sweet to Be Remembered.flac
+DEBUG: Track 27/29 hash took 0.000s
+DEBUG: Cache hit for 28 - Jess Willard - Honky Tonk Hardwood Floor.flac
+DEBUG: Track 28/29 hash took 0.000s
+DEBUG: Cache hit for 29 - Del Wood - Down Yonder.flac
+DEBUG: Track 29/29 hash took 0.000s
+DEBUG: Total fingerprints: 0.014s for 29
+DEBUG: Cache hit for 01 - Tex Ritter - High Noon (Do Not Forsake Me).flac
+DEBUG: Track 1/26 hash took 0.002s
+DEBUG: Cache hit for 02 - Hank Thompson - Wild Side of Life.flac
+DEBUG: Track 2/26 hash took 0.001s
+DEBUG: Cache hit for 03 - Kitty Wells - It Wasn’t God Who Made Honky Tonk Angels.flac
+DEBUG: Track 3/26 hash took 0.001s
+DEBUG: Cache hit for 04 - Johnnie & Jack - Ashes of Love.flac
+DEBUG: Track 4/26 hash took 0.000s
+DEBUG: Cache hit for 05 - Eddy Arnold - Easy on the Eyes.flac
+DEBUG: Track 5/26 hash took 0.001s
+DEBUG: Cache hit for 06 - Lefty Frizzell - Give Me More, More, More (Of Your Kisses).flac
+DEBUG: Track 6/26 hash took 0.001s
+DEBUG: Cache hit for 07 - Jimmie Dean - Bumming Around.flac
+DEBUG: Track 7/26 hash took 0.000s
+DEBUG: Cache hit for 08 - Jimmy Swan - I Had a Dream.flac
+DEBUG: Track 8/26 hash took 0.000s
+DEBUG: Cache hit for 09 - Lattie Moore - Juke Joint Johnny.flac
+DEBUG: Track 9/26 hash took 0.000s
+DEBUG: Cache hit for 10 - Bill Haley - Rock the Joint.flac
+DEBUG: Track 10/26 hash took 0.000s
+DEBUG: Cache hit for 11 - Doye O’Dell - Diesel Smoke.flac
+DEBUG: Track 11/26 hash took 0.000s
+DEBUG: Cache hit for 12 - Carl Smith - Are You Teasing Me.flac
+DEBUG: Track 12/26 hash took 0.000s
+DEBUG: Cache hit for 13 - Hank Williams - Jambalaya (On the Bayou).flac
+DEBUG: Track 13/26 hash took 0.000s
+DEBUG: Cache hit for 14 - Webb Pierce - Wondering.flac
+DEBUG: Track 14/26 hash took 0.000s
+DEBUG: Cache hit for 15 - Jim Eanes - I Cried Again.flac
+DEBUG: Track 15/26 hash took 0.000s
+DEBUG: Cache hit for 16 - Jimmy Dickens - They Locked God Outside the Iron Curtain.flac
+DEBUG: Track 16/26 hash took 0.000s
+DEBUG: Cache hit for 17 - Hank Snow - The Gold Rush Is Over.flac
+DEBUG: Track 17/26 hash took 0.000s
+DEBUG: Cache hit for 18 - Reno & Smiley - I’m Using My Bible for a Roadmap.flac
+DEBUG: Track 18/26 hash took 0.000s
+DEBUG: Cache hit for 19 - Bill Monroe - Raw Hide.flac
+DEBUG: Track 19/26 hash took 0.000s
+DEBUG: Cache hit for 20 - Slim Whitman - Indian Love Call.flac
+DEBUG: Track 20/26 hash took 0.000s
+DEBUG: Cache hit for 21 - Slim Willet - Don’t Let the Stars (Get in Your Eyes).flac
+DEBUG: Track 21/26 hash took 0.000s
+DEBUG: Cache hit for 22 - George Morgan - Almost.flac
+DEBUG: Track 22/26 hash took 0.000s
+DEBUG: Cache hit for 23 - Big Bill Lister - There’s a Tear in My Beer.flac
+DEBUG: Track 23/26 hash took 0.000s
+DEBUG: Cache hit for 24 - Webb Pierce - Back Street Affair.flac
+DEBUG: Track 24/26 hash took 0.000s
+DEBUG: Cache hit for 25 - Hank Williams - Honky Tonk Blues.flac
+DEBUG: Track 25/26 hash took 0.000s
+DEBUG: Cache hit for 26 - Red Foley - Midnight.flac
+DEBUG: Track 26/26 hash took 0.000s
+DEBUG: Total fingerprints: 0.013s for 26
+DEBUG: Cache hit for 01 - Jack Cardwell - The Death of Hank Williams.flac
+DEBUG: Track 1/28 hash took 0.002s
+DEBUG: Cache hit for 02 - Faron Young - Goin’ Steady.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Hank Williams - Your Cheatin’ Heart.flac
+DEBUG: Track 3/28 hash took 0.000s
+DEBUG: Cache hit for 04 - Johnnie & Jack - South in New Orleans.flac
+DEBUG: Track 4/28 hash took 0.001s
+DEBUG: Cache hit for 05 - Webb Pierce - It’s Been So Long.flac
+DEBUG: Track 5/28 hash took 0.000s
+DEBUG: Cache hit for 06 - Johnny Bond - Let Me Go, Devil.flac
+DEBUG: Track 6/28 hash took 0.000s
+DEBUG: Cache hit for 07 - Red Cook - Playin’ Dominoes and Shootin’ Dice.flac
+DEBUG: Track 7/28 hash took 0.000s
+DEBUG: Cache hit for 08 - Hank Snow - (Now and Then There’s) A Fool Such as I.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - The Carlisles - No Help Wanted.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Marty Robbins - I’ll Go on Alone.flac
+DEBUG: Track 10/28 hash took 0.000s
+DEBUG: Cache hit for 11 - Arlie Duff - You All Come.flac
+DEBUG: Track 11/28 hash took 0.000s
+DEBUG: Cache hit for 12 - The Davis Sisters - I Forgot More Than You’ll Ever Know.flac
+DEBUG: Track 12/28 hash took 0.001s
+DEBUG: Cache hit for 13 - Lefty Frizzell - California Blues (Blue Yodel #4).flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Link Davis - Big Mamou.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Tommy Duncan - Hound Dog.flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - Onie Wheeler - Run ’em Off.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Darrell Glenn - Crying in the Chapel.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Jim Reeves - Mexican Joe.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Hank Locklin - Let Me Be the One.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Joe & Rose Lee Maphis - Dim Lights, Thick Smoke (and Loud, Loud Music).flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Rudy Grayzell - Looking at the Moon and Wishing on a Star.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Webb Pierce - There Stands the Glass.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Carl Smith - Hey Joe!.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Merrill Moore - Red Light.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Chet Atkins - Country Gentleman.flac
+DEBUG: Track 25/28 hash took 0.001s
+DEBUG: Cache hit for 26 - Hank Williams - Take These Chains From My Heart.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Mitchell Torok - Caribbean.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Jean Shepard - A Dear John Letter.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.013s for 28
+DEBUG: Cache hit for 01 - Stuart Hamblen - This Ole House.flac
+DEBUG: Track 1/28 hash took 0.005s
+DEBUG: Cache hit for 02 - Slim Whitman - Rose Marie.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Jim Reeves - Bimbo.flac
+DEBUG: Track 3/28 hash took 0.001s
+DEBUG: Cache hit for 04 - Johnnie and Jack - Oh Baby Mine (I Get So Lonely).flac
+DEBUG: Track 4/28 hash took 0.000s
+DEBUG: Cache hit for 05 - Eddy Arnold - I Really Don’t Want to Know.flac
+DEBUG: Track 5/28 hash took 0.001s
+DEBUG: Cache hit for 06 - Ray Price - Release Me.flac
+DEBUG: Track 6/28 hash took 0.000s
+DEBUG: Cache hit for 07 - Wade Ray - Idaho Red.flac
+DEBUG: Track 7/28 hash took 0.000s
+DEBUG: Cache hit for 08 - Webb Pierce - Slowly.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - The Browns - Looking Back to See.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - ‘Little’ Jimmy Dickens - Take Me as I Am (or Let Me Go).flac
+DEBUG: Track 10/28 hash took 0.000s
+DEBUG: Cache hit for 11 - Carl Butler - I Wouldn’t Change You If I Could.flac
+DEBUG: Track 11/28 hash took 0.000s
+DEBUG: Cache hit for 12 - Tommy Collins - You Better Not Do That.flac
+DEBUG: Track 12/28 hash took 0.000s
+DEBUG: Cache hit for 13 - Red Foley & Kitty Wells - One by One.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Ray Price - I’ll Be There (If You Want Me).flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Roy Acuff - I Closed My Heart’s Door.flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - Faron Young - If You Ain’t Lovin’ (You Ain’t Livin’).flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Hank Snow - I Don’t Hurt Anymore.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Al Terry - Good Deal, Lucille.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Webb Pierce & The Wilburn Brothers - Sparkling Brown Eyes.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Jimmy C․ Newman - Cry, Cry Darlling.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Sonny Burns - Too Hot to Handle.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Jimmy Lee Fautheree & Johnny ″Country″ Mathis - If You Don’t Somebody Else.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Sheb Wooley - Blue Guitar.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Ernest Tubb - Two Glasses Joe.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Terry Fell - Truck Drivin’ Man.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Eddie Noak - Take It Away, Lucky.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Carl Butler - Loose Talk.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Elvis Presley, Scotty & Bill - That’s All Right.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.017s for 28
+DEBUG: Cache hit for 01 - Fess Parker - Ballad of Davy Crockett.flac
+DEBUG: Track 1/31 hash took 0.003s
+DEBUG: Cache hit for 02 - Ferlin Husky - I Feel Better All Over.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Jimmy Work - Makin’ Believe.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Webb Pierce - In the Jailhouse Now.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Eddy Arnold - Just Call Me Lonesome.flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Jimmy Martin & The Osborne Brothers - 20⁄20 Vision.flac
+DEBUG: Track 6/31 hash took 0.001s
+DEBUG: Cache hit for 07 - Bud Deckelman with The Daydreamers - Daydreamin’.flac
+DEBUG: Track 7/31 hash took 0.001s
+DEBUG: Cache hit for 08 - Charlie Feathers - Peepin’ Eyes.flac
+DEBUG: Track 8/31 hash took 0.001s
+DEBUG: Cache hit for 09 - Louvin Brothers - When I Stop Dreaming.flac
+DEBUG: Track 9/31 hash took 0.001s
+DEBUG: Cache hit for 10 - Jimmy Dean - Big Blue Diamonds.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - George Jones - Why Baby Why.flac
+DEBUG: Track 11/31 hash took 0.001s
+DEBUG: Cache hit for 12 - Johnny Cash - Cry! Cry! Cry!.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Ray Price - Run Boy.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Little Jimmy Dickens - We Could.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Flatt & Scruggs - Before I Met You.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Hylo Brown - Lost to a Stranger.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Carl Smith - There She Goes.flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Faron Young - Live Fast, Love Hard, Die Young.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - Tennessee Ernie Ford - Sixteen Tons.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Eddy Arnold with Hugo Winterhalter - The Cattle Call.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Jim Reeves - Yonder Comes a Sucker.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Hank Snow - Let Me Go, Lover!.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Ernest Tubb - The Yellow Rose of Texas.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Webb Pierce - I Don’t Care.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Porter Wagoner - A Satisfied Mind.flac
+DEBUG: Track 25/31 hash took 0.001s
+DEBUG: Cache hit for 26 - The Webster Brothers & Carl Butler - Angel Band.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Arthur Smith & Don Reno - Feudin’ Banjos.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Rusty & Doug Kershaw - So Lovely Baby.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Elvis Presley & Scotty & Bill - I Forgot to Remember to Forget.flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Marty Robbins - Maybellene.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Jimmie Rodgers with The Rainbow Ranch Boys - In the Jailhouse Now No․2.flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.016s for 31
+DEBUG: Cache hit for 01 - Marty Robbins - Singing the Blues.flac
+DEBUG: Track 1/30 hash took 0.002s
+DEBUG: Cache hit for 02 - Eddy Arnold - You Don’t Know Me.flac
+DEBUG: Track 2/30 hash took 0.001s
+DEBUG: Cache hit for 03 - Ray Price - Crazy Arms.flac
+DEBUG: Track 3/30 hash took 0.001s
+DEBUG: Cache hit for 04 - Carl Belew - Lonely Street.flac
+DEBUG: Track 4/30 hash took 0.001s
+DEBUG: Cache hit for 05 - Johnny Cash & The Tennessee Two - Folsom Prison Blues.flac
+DEBUG: Track 5/30 hash took 0.001s
+DEBUG: Cache hit for 06 - Faron Young - Sweet Dreams.flac
+DEBUG: Track 6/30 hash took 0.001s
+DEBUG: Cache hit for 07 - Johnny Horton - Honky Tonk Man.flac
+DEBUG: Track 7/30 hash took 0.000s
+DEBUG: Cache hit for 08 - Hank Snow - Conscience I’m Guilty.flac
+DEBUG: Track 8/30 hash took 0.000s
+DEBUG: Cache hit for 09 - George Jones - What Am I Worth.flac
+DEBUG: Track 9/30 hash took 0.000s
+DEBUG: Cache hit for 10 - Benny Barnes - A Poor Man’s Riches.flac
+DEBUG: Track 10/30 hash took 0.000s
+DEBUG: Cache hit for 11 - Jim Edward, Maxine And Bonnie Brown - I Take the Chance.flac
+DEBUG: Track 11/30 hash took 0.000s
+DEBUG: Cache hit for 12 - The Louvin Brothers - I Don’t Believe You’ve Met My Baby.flac
+DEBUG: Track 12/30 hash took 0.000s
+DEBUG: Cache hit for 13 - The Osborne Brothers & Harley ″Red″ Allen - Ruby, Are You Mad？.flac
+DEBUG: Track 13/30 hash took 0.000s
+DEBUG: Cache hit for 14 - Reno and Smiley - I Know You’re Married.flac
+DEBUG: Track 14/30 hash took 0.000s
+DEBUG: Cache hit for 15 - Porter Wagoner - Eat, Drink and Be Merry (Tomorrow You’ll Cry).flac
+DEBUG: Track 15/30 hash took 0.000s
+DEBUG: Cache hit for 16 - Webb Pierce - Yes I Know Why.flac
+DEBUG: Track 16/30 hash took 0.000s
+DEBUG: Cache hit for 17 - Johnny Cash & The Tennessee Two - I Walk the Line.flac
+DEBUG: Track 17/30 hash took 0.000s
+DEBUG: Cache hit for 18 - Johnny Horton - I’m a One Woman Man.flac
+DEBUG: Track 18/30 hash took 0.000s
+DEBUG: Cache hit for 19 - Wanda Jackson - Silver Threads and Golden Needles.flac
+DEBUG: Track 19/30 hash took 0.000s
+DEBUG: Cache hit for 20 - Hank Thompson - The Blackboard of My Heart.flac
+DEBUG: Track 20/30 hash took 0.000s
+DEBUG: Cache hit for 21 - Ray Price - I’ve Got a New Heartache.flac
+DEBUG: Track 21/30 hash took 0.000s
+DEBUG: Cache hit for 22 - George Jones - Just One More.flac
+DEBUG: Track 22/30 hash took 0.000s
+DEBUG: Cache hit for 23 - The Louvin Brothers - Cash on the Barrelhead.flac
+DEBUG: Track 23/30 hash took 0.000s
+DEBUG: Cache hit for 24 - Wynn Stewart - Waltz of the Angels.flac
+DEBUG: Track 24/30 hash took 0.000s
+DEBUG: Cache hit for 25 - Jim Reeves - According to My Heart.flac
+DEBUG: Track 25/30 hash took 0.000s
+DEBUG: Cache hit for 26 - Kitty Wells - Searching (For Someone Else).flac
+DEBUG: Track 26/30 hash took 0.000s
+DEBUG: Cache hit for 27 - Marty Robbins - I Can’t Quit (I’ve Gone Too Far).flac
+DEBUG: Track 27/30 hash took 0.000s
+DEBUG: Cache hit for 28 - Hank Snow - These Hands.flac
+DEBUG: Track 28/30 hash took 0.000s
+DEBUG: Cache hit for 29 - Billy Mize - Who Will Buy the Wine.flac
+DEBUG: Track 29/30 hash took 0.000s
+DEBUG: Cache hit for 30 - Carl Perkins - Dixie Fried.flac
+DEBUG: Track 30/30 hash took 0.000s
+DEBUG: Total fingerprints: 0.014s for 30
+DEBUG: Cache hit for 01 - Sonny James - Young Love.flac
+DEBUG: Track 1/29 hash took 0.003s
+DEBUG: Cache hit for 02 - The Browns - I Heard the Bluebirds Sing.flac
+DEBUG: Track 2/29 hash took 0.001s
+DEBUG: Cache hit for 03 - Jim Reeves - Am I Losing You？.flac
+DEBUG: Track 3/29 hash took 0.001s
+DEBUG: Cache hit for 04 - Webb Pierce - I’m Tired.flac
+DEBUG: Track 4/29 hash took 0.000s
+DEBUG: Cache hit for 05 - Johnny Cash & The Tennessee Two - There You Go.flac
+DEBUG: Track 5/29 hash took 0.000s
+DEBUG: Cache hit for 06 - Bobby Helms - Fraulein.flac
+DEBUG: Track 6/29 hash took 0.000s
+DEBUG: Cache hit for 07 - Hank Locklin - Geisha Girl.flac
+DEBUG: Track 7/29 hash took 0.001s
+DEBUG: Cache hit for 08 - Jimmie Skinner - I Found My Girl in the U․S․A․.flac
+DEBUG: Track 8/29 hash took 0.001s
+DEBUG: Cache hit for 09 - Bonnie Guitar - Dark Moon.flac
+DEBUG: Track 9/29 hash took 0.001s
+DEBUG: Cache hit for 10 - Ferlin Husky - Gone.flac
+DEBUG: Track 10/29 hash took 0.000s
+DEBUG: Cache hit for 11 - Carl Smith - Why, Why.flac
+DEBUG: Track 11/29 hash took 0.000s
+DEBUG: Cache hit for 12 - Marvin Rainwater - Gonna Find Me a Bluebird.flac
+DEBUG: Track 12/29 hash took 0.012s
+DEBUG: Cache hit for 13 - The Everly Brothers - Bye, Bye Love.flac
+DEBUG: Track 13/29 hash took 0.001s
+DEBUG: Cache hit for 14 - Jimmy C․ Newman - A Fallen Star.flac
+DEBUG: Track 14/29 hash took 0.000s
+DEBUG: Cache hit for 15 - Marty Robbins & Ray Conniff - A White Sport Coat (and a Pink Carnation).flac
+DEBUG: Track 15/29 hash took 0.000s
+DEBUG: Cache hit for 16 - Johnny Cash & The Tennessee Two - Home of the Blues.flac
+DEBUG: Track 16/29 hash took 0.000s
+DEBUG: Cache hit for 17 - Patsy Cline - Walkin’ After Midnight.flac
+DEBUG: Track 17/29 hash took 0.000s
+DEBUG: Cache hit for 18 - Melvin Endsley - I Like Your Kind of Love.flac
+DEBUG: Track 18/29 hash took 0.000s
+DEBUG: Cache hit for 19 - Faron Young - I Miss You Already.flac
+DEBUG: Track 19/29 hash took 0.000s
+DEBUG: Cache hit for 20 - Bobby Helms - My Special Angel.flac
+DEBUG: Track 20/29 hash took 0.000s
+DEBUG: Cache hit for 21 - Webb Pierce - Honky Tonk Song.flac
+DEBUG: Track 21/29 hash took 0.000s
+DEBUG: Cache hit for 22 - Warner Mack - Is It Wrong (For Loving You).flac
+DEBUG: Track 22/29 hash took 0.000s
+DEBUG: Cache hit for 23 - Hank Snow - Tangled Mind.flac
+DEBUG: Track 23/29 hash took 0.000s
+DEBUG: Cache hit for 24 - Ray Price - My Shoes Keep Walking Back to You.flac
+DEBUG: Track 24/29 hash took 0.001s
+DEBUG: Cache hit for 25 - Marty Robbins & Ray Conniff - The Story of My Life.flac
+DEBUG: Track 25/29 hash took 0.000s
+DEBUG: Cache hit for 26 - Jim Reeves - Four Walls.flac
+DEBUG: Track 26/29 hash took 0.000s
+DEBUG: Cache hit for 27 - Porter Wagoner - I Thought I Heard You Calling My Name.flac
+DEBUG: Track 27/29 hash took 0.000s
+DEBUG: Cache hit for 28 - Leroy Van Dyke - Auctioneer.flac
+DEBUG: Track 28/29 hash took 0.000s
+DEBUG: Cache hit for 29 - Chet Atkins - Walk, Don’t Run.flac
+DEBUG: Track 29/29 hash took 0.000s
+DEBUG: Total fingerprints: 0.028s for 29
+DEBUG: Cache hit for 01 - Don Gibson - Oh Lonesome Me.flac
+DEBUG: Track 1/30 hash took 0.003s
+DEBUG: Cache hit for 02 - Kitty Wells - I Can’t Stop Loving You.flac
+DEBUG: Track 2/30 hash took 0.001s
+DEBUG: Cache hit for 03 - Johnny Cash - Ballad of a Teenage Queen.flac
+DEBUG: Track 3/30 hash took 0.001s
+DEBUG: Cache hit for 04 - Jim Reeves - Blue Boy.flac
+DEBUG: Track 4/30 hash took 0.001s
+DEBUG: Cache hit for 05 - The Louvin Brothers - My Baby’s Gone.flac
+DEBUG: Track 5/30 hash took 0.001s
+DEBUG: Cache hit for 06 - Roy Acuff - Once More.flac
+DEBUG: Track 6/30 hash took 0.001s
+DEBUG: Cache hit for 07 - Johnnie and Jack - Stop the World (and Let Me Off).flac
+DEBUG: Track 7/30 hash took 0.000s
+DEBUG: Cache hit for 08 - George Jones - Color of the Blues.flac
+DEBUG: Track 8/30 hash took 0.000s
+DEBUG: Cache hit for 09 - Eddie Noack - Have Blues Will Travel.flac
+DEBUG: Track 9/30 hash took 0.000s
+DEBUG: Cache hit for 10 - Hank Locklin - Send Me the Pillow You Dream On.flac
+DEBUG: Track 10/30 hash took 0.000s
+DEBUG: Cache hit for 11 - Marty Robbins - Just Married.flac
+DEBUG: Track 11/30 hash took 0.001s
+DEBUG: Cache hit for 12 - Lefty Frizzell - Cigarettes and Coffee Blues.flac
+DEBUG: Track 12/30 hash took 0.001s
+DEBUG: Cache hit for 13 - Ray Price - Invitation to the Blues.flac
+DEBUG: Track 13/30 hash took 0.000s
+DEBUG: Cache hit for 14 - Ernest Tubb - Half a Mind.flac
+DEBUG: Track 14/30 hash took 0.000s
+DEBUG: Cache hit for 15 - Johnny Cash & The Tennessee Two - Big River.flac
+DEBUG: Track 15/30 hash took 0.000s
+DEBUG: Cache hit for 16 - Stonewall Jackson - Life to Go.flac
+DEBUG: Track 16/30 hash took 0.000s
+DEBUG: Cache hit for 17 - Don Gibson - Blue, Blue Day.flac
+DEBUG: Track 17/30 hash took 0.000s
+DEBUG: Cache hit for 18 - George Jones - Treasure of Love.flac
+DEBUG: Track 18/30 hash took 0.000s
+DEBUG: Cache hit for 19 - Hank Locklin - It’s a Little More Like Heaven.flac
+DEBUG: Track 19/30 hash took 0.000s
+DEBUG: Cache hit for 20 - Jerry Lee Lewis - You Win Again.flac
+DEBUG: Track 20/30 hash took 0.000s
+DEBUG: Cache hit for 21 - James O’Gwynn - Talk to Me Lonesome Heart.flac
+DEBUG: Track 21/30 hash took 0.000s
+DEBUG: Cache hit for 22 - Webb Pierce - Tupelo County Jail.flac
+DEBUG: Track 22/30 hash took 0.000s
+DEBUG: Cache hit for 23 - Ray Price - City Lights.flac
+DEBUG: Track 23/30 hash took 0.000s
+DEBUG: Cache hit for 24 - Faron Young - Alone With You.flac
+DEBUG: Track 24/30 hash took 0.005s
+DEBUG: Cache hit for 25 - Jim Reeves - Billy Bayou.flac
+DEBUG: Track 25/30 hash took 0.000s
+DEBUG: Cache hit for 26 - Marty Robbins - Ain’t I the Lucky One.flac
+DEBUG: Track 26/30 hash took 0.000s
+DEBUG: Cache hit for 27 - Charlie Walker - Pick Me Up on Your Way Down.flac
+DEBUG: Track 27/30 hash took 0.000s
+DEBUG: Cache hit for 28 - Johnny Cash - Guess Things Happen That Way.flac
+DEBUG: Track 28/30 hash took 0.001s
+DEBUG: Cache hit for 29 - Simon Crum AKA Ferlin Husky - Country Music Is Here to Stay.flac
+DEBUG: Track 29/30 hash took 0.000s
+DEBUG: Cache hit for 30 - Wayne Raney - We Need a Whole Lot More of Jesus (and a Lot Less Rock and Roll).flac
+DEBUG: Track 30/30 hash took 0.000s
+DEBUG: Total fingerprints: 0.021s for 30
+DEBUG: Cache hit for 01 - Billy Grammer - Gotta Travel On.flac
+DEBUG: Track 1/32 hash took 0.002s
+DEBUG: Cache hit for 02 - Johnny Horton - When It’s Springtime in Alaska (It’s 40 Below).flac
+DEBUG: Track 2/32 hash took 0.001s
+DEBUG: Cache hit for 03 - Johnny Cash - Don’t Take Your Guns to Town.flac
+DEBUG: Track 3/32 hash took 0.001s
+DEBUG: Cache hit for 04 - Roy Acuff - So Many Times.flac
+DEBUG: Track 4/32 hash took 0.001s
+DEBUG: Cache hit for 05 - Don Gibson - Who Cares (For Me？).flac
+DEBUG: Track 5/32 hash took 0.001s
+DEBUG: Cache hit for 06 - Carl Belew - Am I That Easy to Forget.flac
+DEBUG: Track 6/32 hash took 0.000s
+DEBUG: Cache hit for 07 - Webb Pierce - I Ain’t Never.flac
+DEBUG: Track 7/32 hash took 0.001s
+DEBUG: Cache hit for 08 - Faron Young - Country Girl.flac
+DEBUG: Track 8/32 hash took 0.001s
+DEBUG: Cache hit for 09 - Stonewall Jackson - Waterloo.flac
+DEBUG: Track 9/32 hash took 0.000s
+DEBUG: Cache hit for 10 - Johnny Cash - I Got Stripes.flac
+DEBUG: Track 10/32 hash took 0.000s
+DEBUG: Cache hit for 11 - Ray Price - Heartaches by the Number.flac
+DEBUG: Track 11/32 hash took 0.001s
+DEBUG: Cache hit for 12 - Frankie Miller - Blackland Farmer.flac
+DEBUG: Track 12/32 hash took 0.000s
+DEBUG: Cache hit for 13 - Flatt & Scruggs - Cabin on the Hill.flac
+DEBUG: Track 13/32 hash took 0.000s
+DEBUG: Cache hit for 14 - Stonewall Jackson - Smoke Along the Track.flac
+DEBUG: Track 14/32 hash took 0.000s
+DEBUG: Cache hit for 15 - Johnny Horton - The Battle of New Orleans.flac
+DEBUG: Track 15/32 hash took 0.000s
+DEBUG: Cache hit for 16 - Eddy Arnold - Tennessee Stud.flac
+DEBUG: Track 16/32 hash took 0.000s
+DEBUG: Cache hit for 17 - The Browns - The Three Bells.flac
+DEBUG: Track 17/32 hash took 0.000s
+DEBUG: Cache hit for 18 - Mac Wiseman - Jimmy Brown the Newsboy.flac
+DEBUG: Track 18/32 hash took 0.000s
+DEBUG: Cache hit for 19 - The Louvin Brothers - Knoxville Girl.flac
+DEBUG: Track 19/32 hash took 0.000s
+DEBUG: Cache hit for 20 - Bill Monroe - Dark as the Night, Blue as the Day.flac
+DEBUG: Track 20/32 hash took 0.000s
+DEBUG: Cache hit for 21 - Wilma Lee & Stoney Cooper - There’s a Big Wheel.flac
+DEBUG: Track 21/32 hash took 0.000s
+DEBUG: Cache hit for 22 - Lefty Frizzell - Long Black Veil.flac
+DEBUG: Track 22/32 hash took 0.000s
+DEBUG: Cache hit for 23 - Don Gibson - Don’t Tell Me Your Troubles.flac
+DEBUG: Track 23/32 hash took 0.000s
+DEBUG: Cache hit for 24 - George Jones - White Lightnin’.flac
+DEBUG: Track 24/32 hash took 0.000s
+DEBUG: Cache hit for 25 - Buck Owens - Under Your Spell Again.flac
+DEBUG: Track 25/32 hash took 0.000s
+DEBUG: Cache hit for 26 - Jimmie Skinner - Dark Hollow.flac
+DEBUG: Track 26/32 hash took 0.000s
+DEBUG: Cache hit for 27 - Ray Price - The Same Old Me.flac
+DEBUG: Track 27/32 hash took 0.000s
+DEBUG: Cache hit for 28 - Hank Snow - The Last Ride.flac
+DEBUG: Track 28/32 hash took 0.000s
+DEBUG: Cache hit for 29 - Jim Reeves - Home.flac
+DEBUG: Track 29/32 hash took 0.000s
+DEBUG: Cache hit for 30 - Kitty Wells - Amigo’s Guitar.flac
+DEBUG: Track 30/32 hash took 0.000s
+DEBUG: Cache hit for 31 - Johnny Cash - Five Feet High and Rising.flac
+DEBUG: Track 31/32 hash took 0.000s
+DEBUG: Cache hit for 32 - Marty Robbins - El Paso.flac
+DEBUG: Track 32/32 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 32
+DEBUG: Cache hit for 01 - Johnny Horton - North to Alaska.flac
+DEBUG: Track 1/32 hash took 0.003s
+DEBUG: Cache hit for 02 - Bill Anderson - The Tip of My Fingers.flac
+DEBUG: Track 2/32 hash took 0.001s
+DEBUG: Cache hit for 03 - Webb Pierce - No Love Have I.flac
+DEBUG: Track 3/32 hash took 0.001s
+DEBUG: Cache hit for 04 - George Jones - The Window Up Above.flac
+DEBUG: Track 4/32 hash took 0.001s
+DEBUG: Cache hit for 05 - Hank Locklin - Please Help Me, I’m Falling.flac
+DEBUG: Track 5/32 hash took 0.001s
+DEBUG: Cache hit for 06 - Skeeter Davis - (I Can’t Help You) I’m Falling Too.flac
+DEBUG: Track 6/32 hash took 0.000s
+DEBUG: Cache hit for 07 - Johnny Cash - Smiling Bill McCall.flac
+DEBUG: Track 7/32 hash took 0.000s
+DEBUG: Cache hit for 08 - Buck Owens - Above and Beyond.flac
+DEBUG: Track 8/32 hash took 0.000s
+DEBUG: Cache hit for 09 - Charlie Ryan & The Timberline Riders - Hot Rod Lincoln.flac
+DEBUG: Track 9/32 hash took 0.000s
+DEBUG: Cache hit for 10 - Hank Snow - Miller’s Cave.flac
+DEBUG: Track 10/32 hash took 0.000s
+DEBUG: Cache hit for 11 - Don Gibson - Just One Time.flac
+DEBUG: Track 11/32 hash took 0.000s
+DEBUG: Cache hit for 12 - Stonewall Jackson - Why I’m Walkin’.flac
+DEBUG: Track 12/32 hash took 0.000s
+DEBUG: Cache hit for 13 - Cowboy Copas - Alabam.flac
+DEBUG: Track 13/32 hash took 0.000s
+DEBUG: Cache hit for 14 - Marty Robbins - Big Iron.flac
+DEBUG: Track 14/32 hash took 0.000s
+DEBUG: Cache hit for 15 - Lester Flatt & Earl Scruggs - Crying My Heart Out Over You.flac
+DEBUG: Track 15/32 hash took 0.000s
+DEBUG: Cache hit for 16 - John D․ Loudermilk - Tobacco Road.flac
+DEBUG: Track 16/32 hash took 0.000s
+DEBUG: Cache hit for 17 - Claude Gray - Family Bible.flac
+DEBUG: Track 17/32 hash took 0.000s
+DEBUG: Cache hit for 18 - Carl Smith - Cut Across Shorty.flac
+DEBUG: Track 18/32 hash took 0.000s
+DEBUG: Cache hit for 19 - Jim Reeves - He’ll Have to Go.flac
+DEBUG: Track 19/32 hash took 0.000s
+DEBUG: Cache hit for 20 - Ferlin Husky - Wings of a Dove.flac
+DEBUG: Track 20/32 hash took 0.000s
+DEBUG: Cache hit for 21 - Roy Drusky - Another.flac
+DEBUG: Track 21/32 hash took 0.000s
+DEBUG: Cache hit for 22 - Bob Luman - Let’s Think About Living.flac
+DEBUG: Track 22/32 hash took 0.000s
+DEBUG: Cache hit for 23 - Don Gibson - (I’d Be) A Legend in My Time.flac
+DEBUG: Track 23/32 hash took 0.000s
+DEBUG: Cache hit for 24 - Wynn Stewart - Wishful Thinking.flac
+DEBUG: Track 24/32 hash took 0.000s
+DEBUG: Cache hit for 25 - Buck Owens - Excuse Me (I Think I’ve Got a Heartache).flac
+DEBUG: Track 25/32 hash took 0.000s
+DEBUG: Cache hit for 26 - Loretta Lynn - I’m a Honky Tonk Girl.flac
+DEBUG: Track 26/32 hash took 0.000s
+DEBUG: Cache hit for 27 - Roger Miller - You Don’t Want My Love.flac
+DEBUG: Track 27/32 hash took 0.000s
+DEBUG: Cache hit for 28 - Ray Price - One More Time.flac
+DEBUG: Track 28/32 hash took 0.000s
+DEBUG: Cache hit for 29 - George Morgan - You’re the Only Good Thing (That’s Happened to Me).flac
+DEBUG: Track 29/32 hash took 0.000s
+DEBUG: Cache hit for 30 - Hank Thompson - A Six Pack to Go.flac
+DEBUG: Track 30/32 hash took 0.000s
+DEBUG: Cache hit for 31 - Faron Young - Riverboat.flac
+DEBUG: Track 31/32 hash took 0.000s
+DEBUG: Cache hit for 32 - Floyd Cramer - Last Date.flac
+DEBUG: Track 32/32 hash took 0.000s
+DEBUG: Total fingerprints: 0.016s for 32
+DEBUG: Cache hit for 01 - Marty Robbins - Don’t Worry.flac
+DEBUG: Track 1/31 hash took 0.002s
+DEBUG: Cache hit for 02 - Don Gibson - Sea of Heartbreak.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Patsy Cline - I Fall to Pieces.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Billy Walker - Funny (How Time Slips Away).flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Claude Gray - I’ll Just Have a Cup of Coffee (Then I’ll Go).flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Faron Young - Hello Walls.flac
+DEBUG: Track 6/31 hash took 0.001s
+DEBUG: Cache hit for 07 - Bill Anderson - Po’ Folks.flac
+DEBUG: Track 7/31 hash took 0.000s
+DEBUG: Cache hit for 08 - Johnny Cash - Tennessee Flat Top Box.flac
+DEBUG: Track 8/31 hash took 0.000s
+DEBUG: Cache hit for 09 - Wanda Jackson - Right or Wrong.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Buck Owens - Foolin’ Around.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Rusty & Doug Kershaw - Louisiana Man.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - Porter Wagoner - Your Old Love Letters.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Jim Reeves - Loving Your Love.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Bobby Edwards - You’re the Reason.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Jimmy Dean - Big Bad John.flac
+DEBUG: Track 15/31 hash took 0.001s
+DEBUG: Cache hit for 16 - Claude King - Big River, Big Man.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Roger Miller - When Two Worlds Collide.flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Leroy Van Dyke - Walk on By.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - George Jones - Tender Years.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Moon Mullican - Ragged but Right.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Buck Owens - Under the Influence of Love.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Marty Robbins - It’s Your World.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Webb Pierce - Sweet Lips.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Patsy Cline - Crazy.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Ray Price - Heart Over Mind.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Rusty & Doug Kershaw - Diggy Liggy Lo.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Wynn Stewart - Big, Big Love.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Kitty Wells - Heartbreak USA.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Claude Gray - My Ears Should Burn (When Fools Are Talked About).flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Tex Ritter - I Dreamed of a Hill-Billy Heaven.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Gloria Lambert - Each Time I Hear (Don’t Worry).flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 31
+DEBUG: Cache hit for 01 - Hank Snow - I’ve Been Everywhere.flac
+DEBUG: Track 1/31 hash took 0.002s
+DEBUG: Cache hit for 02 - George Jones - She Thinks I Still Care.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Claude King - Wolverton Mountain.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Patsy Cline - She’s Got You.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Don Gibson - Lonesome Number One.flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Stonewall Jackson - A Wound Time Can’t Erase.flac
+DEBUG: Track 6/31 hash took 0.001s
+DEBUG: Cache hit for 07 - Marty Robbins - Devil Woman.flac
+DEBUG: Track 7/31 hash took 0.001s
+DEBUG: Cache hit for 08 - Bill Anderson - Mama Sang a Song.flac
+DEBUG: Track 8/31 hash took 0.000s
+DEBUG: Cache hit for 09 - Flatt & Scruggs - The Ballad of Jed Clampett.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Anita Carter - (Love’s) Ring of Fire.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - James O’Gwynn - My Name Is Mud.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - Wynn Stewart - Another Day, Another Dollar.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Patsy Cline - So Wrong.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Ray Price - Pride.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Porter Wagoner - Misery Loves Company.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Rex Allen - Don’t Go Near the Indians.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Billy Walker - Charlie’s Shoes.flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Carl Butler - Don’t Let Me Cross Over.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - Loretta Lynn - Success.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Ned Miller - From a Jack to a King.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Willie Nelson - Touch Me.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Hank Cochran - Sally Was a Good Old Girl.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - George Jones - A Girl I Used to Know.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Buck Owens - Kickin’ Our Hearts Around.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Webb Pierce - Crazy Wild Desire.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Jim Reeves - Adios Amigo.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Marty Robbins - Ruby Ann.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Sheb Wooley - That’s My Pa.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Jimmy Dean - Pt 109.flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Esther Phillips - Release Me.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Lucky Starr - I’ve Been Everywhere (original Australian version).flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.013s for 31
+DEBUG: Cache hit for 01 - Bobby Bare - Detroit City.flac
+DEBUG: Track 1/32 hash took 0.002s
+DEBUG: Cache hit for 02 - Joe Carson - I Gotta Get Drunk (and I Shore Do Dread It).flac
+DEBUG: Track 2/32 hash took 0.001s
+DEBUG: Cache hit for 03 - Johnny Cash - Busted.flac
+DEBUG: Track 3/32 hash took 0.001s
+DEBUG: Cache hit for 04 - Patsy Cline - Leavin’ On Your Mind.flac
+DEBUG: Track 4/32 hash took 0.001s
+DEBUG: Cache hit for 05 - Hawkshaw Hawkins - Lonesome 7–7203.flac
+DEBUG: Track 5/32 hash took 0.001s
+DEBUG: Cache hit for 06 - George Jones & Melba Montgomery - We Must Have Been Out of Our Minds.flac
+DEBUG: Track 6/32 hash took 0.000s
+DEBUG: Cache hit for 07 - Ernie Ashworth - Talk Back Trembling Lips.flac
+DEBUG: Track 7/32 hash took 0.000s
+DEBUG: Cache hit for 08 - Bill Anderson - Still.flac
+DEBUG: Track 8/32 hash took 0.000s
+DEBUG: Cache hit for 09 - Stonewall Jackson - B․J․ The D․J․.flac
+DEBUG: Track 9/32 hash took 0.000s
+DEBUG: Cache hit for 10 - Faron Young - The Yellow Bandana.flac
+DEBUG: Track 10/32 hash took 0.000s
+DEBUG: Cache hit for 11 - Ray Price - Walk Me to the Door.flac
+DEBUG: Track 11/32 hash took 0.000s
+DEBUG: Cache hit for 12 - Buck Owens - Act Naturally.flac
+DEBUG: Track 12/32 hash took 0.000s
+DEBUG: Cache hit for 13 - Ernest Tubb - Thanks a Lot.flac
+DEBUG: Track 13/32 hash took 0.000s
+DEBUG: Cache hit for 14 - Dave Dudley - Six Days on the Road (original).flac
+DEBUG: Track 14/32 hash took 0.000s
+DEBUG: Cache hit for 15 - Jonie & Johnny Mosby - Don’t Call Me From a Honky Tonk.flac
+DEBUG: Track 15/32 hash took 0.000s
+DEBUG: Cache hit for 16 - George Jones - Not What I Had in Mind.flac
+DEBUG: Track 16/32 hash took 0.000s
+DEBUG: Cache hit for 17 - David Houston - Mountain of Love.flac
+DEBUG: Track 17/32 hash took 0.000s
+DEBUG: Cache hit for 18 - Loretta Lynn - Before I’m Over You.flac
+DEBUG: Track 18/32 hash took 0.000s
+DEBUG: Cache hit for 19 - George Hamilton IV - Abilene.flac
+DEBUG: Track 19/32 hash took 0.000s
+DEBUG: Cache hit for 20 - Hank Snow - Ninety Miles an Hour (Down a Dead End Street).flac
+DEBUG: Track 20/32 hash took 0.000s
+DEBUG: Cache hit for 21 - Marty Robbins - Begging to You.flac
+DEBUG: Track 21/32 hash took 0.001s
+DEBUG: Cache hit for 22 - Bobby Bare - Five Hundred Miles Away From Home.flac
+DEBUG: Track 22/32 hash took 0.000s
+DEBUG: Cache hit for 23 - Bill Anderson - 8 X 10.flac
+DEBUG: Track 23/32 hash took 0.000s
+DEBUG: Cache hit for 24 - Skeets McDonald - Call Me Mr․ Brown.flac
+DEBUG: Track 24/32 hash took 0.000s
+DEBUG: Cache hit for 25 - Skeeter Davis - The End of the World.flac
+DEBUG: Track 25/32 hash took 0.000s
+DEBUG: Cache hit for 26 - Johnny Cash - Ring of Fire.flac
+DEBUG: Track 26/32 hash took 0.000s
+DEBUG: Cache hit for 27 - Patsy Cline - Sweet Dreams (of You).flac
+DEBUG: Track 27/32 hash took 0.000s
+DEBUG: Cache hit for 28 - George Jones & Melba Montgomery - Let’s Invite Them Over.flac
+DEBUG: Track 28/32 hash took 0.000s
+DEBUG: Cache hit for 29 - Buck Owens - Love’s Gonna Live Here.flac
+DEBUG: Track 29/32 hash took 0.000s
+DEBUG: Cache hit for 30 - Ray Price - Night Life.flac
+DEBUG: Track 30/32 hash took 0.000s
+DEBUG: Cache hit for 31 - Grandpa Jones - T for Texas.flac
+DEBUG: Track 31/32 hash took 0.000s
+DEBUG: Cache hit for 32 - Billy Grammer - I Wanna Go Home.flac
+DEBUG: Track 32/32 hash took 0.000s
+DEBUG: Total fingerprints: 0.014s for 32
+DEBUG: Cache hit for 01 - Roger Miller - Dang Me.flac
+DEBUG: Track 1/31 hash took 0.002s
+DEBUG: Cache hit for 02 - Bobby Bare - Four Strong Winds.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - George Jones - The Race Is On.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Johnny Cash - Understand Your Man.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Lefty Frizzell - Saginaw, Michigan.flac
+DEBUG: Track 5/31 hash took 0.000s
+DEBUG: Cache hit for 06 - Warner Mack - Sittin’ In an All Night Cafe.flac
+DEBUG: Track 6/31 hash took 0.000s
+DEBUG: Cache hit for 07 - Dottie West - Here Comes My Baby.flac
+DEBUG: Track 7/31 hash took 0.001s
+DEBUG: Cache hit for 08 - Buck Owens - My Heart Skips a Beat.flac
+DEBUG: Track 8/31 hash took 0.001s
+DEBUG: Cache hit for 09 - Merle Haggard - Sing a Sad Song.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Johnny Cash - Ballad of Ira Hayes.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Porter Wagoner - Sorrow on the Rocks.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - Patsy Cline - He Called Me Baby.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Stonewall Jackson - Don’t Be Angry.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Jim Reeves - Welcome to My World.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Webb Pierce - Memory #1.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Loretta Lynn - Wine, Women and Song.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Buck Owens - Together Again.flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Jimmy Martin - Widow Maker.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - Charlie Walker - Close All the Honky Tonks.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Ray Price - Burning Memories.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Norma Jean - Go Cat, Go.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Roger Miller - Chug‐A‐Lug.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Billy Edd Wheeler - Ode to the Little Brown Shack Out Back.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Johnny Cash - It Ain’t Me Baby.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Billy Walker - Cross the Brazos at Waco.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Jim Reeves - I Guess I’m Crazy.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Hank Williams, Jr․ - Long Gone Lonesome Blues.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Connie Smith - Once a Day.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Buck Owens - I Don’t Care (Just as long as You Love Me).flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Porter Wagoner - I’ll Go Down Swinging.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Peter La Farge - The Ballad of Ira Hayes.flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 31
+DEBUG: Cache hit for 01 - Roger Miller - King of the Road.flac
+DEBUG: Track 1/31 hash took 0.002s
+DEBUG: Cache hit for 02 - Carl Belew - Crystal Chandelier.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Del Reeves - Girl on the Billboard.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Porter Wagoner - Green, Green Grass of Home.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Norma Jean - I Wouldn’t Buy a Used Car From Him.flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Stonewall Jackson - I Washed My Hands in Muddy Water.flac
+DEBUG: Track 6/31 hash took 0.000s
+DEBUG: Cache hit for 07 - Marty Robbins - Ribbon of Darkness.flac
+DEBUG: Track 7/31 hash took 0.001s
+DEBUG: Cache hit for 08 - Eddy Arnold - Make the World Go Away.flac
+DEBUG: Track 8/31 hash took 0.000s
+DEBUG: Cache hit for 09 - Chet Atkins - Yakety Axe.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Buck Owens - I’ve Got a Tiger by the Tail.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Loretta Lynn - Blue Kentucky Girl.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - George Jones - Love Bug.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Lefty Frizzell - She’s Gone, Gone, Gone.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Bobby Bare - It’s Alright.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Warner Mack - The Bridge Washed Out.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Johnny Bond - Ten Little Bottles.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Dick Curless - A Tombstone Every Mile.flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Roy Drusky & Priscilla Mitchell - Yes Mr․ Peters.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - The Statler Brothers - Flowers on the Wall.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Johnny Paycheck - A-11.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Little Jimmy Dickens - May the Bird of Paradise Fly Up Your Nose.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Merle Haggard - (My Friends Are Gonna Be) Strangers.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Roger Miller - Kansas City Star.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Buck Owens - Before You Go.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Dave Dudley - Truck Drivin’ Son of a Gun.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Ernest Tubb - Waltz Across Texas.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Charley Pride - Snakes Crawl at Night.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Jim Reeves - Is It Really Over.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Johnny Wright - Hello Vietnam.flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - George Jones - Things Have Gone to Pieces.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Leon Payne - Things Have Gone to Pieces.flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 31
+DEBUG: Cache hit for 01 - Jim Reeves - Distant Drums.flac
+DEBUG: Track 1/31 hash took 0.002s
+DEBUG: Cache hit for 02 - Bobby Bare - The Streets of Baltimore.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Marty Robbins - The Shoe Goes on the Other Foot Tonight.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Jeannie Seely - Don’t Touch Me.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Mel Tillis - Stateside.flac
+DEBUG: Track 5/31 hash took 0.000s
+DEBUG: Cache hit for 06 - David Houston - Almost Persuaded.flac
+DEBUG: Track 6/31 hash took 0.001s
+DEBUG: Cache hit for 07 - Bill Anderson - I Get the Fever.flac
+DEBUG: Track 7/31 hash took 0.000s
+DEBUG: Cache hit for 08 - Loretta Lynn - You Ain’t Woman Enough.flac
+DEBUG: Track 8/31 hash took 0.000s
+DEBUG: Cache hit for 09 - Roger Miller - Husbands and Wives.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Merle Haggard - Swinging Doors.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Don Gibson - Funny, Familiar Forgotten Feelings.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - Buck Owens - Waitin’ in Your Welfare Line.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Nat Stuckey - Sweet Thang.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Jack Greene - There Goes My Everything.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Dallas Frazier - Elvira.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Merle Haggard - The Bottle Let Me Down.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Roger Miller - I’ve Been a Long Time Leavin’ (But I’ll Be a Long Time Gone).flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Wilma Burgess - Misty Blue.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - Faron Young - Unmitigated Gall.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Eddy Arnold - I Want to Go With You.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Johnny Cash - The One on the Right Is on the Left.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Johnny Paycheck - (Pardon Me) I’ve Got Someone to Kill.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Ray Price - Touch My Heart.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - The Browns - I’d Just Be Fool Enough.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Merle Haggard - The Fugitive.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Porter Wagoner - Skid Row Joe.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Tammy Wynette - Apartment #9.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Buck Owens - Open Up Your Heart.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Waylon Jennings - Anita You’re Dreaming.flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Loretta Lynn - Don’t Come Home a Drinkin’ (with Lovin’ on Your Mind).flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Jim Reeves - Distant Drums (undubbed).flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.015s for 31
+DEBUG: Cache hit for 01 - Bobbie Gentry - Ode to Billie Joe.flac
+DEBUG: Track 1/31 hash took 0.001s
+DEBUG: Cache hit for 02 - Johnny Darrell - Ruby (Don’t take Your Love to Town).flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Waylon Jennings - Mental Revenge.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - Jim Reeves - I Won’t Come in While He’s There.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - George Hamilton IV - Break My Mind.flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Leon Ashley - Laura (What’s He Got That I Ain’t Got).flac
+DEBUG: Track 6/31 hash took 0.001s
+DEBUG: Cache hit for 07 - Merle Haggard - Branded Man.flac
+DEBUG: Track 7/31 hash took 0.001s
+DEBUG: Cache hit for 08 - Loretta Lynn - What Kind of Girl (Do You Think I Am)？.flac
+DEBUG: Track 8/31 hash took 0.001s
+DEBUG: Cache hit for 09 - Jim Ed Brown - Pop a Top.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Ray Price - Danny Boy.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Robert Mitchum - Little Ole Wine Drinker Me.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - John Hartford - Gentle on My Mind.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Glen Campbell - By the Time I Get to Phoenix.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Marty Robbins - Tonight Carmen.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Mel Tillis - Life Turned Her That Way.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Buck Owens - Where Does the Good Times Go.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Skeeter Davis - What Does It Take (To Keep a Man Like You Satisfied).flac
+DEBUG: Track 17/31 hash took 0.000s
+DEBUG: Cache hit for 18 - Waylon Jennings - The Chokin’ Kind.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - Johnny Cash & June Carter - Jackson.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - Merle Haggard - Sing Me Back Home.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Wanda Jackson - Tears Will Be the Chaser for Your Wine.flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Jerry Reed - Guitar Man.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Norma Jean - Jackson Ain’t a Very Big Town.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - George Jones - Walk Through This World With Me.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - David Houston, Tammy Wynette - My Elusive Dreams.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Wynn Stewart - It’s Such a Pretty World Today.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - Buck Owens - Sam’s Place.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Tammy Wynette - I Don’t Wanna Play House.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Country Charlie Pride - Does My Ring Hurt Your Finger.flac
+DEBUG: Track 29/31 hash took 0.000s
+DEBUG: Cache hit for 30 - Porter Wagoner - Cold Hard Facts of Life.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - The Lovin’ Spoonful - Nashville Cats.flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.012s for 31
+DEBUG: Cache hit for 01 - Waylon Jennings - Only Daddy That’ll Walk the Line.flac
+DEBUG: Track 1/31 hash took 0.003s
+DEBUG: Cache hit for 02 - Tammy Wynette - D․I․V․O․R․C․E․.flac
+DEBUG: Track 2/31 hash took 0.001s
+DEBUG: Cache hit for 03 - Johnny Cash - Folsom Prison Blues.flac
+DEBUG: Track 3/31 hash took 0.001s
+DEBUG: Cache hit for 04 - The International Submarine Band - Luxury Liner.flac
+DEBUG: Track 4/31 hash took 0.001s
+DEBUG: Cache hit for 05 - Henson Cargill - Skip a Rope.flac
+DEBUG: Track 5/31 hash took 0.001s
+DEBUG: Cache hit for 06 - Merle Haggard - Mama Tried.flac
+DEBUG: Track 6/31 hash took 0.000s
+DEBUG: Cache hit for 07 - George Jones - Beneath Still Waters.flac
+DEBUG: Track 7/31 hash took 0.000s
+DEBUG: Cache hit for 08 - Glen Campbell - I Wanna Live.flac
+DEBUG: Track 8/31 hash took 0.000s
+DEBUG: Cache hit for 09 - Jeannie C․ Riley - Harper Valley P․T․A․.flac
+DEBUG: Track 9/31 hash took 0.000s
+DEBUG: Cache hit for 10 - Doug Dillard & Gene Clark - Train Leaves Here This Morning.flac
+DEBUG: Track 10/31 hash took 0.000s
+DEBUG: Cache hit for 11 - Porter Wagoner - The Carroll County Accident.flac
+DEBUG: Track 11/31 hash took 0.000s
+DEBUG: Cache hit for 12 - Jerry Lee Lewis - Another Place Another Time.flac
+DEBUG: Track 12/31 hash took 0.000s
+DEBUG: Cache hit for 13 - Merle Haggard - I Take a Lot of Pride in What I Am.flac
+DEBUG: Track 13/31 hash took 0.000s
+DEBUG: Cache hit for 14 - Loretta Lynn - Fist City.flac
+DEBUG: Track 14/31 hash took 0.000s
+DEBUG: Cache hit for 15 - Charlie Louvin - Will You Visit Me on Sundays？.flac
+DEBUG: Track 15/31 hash took 0.000s
+DEBUG: Cache hit for 16 - Johnny Darrell - The Son of Hickory Holler’s Tramp.flac
+DEBUG: Track 16/31 hash took 0.000s
+DEBUG: Cache hit for 17 - Roger Miller - Little Green Apples.flac
+DEBUG: Track 17/31 hash took 0.001s
+DEBUG: Cache hit for 18 - Tom T․ Hall - Ballad of Forty Dollars.flac
+DEBUG: Track 18/31 hash took 0.000s
+DEBUG: Cache hit for 19 - The Byrds - Hickory Wind.flac
+DEBUG: Track 19/31 hash took 0.000s
+DEBUG: Cache hit for 20 - The Osborne Brothers - Rocky Top.flac
+DEBUG: Track 20/31 hash took 0.000s
+DEBUG: Cache hit for 21 - Jerry Lee Lewis - What’s Made Milwaukee Famous (Has Made a Loser Out of Me).flac
+DEBUG: Track 21/31 hash took 0.000s
+DEBUG: Cache hit for 22 - Glen Campbell - Wichita Lineman.flac
+DEBUG: Track 22/31 hash took 0.000s
+DEBUG: Cache hit for 23 - Porter Wagoner, Dolly Parton - Holding on to Nothin’.flac
+DEBUG: Track 23/31 hash took 0.000s
+DEBUG: Cache hit for 24 - Johnny Cash - Daddy Sang Bass.flac
+DEBUG: Track 24/31 hash took 0.000s
+DEBUG: Cache hit for 25 - Merle Haggard - I Started Loving You Again.flac
+DEBUG: Track 25/31 hash took 0.000s
+DEBUG: Cache hit for 26 - Buck Owens - How Long Will My Baby Be Gone？.flac
+DEBUG: Track 26/31 hash took 0.000s
+DEBUG: Cache hit for 27 - George Jones - When the Grass Grows Over Me.flac
+DEBUG: Track 27/31 hash took 0.000s
+DEBUG: Cache hit for 28 - Marty Robbins - I Walk Alone.flac
+DEBUG: Track 28/31 hash took 0.000s
+DEBUG: Cache hit for 29 - Conway Twitty - Next in Line.flac
+DEBUG: Track 29/31 hash took 0.005s
+DEBUG: Cache hit for 30 - Tammy Wynette - Stand by Your Man.flac
+DEBUG: Track 30/31 hash took 0.000s
+DEBUG: Cache hit for 31 - Jim Alley - Only Daddy That’ll Walk the Line.flac
+DEBUG: Track 31/31 hash took 0.000s
+DEBUG: Total fingerprints: 0.020s for 31
+DEBUG: Cache hit for 01 - John Wesley Ryles - Kay.flac
+DEBUG: Track 1/28 hash took 0.003s
+DEBUG: Cache hit for 02 - Buck Owens - Who’s Gonna Mow Your Grass？.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Bobby Bare - (Margie’s at) The Lincoln Park Inn.flac
+DEBUG: Track 3/28 hash took 0.001s
+DEBUG: Cache hit for 04 - The Byrds - Drug Store Truck Drivin’ Man.flac
+DEBUG: Track 4/28 hash took 0.000s
+DEBUG: Cache hit for 05 - Merle Haggard - Workin’ Man Blues.flac
+DEBUG: Track 5/28 hash took 0.000s
+DEBUG: Cache hit for 06 - Loretta Lynn - Woman of the World (Leave My World Alone).flac
+DEBUG: Track 6/28 hash took 0.001s
+DEBUG: Cache hit for 07 - Charley Pride - All I Have to Offer You (Is Me).flac
+DEBUG: Track 7/28 hash took 0.001s
+DEBUG: Cache hit for 08 - Glen Campbell - Galveston.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - Jerry Lee Lewis - To Make Love Sweeter for You.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Johnny Cash - A Boy Named Sue.flac
+DEBUG: Track 10/28 hash took 0.001s
+DEBUG: Cache hit for 11 - Dottie West & Don Gibson - Rings of Gold.flac
+DEBUG: Track 11/28 hash took 0.001s
+DEBUG: Cache hit for 12 - Jack Greene - Statue of a Fool.flac
+DEBUG: Track 12/28 hash took 0.001s
+DEBUG: Cache hit for 13 - Roger Miller - Me and Bobbie McGee.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - The Flying Burrito Brothers - Sin City.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - Tom T․ Hall - Homecoming.flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - George Jones - I’ll Share My World With You.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Bobby Bare - God Bless America Again.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Faron Young - Wine Me Up.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - Johnny Bush - You Gave Me a Mountain.flac
+DEBUG: Track 19/28 hash took 0.001s
+DEBUG: Cache hit for 20 - Porter Wagoner, Dolly Parton - Just Someone I Used to Know.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Glen Campbell - Try a Little Kindness.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Jerry Lee Lewis - She Even Woke Me Up to Say Goodbye.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Merle Haggard - Okie From Muskogee.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Conway Twitty - To See My Angel Cry.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Willie Nelson - Bloody Mary Morning.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Charlie Rich - Life’s Little Ups and Downs.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Kenny Rogers & The First Edition - Ruben James.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Billy Lee Riley - Kay.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.016s for 28
+DEBUG: Cache hit for 01 - Conway Twitty - Hello Darlin’.flac
+DEBUG: Track 1/28 hash took 0.002s
+DEBUG: Cache hit for 02 - Lynn Anderson - Rose Garden.flac
+DEBUG: Track 2/28 hash took 0.001s
+DEBUG: Cache hit for 03 - Jerry Lee Lewis - Once More With Feeling.flac
+DEBUG: Track 3/28 hash took 0.000s
+DEBUG: Cache hit for 04 - Merle Haggard - The Fightin’ Side of Me.flac
+DEBUG: Track 4/28 hash took 0.000s
+DEBUG: Cache hit for 05 - Johnny Cash - What Is Truth.flac
+DEBUG: Track 5/28 hash took 0.000s
+DEBUG: Cache hit for 06 - Bobby Bare - How I Got to Memphis.flac
+DEBUG: Track 6/28 hash took 0.001s
+DEBUG: Cache hit for 07 - Roy Clark - Thank God and Greyhound.flac
+DEBUG: Track 7/28 hash took 0.001s
+DEBUG: Cache hit for 08 - Loretta Lynn - Coal Miner’s Daughter.flac
+DEBUG: Track 8/28 hash took 0.000s
+DEBUG: Cache hit for 09 - Tompall Glaser & The Glaser Brothers - Gone Girl.flac
+DEBUG: Track 9/28 hash took 0.000s
+DEBUG: Cache hit for 10 - Dolly Parton - Mule Skinner Blues (Blue Yodel #8).flac
+DEBUG: Track 10/28 hash took 0.001s
+DEBUG: Cache hit for 11 - Guy Drake - Welfare Cadilac.flac
+DEBUG: Track 11/28 hash took 0.001s
+DEBUG: Cache hit for 12 - Jerry Reed - Amos Moses.flac
+DEBUG: Track 12/28 hash took 0.000s
+DEBUG: Cache hit for 13 - Sammi Smith - Help Me Make It Through the Night.flac
+DEBUG: Track 13/28 hash took 0.000s
+DEBUG: Cache hit for 14 - Tom T․ Hall - A Week in a Country Jail.flac
+DEBUG: Track 14/28 hash took 0.000s
+DEBUG: Cache hit for 15 - The Flying Burrito Brothers - Wild Horses.flac
+DEBUG: Track 15/28 hash took 0.000s
+DEBUG: Cache hit for 16 - Charley Pride - Is Anybody Goin’ to San Antone？.flac
+DEBUG: Track 16/28 hash took 0.000s
+DEBUG: Cache hit for 17 - Ray Price - For the Good Times.flac
+DEBUG: Track 17/28 hash took 0.000s
+DEBUG: Cache hit for 18 - Tammy Wynette - Run, Woman, Run.flac
+DEBUG: Track 18/28 hash took 0.000s
+DEBUG: Cache hit for 19 - George Jones - A Good Year for the Roses.flac
+DEBUG: Track 19/28 hash took 0.000s
+DEBUG: Cache hit for 20 - Waylon Jennings - The Taker.flac
+DEBUG: Track 20/28 hash took 0.000s
+DEBUG: Cache hit for 21 - Dolly Parton - Joshua.flac
+DEBUG: Track 21/28 hash took 0.000s
+DEBUG: Cache hit for 22 - Jerry Lee Lewis - There Must Be More to Love Than This.flac
+DEBUG: Track 22/28 hash took 0.000s
+DEBUG: Cache hit for 23 - Loretta Lynn & Conway Twitty - After the Fire Is Gone.flac
+DEBUG: Track 23/28 hash took 0.000s
+DEBUG: Cache hit for 24 - Johnny Cash - Sunday Morning Coming Down.flac
+DEBUG: Track 24/28 hash took 0.000s
+DEBUG: Cache hit for 25 - Billy Joe Shaver - Chicken on the Ground.flac
+DEBUG: Track 25/28 hash took 0.000s
+DEBUG: Cache hit for 26 - Conway Twitty - Fifteen Years Ago.flac
+DEBUG: Track 26/28 hash took 0.000s
+DEBUG: Cache hit for 27 - Marty Robbins - My Woman, My Woman, My Wife.flac
+DEBUG: Track 27/28 hash took 0.000s
+DEBUG: Cache hit for 28 - Mickey Newbury - How I Love Them Old Songs.flac
+DEBUG: Track 28/28 hash took 0.000s
+DEBUG: Total fingerprints: 0.013s for 28
+DEBUG: Cache miss - computing 01 - In the Beginning.flac
+  DEBUG: fpcalc took 0.325s (7.08MB file, 2.25min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP001] D․ D․ Denham - Electronic Music in the Classroom (2010-09-06)/01 - In the Beginning.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.386s (fp=0.326s, meta=0.060s, cache=0.061s) [7.08MB FLAC 44100Hz 16bit 438kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP001] D․ D․ Denham - Electronic Music in the Classroom (2010-09-06)/01 - In the Beginning.flac
+DEBUG: Cache miss - computing 02 - Slow Chaffinch.flac
+DEBUG: Cache miss - computing 01 - Carnacki Theme One.flac
+  DEBUG: fpcalc took 0.574s (15.89MB file, 2.48min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/01 - Carnacki Theme One.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.635s (fp=0.579s, meta=0.055s, cache=0.056s) [15.89MB FLAC 44100Hz 16bit 889kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/01 - Carnacki Theme One.flac
+DEBUG: Track 1/27 hash took 0.635s
+DEBUG: Cache miss - computing 02 - Valse Largo.flac
+  DEBUG: fpcalc took 0.300s (8.44MB file, 1.53min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/02 - Valse Largo.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.356s (fp=0.301s, meta=0.054s, cache=0.055s) [8.44MB FLAC 44100Hz 16bit 767kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/02 - Valse Largo.flac
+DEBUG: Track 2/27 hash took 0.360s
+DEBUG: Cache miss - computing 03 - Cheyne Walk.flac
+  DEBUG: fpcalc took 0.438s (11.53MB file, 2.22min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/03 - Cheyne Walk.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.495s (fp=0.439s, meta=0.055s, cache=0.056s) [11.53MB FLAC 44100Hz 16bit 724kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/03 - Cheyne Walk.flac
+DEBUG: Track 3/27 hash took 0.498s
+DEBUG: Cache miss - computing 04 - The Except Message.flac
+  DEBUG: fpcalc took 0.428s (11.58MB file, 2.22min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/04 - The Except Message.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.483s (fp=0.428s, meta=0.054s, cache=0.055s) [11.58MB FLAC 44100Hz 16bit 729kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/04 - The Except Message.flac
+DEBUG: Track 4/27 hash took 0.486s
+DEBUG: Cache miss - computing 05 - A Curious Undulation.flac
+  DEBUG: fpcalc took 0.379s (11.22MB file, 2.13min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/05 - A Curious Undulation.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.435s (fp=0.379s, meta=0.055s, cache=0.056s) [11.22MB FLAC 44100Hz 16bit 731kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/05 - A Curious Undulation.flac
+DEBUG: Track 5/27 hash took 0.438s
+DEBUG: Cache miss - computing 06 - Frozen Clock.flac
+  DEBUG: fpcalc took 0.339s (9.66MB file, 1.80min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/06 - Frozen Clock.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.393s (fp=0.340s, meta=0.052s, cache=0.053s) [9.66MB FLAC 44100Hz 16bit 748kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/06 - Frozen Clock.flac
+DEBUG: Track 6/27 hash took 0.396s
+DEBUG: Cache miss - computing 07 - House Among the Laurels.flac
+  DEBUG: fpcalc took 0.349s (11.31MB file, 1.95min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/07 - House Among the Laurels.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.405s (fp=0.350s, meta=0.055s, cache=0.056s) [11.31MB FLAC 44100Hz 16bit 809kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/07 - House Among the Laurels.flac
+DEBUG: Track 7/27 hash took 0.407s
+DEBUG: Cache miss - computing 08 - The Yellow Finger Experiments.flac
+  DEBUG: fpcalc took 0.420s (16.24MB file, 2.93min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/08 - The Yellow Finger Experiments.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.479s (fp=0.421s, meta=0.058s, cache=0.058s) [16.24MB FLAC 44100Hz 16bit 772kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/08 - The Yellow Finger Experiments.flac
+DEBUG: Track 8/27 hash took 0.482s
+DEBUG: Cache miss - computing 09 - Hunched Corridor.flac
+  DEBUG: fpcalc took 0.430s (14.53MB file, 2.52min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/09 - Hunched Corridor.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.487s (fp=0.430s, meta=0.056s, cache=0.057s) [14.53MB FLAC 44100Hz 16bit 801kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/09 - Hunched Corridor.flac
+DEBUG: Track 9/27 hash took 0.490s
+DEBUG: Cache miss - computing 10 - By the I Within.flac
+  DEBUG: fpcalc took 0.328s (6.39MB file, 1.18min audio, processing_ratio=0.005x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/10 - By the I Within.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.403s (fp=0.347s, meta=0.055s, cache=0.055s) [6.39MB FLAC 44100Hz 16bit 754kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/10 - By the I Within.flac
+DEBUG: Track 10/27 hash took 0.405s
+DEBUG: Cache miss - computing 11 - Certain Water.flac
+  DEBUG: fpcalc took 0.291s (6.97MB file, 1.35min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/11 - Certain Water.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.345s (fp=0.291s, meta=0.053s, cache=0.054s) [6.97MB FLAC 44100Hz 16bit 716kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/11 - Certain Water.flac
+DEBUG: Track 11/27 hash took 0.347s
+DEBUG: Cache miss - computing 12 - An Expiration of Sorts.flac
+  DEBUG: fpcalc took 0.338s (9.98MB file, 1.92min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/12 - An Expiration of Sorts.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.393s (fp=0.338s, meta=0.054s, cache=0.055s) [9.98MB FLAC 44100Hz 16bit 726kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/12 - An Expiration of Sorts.flac
+DEBUG: Track 12/27 hash took 0.395s
+DEBUG: Cache miss - computing 13 - Eighth Sign.flac
+  DEBUG: fpcalc took 0.171s (2.86MB file, 0.48min audio, processing_ratio=0.006x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/13 - Eighth Sign.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.229s (fp=0.171s, meta=0.057s, cache=0.058s) [2.86MB FLAC 44100Hz 16bit 816kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/13 - Eighth Sign.flac
+DEBUG: Track 13/27 hash took 0.232s
+DEBUG: Cache miss - computing 14 - Workings in the Grey Room.flac
+  DEBUG: fpcalc took 0.435s (13.88MB file, 2.68min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/14 - Workings in the Grey Room.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.492s (fp=0.435s, meta=0.056s, cache=0.057s) [13.88MB FLAC 44100Hz 16bit 721kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/14 - Workings in the Grey Room.flac
+DEBUG: Track 14/27 hash took 0.495s
+DEBUG: Cache miss - computing 15 - Moontime, the Embankment.flac
+  DEBUG: fpcalc took 0.529s (17.12MB file, 3.32min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/15 - Moontime, the Embankment.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.589s (fp=0.529s, meta=0.059s, cache=0.059s) [17.12MB FLAC 44100Hz 16bit 720kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/15 - Moontime, the Embankment.flac
+DEBUG: Track 15/27 hash took 0.592s
+DEBUG: Cache miss - computing 16 - Carnacki Theme Three.flac
+  DEBUG: fpcalc took 0.411s (32.28MB file, 5.42min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/16 - Carnacki Theme Three.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.467s (fp=0.411s, meta=0.055s, cache=0.056s) [32.28MB FLAC 44100Hz 16bit 832kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/16 - Carnacki Theme Three.flac
+DEBUG: Track 16/27 hash took 0.470s
+DEBUG: Cache miss - computing 17 - Previous Be-Watched.flac
+  DEBUG: fpcalc took 0.269s (5.65MB file, 1.05min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/17 - Previous Be-Watched.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.323s (fp=0.269s, meta=0.053s, cache=0.054s) [5.65MB FLAC 44100Hz 16bit 748kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/17 - Previous Be-Watched.flac
+DEBUG: Track 17/27 hash took 0.326s
+DEBUG: Cache miss - computing 18 - Points and Vales.flac
+  DEBUG: fpcalc took 0.364s (13.81MB file, 2.53min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/18 - Points and Vales.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.417s (fp=0.364s, meta=0.052s, cache=0.053s) [13.81MB FLAC 44100Hz 16bit 758kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/18 - Points and Vales.flac
+DEBUG: Track 18/27 hash took 0.421s
+DEBUG: Cache miss - computing 19 - The Samaa Ritual.flac
+  DEBUG: fpcalc took 0.281s (8.48MB file, 1.62min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/19 - The Samaa Ritual.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.335s (fp=0.281s, meta=0.053s, cache=0.054s) [8.48MB FLAC 44100Hz 16bit 729kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/19 - The Samaa Ritual.flac
+DEBUG: Track 19/27 hash took 0.338s
+DEBUG: Cache miss - computing 20 - Electric Pentacle.flac
+  DEBUG: fpcalc took 0.432s (15.84MB file, 2.72min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/20 - Electric Pentacle.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.488s (fp=0.433s, meta=0.055s, cache=0.055s) [15.84MB FLAC 44100Hz 16bit 811kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/20 - Electric Pentacle.flac
+DEBUG: Track 20/27 hash took 0.491s
+DEBUG: Cache miss - computing 21 - Certain Manifestations.flac
+  DEBUG: fpcalc took 0.429s (17.90MB file, 3.05min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/21 - Certain Manifestations.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.490s (fp=0.429s, meta=0.061s, cache=0.061s) [17.90MB FLAC 44100Hz 16bit 817kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/21 - Certain Manifestations.flac
+DEBUG: Track 21/27 hash took 0.493s
+DEBUG: Cache miss - computing 22 - Malign Energies.flac
+  DEBUG: fpcalc took 0.346s (9.82MB file, 1.88min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/22 - Malign Energies.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.402s (fp=0.346s, meta=0.056s, cache=0.056s) [9.82MB FLAC 44100Hz 16bit 722kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/22 - Malign Energies.flac
+DEBUG: Track 22/27 hash took 0.407s
+DEBUG: Cache miss - computing 23 - Hypnotic Light.flac
+  DEBUG: fpcalc took 0.215s (4.58MB file, 0.87min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/23 - Hypnotic Light.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.272s (fp=0.215s, meta=0.056s, cache=0.057s) [4.58MB FLAC 44100Hz 16bit 731kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/23 - Hypnotic Light.flac
+DEBUG: Track 23/27 hash took 0.275s
+DEBUG: Cache miss - computing 24 - Second Sign.flac
+  DEBUG: fpcalc took 0.458s (15.88MB file, 2.77min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/24 - Second Sign.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.516s (fp=0.458s, meta=0.057s, cache=0.058s) [15.88MB FLAC 44100Hz 16bit 800kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/24 - Second Sign.flac
+DEBUG: Track 24/27 hash took 0.518s
+DEBUG: Cache miss - computing 25 - Experiments With a Medium.flac
+  DEBUG: fpcalc took 0.428s (19.08MB file, 3.35min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/25 - Experiments With a Medium.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.482s (fp=0.428s, meta=0.053s, cache=0.054s) [19.08MB FLAC 44100Hz 16bit 792kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/25 - Experiments With a Medium.flac
+DEBUG: Track 25/27 hash took 0.486s
+DEBUG: Cache miss - computing 26 - There and Somewhat Free.flac
+  DEBUG: fpcalc took 0.393s (12.18MB file, 2.10min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/26 - There and Somewhat Free.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.449s (fp=0.394s, meta=0.055s, cache=0.055s) [12.18MB FLAC 44100Hz 16bit 804kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/26 - There and Somewhat Free.flac
+DEBUG: Track 26/27 hash took 0.451s
+DEBUG: Cache miss - computing 27 - Carnacki Theme Two.flac
+  DEBUG: fpcalc took 0.412s (13.55MB file, 2.33min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/27 - Carnacki Theme Two.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.469s (fp=0.412s, meta=0.056s, cache=0.057s) [13.55MB FLAC 44100Hz 16bit 810kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP002] Jon Brooks - Music for Thomas Carnacki (2011-02-04)/27 - Carnacki Theme Two.flac
+DEBUG: Track 27/27 hash took 0.472s
+DEBUG: Total fingerprints: 11.807s for 27
+DEBUG: Cache miss - computing 01 - AB-30.flac
+  DEBUG: fpcalc took 0.100s (0.36MB file, 0.13min audio, processing_ratio=0.013x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/01 - AB-30.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.157s (fp=0.101s, meta=0.056s, cache=0.056s) [0.36MB FLAC 44100Hz 16bit 358kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/01 - AB-30.flac
+DEBUG: Track 1/9 hash took 0.157s
+DEBUG: Cache miss - computing 02 - Regie.flac
+  DEBUG: fpcalc took 0.382s (14.84MB file, 3.13min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/02 - Regie.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.441s (fp=0.382s, meta=0.058s, cache=0.059s) [14.84MB FLAC 44100Hz 16bit 661kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/02 - Regie.flac
+DEBUG: Track 2/9 hash took 0.441s
+DEBUG: Cache miss - computing 03 - Zukunft Als Konzept.flac
+  DEBUG: fpcalc took 0.523s (21.48MB file, 4.05min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/03 - Zukunft Als Konzept.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.585s (fp=0.524s, meta=0.061s, cache=0.062s) [21.48MB FLAC 44100Hz 16bit 740kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/03 - Zukunft Als Konzept.flac
+DEBUG: Track 3/9 hash took 0.585s
+DEBUG: Cache miss - computing 04 - Feldstärke.flac
+  DEBUG: fpcalc took 0.381s (11.36MB file, 2.17min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/04 - Feldstärke.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.436s (fp=0.381s, meta=0.054s, cache=0.055s) [11.36MB FLAC 44100Hz 16bit 732kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/04 - Feldstärke.flac
+DEBUG: Track 4/9 hash took 0.437s
+DEBUG: Cache miss - computing 05 - Interbau.flac
+  DEBUG: fpcalc took 0.371s (22.91MB file, 4.80min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/05 - Interbau.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.453s (fp=0.371s, meta=0.081s, cache=0.082s) [22.91MB FLAC 44100Hz 16bit 665kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/05 - Interbau.flac
+DEBUG: Track 5/9 hash took 0.453s
+DEBUG: Cache miss - computing 06 - Elektronische Schaltungen.flac
+  DEBUG: fpcalc took 0.437s (11.57MB file, 2.37min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/06 - Elektronische Schaltungen.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.492s (fp=0.438s, meta=0.053s, cache=0.054s) [11.57MB FLAC 44100Hz 16bit 680kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/06 - Elektronische Schaltungen.flac
+DEBUG: Track 6/9 hash took 0.492s
+DEBUG: Cache miss - computing 07 - Wanduhr Weltzeit.flac
+  DEBUG: fpcalc took 0.489s (24.56MB file, 4.52min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/07 - Wanduhr Weltzeit.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.562s (fp=0.490s, meta=0.071s, cache=0.072s) [24.56MB FLAC 44100Hz 16bit 758kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/07 - Wanduhr Weltzeit.flac
+DEBUG: Track 7/9 hash took 0.562s
+DEBUG: Cache miss - computing 08 - Aus - Ein.flac
+  DEBUG: fpcalc took 0.395s (21.00MB file, 4.20min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/08 - Aus - Ein.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.448s (fp=0.395s, meta=0.052s, cache=0.053s) [21.00MB FLAC 44100Hz 16bit 697kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/08 - Aus - Ein.flac
+DEBUG: Track 8/9 hash took 0.448s
+DEBUG: Cache miss - computing 09 - Zurück Zum Puren, Zum Einfachen.flac
+  DEBUG: fpcalc took 0.281s (5.84MB file, 1.27min audio, processing_ratio=0.004x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/09 - Zurück Zum Puren, Zum Einfachen.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.336s (fp=0.281s, meta=0.054s, cache=0.055s) [5.84MB FLAC 44100Hz 16bit 644kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP003] Jon Brooks - Music for Dieter Rams (2011-05-16)/09 - Zurück Zum Puren, Zum Einfachen.flac
+DEBUG: Track 9/9 hash took 0.336s
+DEBUG: Total fingerprints: 3.911s for 9
+DEBUG: Cache miss - computing 01 - Zukunft Als Konzept (Reconstruction).flac
+  DEBUG: fpcalc took 0.368s (116.17MB file, 21.65min audio, processing_ratio=0.000x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP004] Jon Brooks - Dieter Rams - Reconstructions EP (2012-02-10)/01 - Zukunft Als Konzept (Reconstruction).flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.423s (fp=0.368s, meta=0.053s, cache=0.054s) [116.17MB FLAC 44100Hz 16bit 750kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP004] Jon Brooks - Dieter Rams - Reconstructions EP (2012-02-10)/01 - Zukunft Als Konzept (Reconstruction).flac
+DEBUG: Track 1/2 hash took 0.423s
+DEBUG: Cache miss - computing 02 - Aus - Ein (Pye Corner Audio Reconstruction).flac
+  DEBUG: fpcalc took 0.355s (36.26MB file, 6.33min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP004] Jon Brooks - Dieter Rams - Reconstructions EP (2012-02-10)/02 - Aus - Ein (Pye Corner Audio Reconstruction).flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.412s (fp=0.356s, meta=0.055s, cache=0.056s) [36.26MB FLAC 44100Hz 16bit 800kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP004] Jon Brooks - Dieter Rams - Reconstructions EP (2012-02-10)/02 - Aus - Ein (Pye Corner Audio Reconstruction).flac
+DEBUG: Track 2/2 hash took 0.412s
+DEBUG: Total fingerprints: 0.835s for 2
+DEBUG: Cache miss - computing 01 - An Electric Mind.flac
+  DEBUG: fpcalc took 0.568s (99.32MB file, 8.88min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP005] Georges Vert - An Electric Mind (2012-06-25)/01 - An Electric Mind.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.624s (fp=0.569s, meta=0.055s, cache=0.056s) [99.32MB FLAC 44100Hz 24bit 1561kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP005] Georges Vert - An Electric Mind (2012-06-25)/01 - An Electric Mind.flac
+DEBUG: Cache miss - computing 02 - Pegasus Dub.flac
+  DEBUG: fpcalc took 0.693s (67.95MB file, 5.88min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP005] Georges Vert - An Electric Mind (2012-06-25)/02 - Pegasus Dub.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.765s (fp=0.694s, meta=0.070s, cache=0.071s) [67.95MB FLAC 44100Hz 24bit 1614kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP005] Georges Vert - An Electric Mind (2012-06-25)/02 - Pegasus Dub.flac
+DEBUG: Cache miss - computing 01 - Equilibria.flac
+  DEBUG: fpcalc took 0.185s (2.35MB file, 0.48min audio, processing_ratio=0.006x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/01 - Equilibria.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.242s (fp=0.185s, meta=0.056s, cache=0.057s) [2.35MB FLAC 44100Hz 16bit 675kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/01 - Equilibria.flac
+DEBUG: Track 1/15 hash took 0.242s
+DEBUG: Cache miss - computing 02 - Flashpoint.flac
+  DEBUG: fpcalc took 0.555s (15.69MB file, 2.97min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/02 - Flashpoint.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.615s (fp=0.556s, meta=0.058s, cache=0.059s) [15.69MB FLAC 44100Hz 16bit 738kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/02 - Flashpoint.flac
+DEBUG: Track 2/15 hash took 0.615s
+DEBUG: Cache miss - computing 03 - Cells in Action.flac
+  DEBUG: fpcalc took 0.420s (15.21MB file, 3.40min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/03 - Cells in Action.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.479s (fp=0.420s, meta=0.058s, cache=0.059s) [15.21MB FLAC 44100Hz 16bit 623kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/03 - Cells in Action.flac
+DEBUG: Track 3/15 hash took 0.479s
+DEBUG: Cache miss - computing 04 - Populated Circuits.flac
+  DEBUG: fpcalc took 0.452s (11.59MB file, 2.82min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/04 - Populated Circuits.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.510s (fp=0.453s, meta=0.056s, cache=0.057s) [11.59MB FLAC 44100Hz 16bit 574kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/04 - Populated Circuits.flac
+DEBUG: Track 4/15 hash took 0.510s
+DEBUG: Cache miss - computing 05 - Sea-Floor Spread.flac
+  DEBUG: fpcalc took 0.461s (16.66MB file, 3.50min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/05 - Sea-Floor Spread.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.518s (fp=0.461s, meta=0.055s, cache=0.057s) [16.66MB FLAC 44100Hz 16bit 662kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/05 - Sea-Floor Spread.flac
+DEBUG: Track 5/15 hash took 0.518s
+DEBUG: Cache miss - computing 06 - Nucleus & Nib.flac
+  DEBUG: fpcalc took 0.432s (13.91MB file, 3.13min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/06 - Nucleus & Nib.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.490s (fp=0.432s, meta=0.057s, cache=0.058s) [13.91MB FLAC 44100Hz 16bit 617kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/06 - Nucleus & Nib.flac
+DEBUG: Track 6/15 hash took 0.490s
+DEBUG: Cache miss - computing 07 - States of Matter.flac
+  DEBUG: fpcalc took 0.378s (17.75MB file, 3.50min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/07 - States of Matter.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.434s (fp=0.378s, meta=0.056s, cache=0.056s) [17.75MB FLAC 44100Hz 16bit 706kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/07 - States of Matter.flac
+DEBUG: Track 7/15 hash took 0.434s
+DEBUG: Cache miss - computing 08 - Cove Hithe.flac
+  DEBUG: fpcalc took 0.249s (5.91MB file, 1.50min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/08 - Cove Hithe.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.306s (fp=0.249s, meta=0.056s, cache=0.057s) [5.91MB FLAC 44100Hz 16bit 546kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/08 - Cove Hithe.flac
+DEBUG: Track 8/15 hash took 0.306s
+DEBUG: Cache miss - computing 09 - Kinetics in Industry.flac
+  DEBUG: fpcalc took 0.362s (14.78MB file, 3.20min audio, processing_ratio=0.002x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/09 - Kinetics in Industry.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.419s (fp=0.362s, meta=0.056s, cache=0.057s) [14.78MB FLAC 44100Hz 16bit 642kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/09 - Kinetics in Industry.flac
+DEBUG: Track 9/15 hash took 0.419s
+DEBUG: Cache miss - computing 10 - Ecological Energetics.flac
+  DEBUG: fpcalc took 0.390s (9.76MB file, 2.23min audio, processing_ratio=0.003x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/10 - Ecological Energetics.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.445s (fp=0.390s, meta=0.054s, cache=0.054s) [9.76MB FLAC 44100Hz 16bit 609kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP006] Café Kaput - Applied Music∶ Science & Nature (2013-05-13)/10 - Ecological Energetics.flac
+DEBUG: Track 10/15 hash took 0.445s
+DEBUG: Cache miss - computing 11 - Open Land.flac
+^CDEBUG: Cache miss - computing 01 - Ascent.flac
+
+Shutting down duperscooper GUI...
+  DEBUG: fpcalc took 0.372s (32.78MB file, 8.57min audio, processing_ratio=0.001x realtime)
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP007] Jon Brooks - Agri Montana (2017-07-06)/01 - Ascent.flac
+  DEBUG: Extracting metadata with ffprobe...
+  DEBUG: Metadata extracted: codec=FLAC
+DEBUG: Hash took 0.429s (fp=0.373s, meta=0.056s, cache=0.057s) [32.78MB FLAC 44100Hz 16bit 534kbps]
+  File: /Volumes/media/audio/music/complete/lossless/by-label/Café Kaput/[KAP007] Jon Brooks - Agri Montana (2017-07-06)/01 - Ascent.flac
+DEBUG: Track 1/7 hash took 0.430s
+DEBUG: Stop detected in extract_album_metadata (cached) at track 2/7

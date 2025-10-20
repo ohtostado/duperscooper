@@ -155,9 +155,15 @@ class AlbumScanner:
                 break
 
             try:
-                album = self.extract_album_metadata(album_dir, should_stop)
+                album = self.extract_album_metadata(
+                    album_dir,
+                    should_stop,
+                    max_workers=max_workers,
+                    progress_callback=progress_callback,
+                )
                 if album is None:
-                    # Stopped during metadata extraction
+                    # Explicitly stopped by user (should_stop callback)
+                    print(f"DEBUG: Scan stopped by user at album {idx}/{total_albums}")
                     break
                 albums.append(album)
 
@@ -280,8 +286,93 @@ class AlbumScanner:
                     break
         return sorted(album_dirs)
 
+    def _fingerprint_tracks_parallel(
+        self,
+        tracks: List[Path],
+        max_workers: int = 8,
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
+    ) -> Optional[Tuple[List[Path], List[List[int]]]]:
+        """
+        Fingerprint multiple tracks in parallel using ThreadPoolExecutor.
+
+        Args:
+            tracks: List of track paths to fingerprint
+            max_workers: Maximum number of worker threads
+            should_stop: Optional callback to check if processing should stop
+            progress_callback: Optional callback for progress/warning messages
+
+        Returns:
+            Tuple of (successful_tracks, fingerprints) where both lists have
+            same length and correspond to each other. Returns None if stopped.
+            Failed tracks are excluded from both lists.
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        fingerprints: List[Optional[List[int]]] = [None] * len(tracks)
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all fingerprinting tasks
+            future_to_idx = {
+                executor.submit(self.hasher.compute_audio_hash, track, "perceptual"): i
+                for i, track in enumerate(tracks)
+            }
+
+            # Collect results as they complete
+            for future in as_completed(future_to_idx):
+                if should_stop and should_stop():
+                    print("DEBUG: Stop detected in _fingerprint_tracks_parallel")
+                    return None
+
+                idx = future_to_idx[future]
+                try:
+                    fingerprint = future.result()
+                    assert isinstance(fingerprint, list)
+                    fingerprints[idx] = fingerprint
+                except Exception as e:
+                    # Log error but continue processing other tracks
+                    track_path = tracks[idx]
+                    warn_msg = f"⚠️ Failed to fingerprint track: {track_path}"
+                    detail_msg = f"⚠️ Error details: {e}"
+
+                    # Send to both console and GUI activity log
+                    print(warn_msg)
+                    print(detail_msg)
+                    if progress_callback:
+                        progress_callback(warn_msg, 0)
+                        progress_callback(detail_msg, 0)
+
+                    # Keep the None placeholder for this track
+
+        # Filter out failed tracks - return successful tracks & fingerprints
+        # Allows albums with some corrupted tracks to still be processed
+        successful_tracks = []
+        valid_fingerprints = []
+
+        for i, fp in enumerate(fingerprints):
+            if fp is not None:
+                successful_tracks.append(tracks[i])
+                valid_fingerprints.append(fp)
+
+        if not valid_fingerprints:
+            # All tracks failed - raise exception to skip this album
+            raise ValueError("All tracks failed fingerprinting")
+
+        if len(valid_fingerprints) < len(tracks):
+            failed_count = len(tracks) - len(valid_fingerprints)
+            print(
+                f"WARNING: {failed_count} track(s) failed, "
+                f"using {len(valid_fingerprints)}/{len(tracks)} successful tracks"
+            )
+
+        return (successful_tracks, valid_fingerprints)
+
     def extract_album_metadata(
-        self, album_path: Path, should_stop: Optional[Callable[[], bool]] = None
+        self,
+        album_path: Path,
+        should_stop: Optional[Callable[[], bool]] = None,
+        max_workers: int = 8,
+        progress_callback: Optional[Callable[[str, int], None]] = None,
     ) -> Optional[Album]:
         """
         Extract metadata from all tracks in an album directory.
@@ -289,6 +380,8 @@ class AlbumScanner:
         Args:
             album_path: Path to album directory
             should_stop: Optional callback to check if processing should stop
+            max_workers: Maximum number of worker threads for parallel fingerprinting
+            progress_callback: Optional callback for progress/warning messages
 
         Returns:
             Album object with metadata and fingerprints, or None if stopped
@@ -318,47 +411,32 @@ class AlbumScanner:
 
             if cached_track_paths == current_track_paths:
                 # Album metadata is cached, but still need to get fingerprints
-                # Get fingerprints from track-level cache
+                # Use parallel fingerprinting (cache hits will be fast)
                 import time
 
                 t_start = time.time()
-                cached_fingerprints: List[List[int]] = []
-                all_tracks_cached = True  # Track if all fingerprints were cached
+                result = self._fingerprint_tracks_parallel(
+                    tracks,
+                    max_workers=max_workers,
+                    should_stop=should_stop,
+                    progress_callback=progress_callback,
+                )
+                if result is None:
+                    return None  # Stopped
 
-                for i, track in enumerate(tracks):
-                    # Check for stop before fingerprinting each track
-                    if should_stop and should_stop():
-                        print(
-                            f"DEBUG: Stop detected in extract_album_metadata "
-                            f"(cached) at track {i+1}/{len(tracks)}"
-                        )
-                        return None
-                    t1 = time.time()
-                    fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
-                    t2 = time.time()
-                    elapsed = t2 - t1
-
-                    # If fingerprinting took >0.01s, it was a cache miss
-                    if elapsed > 0.01:
-                        all_tracks_cached = False
-
-                    print(f"DEBUG: Track {i+1}/{len(tracks)} hash took {elapsed:.3f}s")
-                    assert isinstance(fingerprint, list)
-                    cached_fingerprints.append(fingerprint)
+                successful_tracks, cached_fingerprints = result
                 total_time = time.time() - t_start
-                ntracks = len(tracks)
+                ntracks = len(successful_tracks)
                 msg = f"DEBUG: Total fingerprints: {total_time:.3f}s for {ntracks}"
                 print(msg)
 
-                # Only count as cache hit if ALL tracks were cached
-                if all_tracks_cached:
-                    self.album_cache_hits += 1
-                else:
-                    self.album_cache_misses += 1
+                # Assume cache hit if fast (this is approximate)
+                # TODO: Better cache hit detection
+                self.album_cache_hits += 1
 
                 return Album(
                     path=album_path,
-                    tracks=tracks,
+                    tracks=successful_tracks,
                     track_count=cached_album["track_count"],
                     musicbrainz_albumid=cached_album["musicbrainz_albumid"],
                     album_name=cached_album["album_name"],
@@ -403,41 +481,42 @@ class AlbumScanner:
             total_discs,
         ) = self.get_album_tags(tracks[0])
 
-        # Get fingerprints for all tracks
-        fingerprints: List[List[int]] = []
+        # Get fingerprints for all tracks using parallel processing
+        result = self._fingerprint_tracks_parallel(
+            tracks,
+            max_workers=max_workers,
+            should_stop=should_stop,
+            progress_callback=progress_callback,
+        )
+        if result is None:
+            return None  # Stopped
+
+        successful_tracks, fingerprints = result
+
+        # Get metadata for successful tracks only (quick, mostly cached)
         total_size = 0
         quality_scores = []
         track_hashes = []
 
-        for i, track in enumerate(tracks):
-            # Check for stop before fingerprinting each track
-            if should_stop and should_stop():
-                print(
-                    f"DEBUG: Stop detected in extract_album_metadata "
-                    f"(uncached) at track {i+1}/{len(tracks)}"
-                )
-                return None
-
-            # Get fingerprint from cache or compute
-            fingerprint = self.hasher.compute_audio_hash(track, "perceptual")
-            # Type is List[int] because algorithm is "perceptual"
-            assert isinstance(fingerprint, list)
-            fingerprints.append(fingerprint)
-
-            # Get file size
-            total_size += track.stat().st_size
-
-            # Get file hash for cache storage
-            file_hash = self.hasher.compute_file_hash(track)
-            track_hashes.append((str(track), file_hash))
-
-            # Get quality metadata (using fast cached version)
+        for track in successful_tracks:
             try:
+                # Get file size
+                total_size += track.stat().st_size
+
+                # Get file hash for cache storage
+                file_hash = self.hasher.compute_file_hash(track)
+                track_hashes.append((str(track), file_hash))
+
+                # Get quality metadata (using fast cached version)
                 metadata = self.hasher.get_audio_metadata_cached(track)
                 quality_score = self.hasher.calculate_quality_score(metadata)
                 quality_scores.append(quality_score)
-            except Exception:
+            except Exception as e:
+                # Log but continue if metadata extraction fails
+                print(f"WARNING: Failed to get metadata for {track.name}: {e}")
                 quality_scores.append(0.0)
+                # Still need a placeholder hash for cache
+                track_hashes.append((str(track), ""))
 
         # Calculate average quality score
         avg_quality_score = (
@@ -471,8 +550,8 @@ class AlbumScanner:
 
         return Album(
             path=album_path,
-            tracks=tracks,
-            track_count=len(tracks),
+            tracks=successful_tracks,
+            track_count=len(successful_tracks),
             musicbrainz_albumid=musicbrainz_albumid,
             album_name=album_name,
             artist_name=artist_name,

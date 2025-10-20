@@ -24,6 +24,7 @@ class AudioHasher:
         use_cache: bool = True,
         update_cache: bool = False,
         cache_backend: str = "sqlite",
+        fingerprint_length: int = 120,
     ):
         """
         Initialize audio hasher with optional cache.
@@ -34,6 +35,8 @@ class AudioHasher:
             use_cache: Whether to use cache (default: True)
             update_cache: Force regeneration of cached hashes (default: False)
             cache_backend: Cache backend type: 'sqlite' or 'json' (default: 'sqlite')
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
         """
         if cache_path is None:
             xdg_config = Path.home() / ".config"
@@ -51,6 +54,7 @@ class AudioHasher:
         self.update_cache = update_cache
         self.cache_backend_type = cache_backend
         self.cache_updates = 0
+        self.fingerprint_length = fingerprint_length
 
         # Initialize cache backend
         if use_cache:
@@ -127,7 +131,10 @@ class AudioHasher:
 
     @staticmethod
     def _call_fpcalc(
-        file_path: Path, raw: bool = False, debug: bool = False
+        file_path: Path,
+        raw: bool = False,
+        debug: bool = False,
+        fingerprint_length: int = 120,
     ) -> Tuple[int, str]:
         """
         Call fpcalc binary directly to generate Chromaprint fingerprint.
@@ -139,39 +146,64 @@ class AudioHasher:
             file_path: Path to audio file
             raw: If True, get raw (uncompressed) fingerprint for fuzzy matching
             debug: If True, print detailed timing information
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
 
         Returns:
             Tuple of (duration_seconds, fingerprint_string)
         """
         try:
+            import os
             import time
 
             cmd = ["fpcalc"]
             if raw:
                 cmd.append("-raw")
+            # Add -length parameter only if different from fpcalc's default (120)
+            # 0 means process full file, 120 uses default (don't specify)
+            if fingerprint_length > 0 and fingerprint_length != 120:
+                cmd.extend(["-length", str(fingerprint_length)])
+            elif fingerprint_length == 0:
+                # Explicitly process full file
+                cmd.extend(["-length", "0"])
+            # else: fingerprint_length == 120, use fpcalc default (no parameter)
             cmd.append(str(file_path))
 
             t_start = time.time()
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=30,
-            )
+            # Use Popen instead of subprocess.run for better control
+            # Redirect stderr to devnull to reduce I/O overhead
+            with open(os.devnull, "w") as devnull:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=devnull,
+                    text=True,
+                )
+                stdout, _ = proc.communicate(timeout=120)
+
             t_elapsed = time.time() - t_start
 
             # Parse fpcalc output
             duration = 0
             fingerprint = ""
-            for line in result.stdout.strip().split("\n"):
+            for line in stdout.strip().split("\n"):
                 if line.startswith("DURATION="):
                     duration = int(line.split("=")[1])
                 elif line.startswith("FINGERPRINT="):
                     fingerprint = line.split("=")[1]
 
             if not fingerprint:
+                # Only raise if we got no fingerprint at all
+                # Exit code 3 means decoding errors but fingerprint may still be valid
+                if proc.returncode != 0:
+                    raise ValueError(
+                        f"fpcalc failed with exit code {proc.returncode} "
+                        f"and produced no fingerprint for {file_path}"
+                    )
                 raise ValueError("fpcalc did not return a fingerprint")
+
+            # If we got a fingerprint, accept it even if exit code is non-zero
+            # (exit code 3 = decoding errors but partial fingerprint is still usable)
 
             if debug and t_elapsed > 0.1:
                 file_size = file_path.stat().st_size / (1024 * 1024)
@@ -236,7 +268,7 @@ class AudioHasher:
         return (1 - diff_bits / total_bits) * 100
 
     def compute_raw_fingerprint(
-        self, file_path: Path, debug: bool = False
+        self, file_path: Path, debug: bool = False, fingerprint_length: int = 120
     ) -> List[int]:
         """
         Compute raw Chromaprint fingerprint for fuzzy matching.
@@ -247,6 +279,8 @@ class AudioHasher:
         Args:
             file_path: Path to audio file
             debug: If True, print detailed timing information
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
 
         Returns:
             List of integers representing raw fingerprint
@@ -256,7 +290,7 @@ class AudioHasher:
         """
         try:
             duration, raw_fp_str = AudioHasher._call_fpcalc(
-                file_path, raw=True, debug=debug
+                file_path, raw=True, debug=debug, fingerprint_length=fingerprint_length
             )
             return AudioHasher.parse_raw_fingerprint(raw_fp_str)
         except Exception as e:
@@ -327,8 +361,15 @@ class AudioHasher:
 
             # Get raw fingerprint for fuzzy matching
             t_fp_start = time.time()
-            raw_fingerprint = self.compute_raw_fingerprint(file_path, debug=True)
+            raw_fingerprint = self.compute_raw_fingerprint(
+                file_path, debug=True, fingerprint_length=self.fingerprint_length
+            )
             t_fp_elapsed = time.time() - t_fp_start
+
+            # Initialize timing variables
+            t_meta_elapsed = 0.0
+            t_cache_elapsed = 0.0
+            metadata = None
 
             # Store in cache as comma-separated string, along with metadata
             if self._cache:
@@ -336,8 +377,6 @@ class AudioHasher:
                 fingerprint_str = ",".join(str(x) for x in raw_fingerprint)
 
                 # Extract metadata at the same time to avoid double processing
-                metadata = None
-                t_meta_elapsed = 0.0
                 # Only cache metadata if using SQLiteCacheBackend (has set_by_path)
                 cache_supports_metadata = hasattr(self._cache, "set_by_path")
                 if cache_supports_metadata:

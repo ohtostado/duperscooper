@@ -1,0 +1,353 @@
+{
+  "export_metadata": {
+    "export_timestamp": "2025-10-18T17:03:32.828170",
+    "mode": "album",
+    "total_groups": 10,
+    "total_items": 11,
+    "duperscooper_version": "0.5.0"
+  },
+  "scan_parameters": {
+    "scan_timestamp": "2025-10-17T22:46:11.252937",
+    "mode": "album",
+    "paths": [
+      "/Volumes/media/audio/music/complete/lossless",
+      "/Volumes/media/audio/music/complete/lossy"
+    ],
+    "algorithm": "perceptual",
+    "similarity_threshold": 98.0,
+    "max_workers": 12,
+    "allow_partial_albums": true
+  },
+  "groups": [
+    {
+      "group_id": 1,
+      "items": [
+        {
+          "album_name": "Tone Science, Module No․2∶ Elements and Particles",
+          "artist_name": "Todd Barton",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "e17f3393-1870-4dcd-a291-02730dd122b1",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[2018-10-19] Tone Science, Module No․2∶ Elements and Particles [DiN DiN_TS02]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 303019667,
+          "total_discs": 1,
+          "track_count": 9,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 2,
+      "items": [
+        {
+          "album_name": "Tone Science, Module No․3∶ Cosines and Tangents",
+          "artist_name": "Robert Rich",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "12382f29-4493-4dff-b855-48290871bb80",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[2019-10-18] Tone Science, Module No․3∶ Cosines and Tangents [DiN DiN_TS03]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 279061788,
+          "total_discs": 1,
+          "track_count": 9,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 3,
+      "items": [
+        {
+          "album_name": "Tone Science, Module No․5∶ Integers and Quotients",
+          "artist_name": "Hélène Vogelsinger",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "4e980f1e-26db-4de5-bf81-8b9448bdf1c2",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[2021-05-07] Tone Science, Module No․5∶ Integers and Quotients [DiN DiN_TS05]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 303809855,
+          "total_discs": 1,
+          "track_count": 9,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 4,
+      "items": [
+        {
+          "album_name": "MASK 100",
+          "artist_name": "Boards of Canada",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "b8e00117-f5f4-4569-b3df-c226570c23ff",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[1996] MASK 100",
+          "quality_info": "FLAC 96.0kHz 24bit",
+          "quality_score": 12496.0,
+          "recommended_action": "delete",
+          "size_bytes": 556935845,
+          "total_discs": 1,
+          "track_count": 4,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 5,
+      "items": [
+        {
+          "album_name": "Escape Tank",
+          "artist_name": "Escape Tank",
+          "confidence": 90.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": true,
+          "match_method": "fingerprint",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": null,
+          "path": "/Volumes/media/audio/music/complete/lossy/by-artist/e/Escape Tank/[1996] Escape Tank [Instinct Ambient AMB008-2]",
+          "quality_info": "MP3 CBR 256kbps",
+          "quality_score": 256.0,
+          "recommended_action": "keep",
+          "size_bytes": 115255943,
+          "total_discs": null,
+          "track_count": 3,
+          "file_exists": true
+        },
+        {
+          "album_name": "Tension Wire Fence Vol 1",
+          "artist_name": "The Dark Outside, TDO Cassettes & Bibliotapes",
+          "confidence": 80.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "fingerprint",
+          "match_percentage": 49.2846782700422,
+          "musicbrainz_albumid": null,
+          "path": "/Volumes/media/audio/music/complete/lossy/by-artist/t/The Dark Outside, TDO Cassettes & Bibliotapes/[2020-05-01] Tension Wire Fence Vol 1 [TDO Cassettes none]",
+          "quality_info": "MP3 VBR 193kbps",
+          "quality_score": 210.784,
+          "recommended_action": "delete",
+          "size_bytes": 121621298,
+          "total_discs": null,
+          "track_count": 3,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 49.2846782700422,
+        "max": 49.2846782700422,
+        "avg": 49.2846782700422,
+        "count_below_threshold": 1
+      }
+    },
+    {
+      "group_id": 6,
+      "items": [
+        {
+          "album_name": "The Doldrums",
+          "artist_name": "Ariel Pink",
+          "confidence": 99.82931903422407,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": true,
+          "match_method": "fingerprint",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": null,
+          "path": "/Volumes/media/audio/music/complete/lossy/by-artist/p/Pink, Ariel, Haunted Graffiti/[2000] The Doldrums [Mexican Summer MEX269] (2020-04-24)",
+          "quality_info": "MP3 CBR 320kbps",
+          "quality_score": 320.0,
+          "recommended_action": "keep",
+          "size_bytes": 153317180,
+          "total_discs": null,
+          "track_count": 15,
+          "file_exists": true
+        }
+      ]
+    },
+    {
+      "group_id": 7,
+      "items": [
+        {
+          "album_name": "MASK 500",
+          "artist_name": "Various Artists",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "53fb4c93-4e0c-4434-8f2e-96cdc8b1396f",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[1999] MASK 500 [Skam MASK500]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 220412291,
+          "total_discs": 1,
+          "track_count": 10,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 8,
+      "items": [
+        {
+          "album_name": "μ Allstars∶ Criminal",
+          "artist_name": "Various Artists",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "ca688198-be14-48e3-bbdb-46dff5c54768",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[2000-10-30] μ Allstars∶ Criminal [Planet Mu ZIQ025]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 144793408,
+          "total_discs": 1,
+          "track_count": 6,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 9,
+      "items": [
+        {
+          "album_name": "Tone Science, Module No․8∶ Tone Science Live",
+          "artist_name": "Field Lines Cartographer",
+          "confidence": 100.0,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "musicbrainz",
+          "match_percentage": 100.0,
+          "musicbrainz_albumid": "b0aac9f4-0465-4dfe-8908-8cdb60c15089",
+          "path": "/Volumes/media/audio/music/complete/lossless/compilations/[2023-10-06] Tone Science, Module No․8∶ Tone Science Live [DiN DiN_TS08]",
+          "quality_info": "FLAC 44.1kHz 16bit",
+          "quality_score": 11644.1,
+          "recommended_action": "delete",
+          "size_bytes": 703283901,
+          "total_discs": 1,
+          "track_count": 6,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 100.0,
+        "max": 100.0,
+        "avg": 100.0,
+        "count_below_threshold": 0
+      }
+    },
+    {
+      "group_id": 10,
+      "items": [
+        {
+          "album_name": "The Radio Sessions 1965–1966 (live radio broadcast)",
+          "artist_name": "The Animals",
+          "confidence": 99.94058316403606,
+          "disc_number": 1,
+          "disc_subtitle": null,
+          "is_best": false,
+          "match_method": "fingerprint",
+          "match_percentage": 99.98217494921082,
+          "musicbrainz_albumid": null,
+          "path": "/Volumes/media/audio/music/complete/lossy/by-artist/a/Animals, The/[2020-08] The Radio Sessions 1965–1966 (live radio broadcast) [Cult Legends]",
+          "quality_info": "MP3 CBR 320kbps",
+          "quality_score": 320.0,
+          "recommended_action": "delete",
+          "size_bytes": 191764648,
+          "total_discs": null,
+          "track_count": 27,
+          "file_exists": true
+        }
+      ],
+      "similarity_stats": {
+        "min": 99.98217494921082,
+        "max": 99.98217494921082,
+        "avg": 99.98217494921082,
+        "count_below_threshold": 0
+      }
+    }
+  ],
+  "diagnostic_summary": {
+    "groups_below_threshold": [
+      {
+        "group_id": 5,
+        "min_similarity": 49.2846782700422,
+        "threshold": 98.0,
+        "item_count": 2
+      }
+    ],
+    "similarity_distribution": {},
+    "match_method_stats": {
+      "musicbrainz": 7,
+      "fingerprint": 4
+    },
+    "mb_threshold_bypasses": 0,
+    "note": "MusicBrainz ID matching bypasses similarity threshold. Low similarity with MB match often indicates box set discs or compilation albums."
+  }
+}

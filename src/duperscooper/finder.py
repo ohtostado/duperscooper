@@ -28,6 +28,7 @@ class DuplicateFinder:
         cache_backend: str = "sqlite",
         max_workers: int = 8,
         simple_progress: bool = False,
+        fingerprint_length: int = 120,
     ):
         """
         Initialize duplicate finder.
@@ -47,6 +48,8 @@ class DuplicateFinder:
                 (default: 8)
             simple_progress: Use simple parseable progress instead of fancy output
                 (default: False)
+            fingerprint_length: Maximum audio length to process in seconds
+                (default: 120, use 0 for full file)
         """
         self.min_size = min_size
         self.algorithm = algorithm
@@ -59,6 +62,7 @@ class DuplicateFinder:
             use_cache=use_cache,
             update_cache=update_cache,
             cache_backend=cache_backend,
+            fingerprint_length=fingerprint_length,
         )
         self.error_count = 0
 
