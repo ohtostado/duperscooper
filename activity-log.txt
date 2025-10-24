@@ -1,0 +1,95 @@
+▶ Starting album scan of 7 path(s)...
+DEBUG: Scanning paths: ['/Volumes/media/audio/music/complete/lossless', '/Volumes/media/audio/music/complete/lossy', '/Volumes/media/audio/music/organizing-yggdrasil/by-artist', '/Volumes/media/audio/music/organizing-yggdrasil/compilations', '/Volumes/media/audio/music/organizing-yggdrasil/samples', '/Volumes/media/audio/music/organizing-yggdrasil/soundtracks', '/Volumes/media/audio/music/organizing-yggdrasil/spoken-word']
+Scanning 7 path(s) for albums...
+Finding albums... (checked 100 files, found 10 albums so far)
+[snip]
+Finding albums... (checked 267100 files, found 19983 albums so far)
+Found 19986 albums, now scanning metadata...
+▶ Processing albums...
+Scanned 1/19986 albums (cache: 100% hits)
+[snip]
+Scanned 72/19986 albums (cache: 100% hits)
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/05 - Smoke My Bones.flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/04 - Hee‐Haw (Here Come The Bone People) (live).flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/08 - Attack !!!!!!#2 (live).flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/02 - Dead and Re‐Buried - Live.flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/07 - E.S.T. (Trip to the Moon).flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/01 - In God We Trust (In Cars You Rust_) (live).flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Alien Sex Fiend/[1984] Acid Bath [Anagram] (1988-01-01)/06 - Breakdown and Cry (Lay Down and Die - Goodbye).flac
+⚠️ Error details: unable to open database file
+Scanned 73/19986 albums (cache: 100% hits)
+Scanned 74/19986 albums (cache: 100% hits)
+Scanned 75/19986 albums (cache: 100% hits)
+Scanned 76/19986 albums (cache: 100% hits)
+Scanned 77/19986 albums (cache: 100% hits)
+Scanned 78/19986 albums (cache: 100% hits)
+Scanned 79/19986 albums (cache: 100% hits)
+Scanned 80/19986 albums (cache: 100% hits)
+Scanned 81/19986 albums (cache: 100% hits)
+Scanned 82/19986 albums (cache: 100% hits)
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Amber Asylum/[1997-05-13] The Natural Philosophy of Love [Release Entertainment RR 6955-2]/6 - Looking Glass Reprise.flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Amber Asylum/[1997-05-13] The Natural Philosophy of Love [Release Entertainment RR 6955-2]/5 - Jorinda and Joringal.flac
+⚠️ Error details: unable to open database file
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Amber Asylum/[1997-05-13] The Natural Philosophy of Love [Release Entertainment RR 6955-2]/4 - Song of the Spider War.flac
+⚠️ Error details: unable to open database file
+Scanned 83/19986 albums (cache: 100% hits)
+[snip]
+Scanned 129/19986 albums (cache: 99% hits)
+⚠️ Failed to fingerprint track: /Volumes/media/audio/music/complete/lossless/by-artist/a/Aphex Twin/[2001-10-22] Drukqs [Warp WARPCD92]/1-05 - Strotha Tynhe.flac
+⚠️ Error details: Failed to hash audio file /Volumes/media/audio/music/complete/lossless/by-artist/a/Aphex Twin/[2001-10-22] Drukqs [Warp WARPCD92]/1-05 - Strotha Tynhe.flac: Failed to fingerprint audio file /Volumes/media/audio/music/complete/lossless/by-artist/a/Aphex Twin/[2001-10-22] Drukqs [Warp WARPCD92]/1-05 - Strotha Tynhe.flac: [Errno 24] Too many open files: '/dev/null'
+Scanned 130/19986 albums (cache: 98% hits)
+Scanned 131/19986 albums (cache: 98% hits)
+Scanned 132/19986 albums (cache: 98% hits)
+Scanned 133/19986 albums (cache: 98% hits)
+Scanned 134/19986 albums (cache: 99% hits)
+Scanned 135/19986 albums (cache: 99% hits)
+Scanned 136/19986 albums (cache: 99% hits)
+Scanned 137/19986 albums (cache: 98% hits)
+Scanned 138/19986 albums (cache: 98% hits)
+Scanned 139/19986 albums (cache: 98% hits)
+Scanned 140/19986 albums (cache: 98% hits)
+Scanned 141/19986 albums (cache: 97% hits)
+Scanned 142/19986 albums (cache: 97% hits)
+Scanned 143/19986 albums (cache: 97% hits)
+Scanned 144/19986 albums (cache: 96% hits)
+Scanned 145/19986 albums (cache: 96% hits)
+Scanned 146/19986 albums (cache: 96% hits)
+Scanned 147/19986 albums (cache: 96% hits)
+Scanned 148/19986 albums (cache: 96% hits)
+Scan complete - Album cache: 142 hits, 6 misses (95.9% hit rate)
+Found 148 albums, finding duplicates...
+Finding duplicates (auto strategy)...
+Categorizing albums...
+Matching 148 canonical albums...
+Comparing 148 albums by fingerprints...
+Comparing album 1/20 (0/190 comparisons)
+Comparing album 11/20 (145/190 comparisons)
+Comparing album 1/20 (0/190 comparisons)
+Comparing album 11/20 (145/190 comparisons)
+Comparing album 1/12 (0/66 comparisons)
+Comparing album 11/12 (65/66 comparisons)
+Comparing album 1/4 (0/6 comparisons)
+Comparing album 1/2 (0/1 comparisons)
+Comparing album 1/9 (0/36 comparisons)
+Comparing album 1/2 (0/1 comparisons)
+Comparing album 1/9 (0/36 comparisons)
+Comparing album 1/5 (0/10 comparisons)
+Comparing album 1/12 (0/66 comparisons)
+Comparing album 11/12 (65/66 comparisons)
+Comparing album 1/8 (0/28 comparisons)
+Comparing album 1/5 (0/10 comparisons)
+Comparing album 1/4 (0/6 comparisons)
+Comparing album 1/8 (0/28 comparisons)
+Comparing album 1/7 (0/21 comparisons)
+Comparing album 1/2 (0/1 comparisons)
+Comparing album 1/5 (0/10 comparisons)
+Comparing album 1/2 (0/1 comparisons)
+Merging groups by MusicBrainz ID...
+✓ Scan complete - 0 duplicate groups found

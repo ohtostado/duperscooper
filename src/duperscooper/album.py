@@ -129,6 +129,11 @@ class AlbumScanner:
         albums = []
         total_albums = len(album_dirs)
 
+        print(
+            f"DEBUG: Starting metadata extraction for {total_albums} albums",
+            flush=True,
+        )
+
         if self.verbose and self.simple_progress:
             # Simple parseable progress for GUI/scripts
             iterator = album_dirs
@@ -150,9 +155,13 @@ class AlbumScanner:
             if should_stop and should_stop():
                 print(
                     f"DEBUG: Stop detected in scan_albums metadata extraction "
-                    f"at {idx}/{total_albums} albums"
+                    f"at {idx}/{total_albums} albums",
+                    flush=True,
                 )
                 break
+
+            if idx % 100 == 0:
+                print(f"DEBUG: Processing album {idx}/{total_albums}", flush=True)
 
             try:
                 album = self.extract_album_metadata(
