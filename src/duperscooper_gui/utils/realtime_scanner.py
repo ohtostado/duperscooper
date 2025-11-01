@@ -173,7 +173,15 @@ class RealtimeScanThread(QThread):
 
         def processing_should_stop() -> bool:
             """Check if processing should stop."""
-            return self._should_stop or self._stop_processing
+            result = self._should_stop or self._stop_processing
+            if result:
+                print(
+                    f"DEBUG: processing_should_stop() returning True "
+                    f"(_should_stop={self._should_stop}, "
+                    f"_stop_processing={self._stop_processing})",
+                    flush=True,
+                )
+            return result
 
         def on_metadata_start() -> None:
             """Callback when metadata extraction starts."""
